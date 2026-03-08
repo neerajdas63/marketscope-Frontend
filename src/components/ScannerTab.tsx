@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { mockData, Stock } from "@/data/mockData";
 import { getChangeTextColor, formatCurrency, getSignal } from "@/lib/market";
+import { apiUrl } from "@/lib/api";
 
 interface Filters {
   minMove: number;
@@ -27,7 +28,7 @@ export function ScannerTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/scanner?min_change=0")
+    fetch(apiUrl("/scanner?min_change=0"))
       .then((r) => r.json())
       .then((d) => {
         if (d.stocks) setData(d);

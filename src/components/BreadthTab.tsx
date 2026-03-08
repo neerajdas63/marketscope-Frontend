@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { apiUrl } from "@/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -168,7 +169,7 @@ export function BreadthTab() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function doFetch() {
-    fetch("/api/breadth")
+    fetch(apiUrl("/breadth"))
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d: unknown) => {
         setData(normalizeBreadthData(d)); setIsOffline(false);

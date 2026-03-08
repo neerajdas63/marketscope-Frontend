@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { apiUrl } from "@/lib/api";
 
 const safe = (val: unknown, dec = 2): string => {
   const n = parseFloat(val as string);
@@ -209,7 +210,7 @@ export function BreakoutTab({ refreshTrigger }: { refreshTrigger?: number }) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
-    fetch("http://localhost:8000/breakout", { signal: controller.signal })
+    fetch(apiUrl("/breakout"), { signal: controller.signal })
       .then((r) => {
         clearTimeout(timeout);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

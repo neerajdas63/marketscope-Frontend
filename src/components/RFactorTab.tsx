@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { rfactorMockData, RFactorData } from "@/data/rfactorMockData";
 import { RFactorCard } from "./RFactorCard";
+import { apiUrl } from "@/lib/api";
 
 type Direction = "ALL" | "GAINERS" | "LOSERS";
 type SortBy = "rfactor" | "change_pct" | "volume_ratio";
@@ -11,7 +12,7 @@ export function RFactorTab() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-  fetch("http://localhost:8000/rfactor?limit=50")
+  fetch(apiUrl("/rfactor?limit=50"))
     .then((r) => r.json())
     .then((d) => {
       console.log("LIVE DATA:", d.last_updated); // ← add karo

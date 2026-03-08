@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { morningWatchlistMockData } from "../data/morningWatchlistMockData";
+import { apiUrl } from "@/lib/api";
 
 // ── Date helpers ───────────────────────────────────────────────────────────
 
@@ -213,7 +214,7 @@ export function MorningWatchlist() {
 
   function doFetch(date) {
     if (!date || !isValidDate(date)) return;
-    fetch(`/morning-watchlist?date=${date}`)
+    fetch(apiUrl(`/morning-watchlist?date=${date}`))
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

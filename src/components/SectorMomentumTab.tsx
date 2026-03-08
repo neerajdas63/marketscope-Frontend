@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { apiUrl } from "@/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -491,13 +492,13 @@ export function SectorMomentumTab() {
   const isLiveRef = useRef(false);
 
   function buildUrl(mode: "today" | "yesterday" | "custom", custom: string): string | null {
-    if (mode === "today") return "http://localhost:8000/sector-momentum";
+    if (mode === "today") return apiUrl("/sector-momentum");
     const dateStr = mode === "yesterday" ? getYesterday() : custom;
     if (!isValidDate(dateStr)) {
       console.error("Invalid date:", dateStr);
       return null;
     }
-    return `http://localhost:8000/sector-momentum/history?date=${dateStr}`;
+    return apiUrl(`/sector-momentum/history?date=${dateStr}`);
   }
 
   function doFetch(mode: "today" | "yesterday" | "custom" = selectedDate, custom = customDate) {

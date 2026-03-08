@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { BoostStock } from "@/data/boostMockData";
 import { BoostCard } from "./BoostCard";
+import { apiUrl } from "@/lib/api";
 
 type Direction = "ALL" | "GAINERS" | "LOSERS";
 type SortBy = "boost_score" | "change_pct" | "vol_surge";
@@ -13,7 +14,7 @@ export function BoostTab() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:8000/boost?limit=50")
+    fetch(apiUrl("/boost?limit=50"))
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

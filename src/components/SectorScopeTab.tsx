@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { apiUrl } from "@/lib/api";
 
 interface LiveStock {
   symbol: string;
@@ -208,7 +209,7 @@ export function SectorScopeTab() {
   useEffect(() => {
     const doFetch = () => {
       setLoading(true);
-      fetch("http://localhost:8000/sector-scope")
+      fetch(apiUrl("/sector-scope"))
         .then((r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();

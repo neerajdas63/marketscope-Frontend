@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { apiUrl } from "@/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -295,7 +296,7 @@ export function OiTab() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function doFetch() {
-    fetch("/api/oi/bulk?symbols=ALL_FO_SYMBOLS")
+    fetch(apiUrl("/oi/bulk?symbols=ALL_FO_SYMBOLS"))
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d: unknown) => {
         setData(normalizeOiResponse(d));

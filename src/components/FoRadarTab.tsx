@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { apiUrl } from "@/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -230,7 +231,7 @@ export function FoRadarTab() {
 
   function doFetch(sig: TradeSignal | "ALL", conf: 1 | 2 | 3) {
     const qs = `?signal=${sig}&min_confidence=${conf}&limit=100`;
-    fetch(`/api/fo-radar${qs}`)
+    fetch(apiUrl(`/fo-radar${qs}`))
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d: unknown) => {
         setData(normalizeResponse(d));

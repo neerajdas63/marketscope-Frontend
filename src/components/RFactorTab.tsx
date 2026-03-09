@@ -1,13 +1,21 @@
 import { useState, useMemo, useEffect } from "react";
+import { getPreScoreValue, getTriggerScoreValue } from "@/data/mockData";
 import { rfactorMockData, RFactorData } from "@/data/rfactorMockData";
 import { RFactorCard } from "./RFactorCard";
 import { fetchRFactorData, type RFactorSortBy } from "@/lib/api";
 
-type Direction = "ALL" | "GAINERS" | "LOSERS";
+type Direction = "ALL" | "LONG" | "SHORT" | "NEUTRAL";
+
+function getDirectionValue(stock: RFactorData["stocks"][number]) {
+  return stock.inferred_direction ?? (stock.change_pct > 0 ? "LONG" : stock.change_pct < 0 ? "SHORT" : "NEUTRAL");
+}
 
 function getSortValue(stock: RFactorData["stocks"][number], sortBy: RFactorSortBy) {
   if (sortBy === "opportunity") return stock.opportunity_score ?? Number.NEGATIVE_INFINITY;
   if (sortBy === "trend") return stock.rfactor_trend_15m ?? Number.NEGATIVE_INFINITY;
+  if (sortBy === "pre_score") return getPreScoreValue(stock) ?? Number.NEGATIVE_INFINITY;
+  if (sortBy === "trigger_score") return getTriggerScoreValue(stock) ?? Number.NEGATIVE_INFINITY;
+  if (sortBy === "direction_conf") return stock.direction_conf ?? Number.NEGATIVE_INFINITY;
   return stock.rfactor;
 }
 
@@ -66,12 +74,7 @@ export function RFactorTab() {
     return [...data.stocks]
       .filter((s) => !foOnly || s.fo)
       .filter((s) => s.rfactor >= minScore)
-      .filter(
-        (s) =>
-          direction === "ALL" ||
-          (direction === "GAINERS" && s.change_pct > 0) ||
-          (direction === "LOSERS" && s.change_pct < 0)
-      )
+      .filter((s) => direction === "ALL" || getDirectionValue(s) === direction)
       .sort((a, b) => {
         return getSortValue(b, sortBy) - getSortValue(a, sortBy);
       });
@@ -158,7 +161,7 @@ export function RFactorTab() {
 
           {/* Direction Buttons */}
           <div style={{ display: "flex", gap: "4px" }}>
-            {(["ALL", "GAINERS", "LOSERS"] as Direction[]).map((dir) => (
+            {(["ALL", "LONG", "SHORT", "NEUTRAL"] as Direction[]).map((dir) => (
               <button
                 key={dir}
                 onClick={() => setDirection(dir)}
@@ -175,7 +178,7 @@ export function RFactorTab() {
                   transition: "background-color 0.15s ease, color 0.15s ease",
                 }}
               >
-                {dir === "GAINERS" ? "GAINERS ▲" : dir === "LOSERS" ? "LOSERS ▼" : dir}
+                {dir}
               </button>
             ))}
           </div>
@@ -199,6 +202,9 @@ export function RFactorTab() {
             <option value="rfactor">R-Factor</option>
             <option value="opportunity">Opportunity</option>
             <option value="trend">Trend 15m</option>
+            <option value="pre_score">Pre Score</option>
+            <option value="trigger_score">Trigger Score</option>
+            <option value="direction_conf">Direction Conf</option>
           </select>
 
           {/* Updated time — pushed to the right */}

@@ -21,8 +21,11 @@ export interface StockInsightFields {
   opportunity_score?: number;
   setup_stage?: SetupStage;
   pre_score?: number;
+  prescore?: number;
   trigger_score?: number;
+  triggerscore?: number;
   alert_stage?: string;
+  alertstage?: string;
   inferred_direction?: InferredDirection;
   direction_conf?: number;
   compression?: number;
@@ -36,7 +39,29 @@ export interface StockInsightFields {
   breakout_quality?: InsightValue;
   vwap_acceptance?: InsightValue;
   is_chase?: boolean;
+  ischase?: boolean;
   chase_reason?: string;
+  chasereason?: string;
+}
+
+export function getPreScoreValue(stock: Pick<StockInsightFields, "pre_score" | "prescore">) {
+  return stock.pre_score ?? stock.prescore;
+}
+
+export function getTriggerScoreValue(stock: Pick<StockInsightFields, "trigger_score" | "triggerscore">) {
+  return stock.trigger_score ?? stock.triggerscore;
+}
+
+export function getIsChaseValue(stock: Pick<StockInsightFields, "is_chase" | "ischase">) {
+  return stock.is_chase ?? stock.ischase;
+}
+
+export function getChaseReasonValue(stock: Pick<StockInsightFields, "chase_reason" | "chasereason">) {
+  return stock.chase_reason ?? stock.chasereason;
+}
+
+export function getAlertStageValue(stock: Pick<StockInsightFields, "alert_stage" | "alertstage" | "setup_stage">) {
+  return stock.alert_stage ?? stock.alertstage ?? stock.setup_stage;
 }
 
 export interface Stock extends StockInsightFields {

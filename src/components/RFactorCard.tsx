@@ -1,5 +1,12 @@
 import { RFactorStock } from "@/data/rfactorMockData";
-import type { InferredDirection } from "@/data/mockData";
+import {
+  getAlertStageValue,
+  getChaseReasonValue,
+  getIsChaseValue,
+  getPreScoreValue,
+  getTriggerScoreValue,
+  type InferredDirection,
+} from "@/data/mockData";
 import { formatInsightNumber, InsightTooltip, StageBadge, TrendIndicator } from "./StockInsightWidgets";
 
 interface RFactorCardProps {
@@ -82,6 +89,13 @@ function renderStat(label: string, value: string, color = "#ffffff") {
 }
 
 export function RFactorCard({ stock }: RFactorCardProps) {
+  const resolvedPreScore = getPreScoreValue(stock);
+  const resolvedTriggerScore = getTriggerScoreValue(stock);
+  const chaseWarning = getIsChaseValue(stock);
+  const chaseReason = getChaseReasonValue(stock);
+  const alertStage = getAlertStageValue(stock);
+  const inferredDirection =
+    stock.inferred_direction ?? (stock.change_pct > 0 ? "LONG" : stock.change_pct < 0 ? "SHORT" : "NEUTRAL");
   const borderColor = getBorderColor(stock.rfactor);
   const isPositive = stock.change_pct >= 0;
   const progressWidth = `${Math.max(0, Math.min(stock.rfactor, 100))}%`;
@@ -90,11 +104,9 @@ export function RFactorCard({ stock }: RFactorCardProps) {
       ? "Trend --"
       : `Trend ${stock.rfactor_trend_15m > 0 ? "+" : ""}${stock.rfactor_trend_15m.toFixed(2)}`;
   const opportunityLabel = `Opportunity ${formatInsightNumber(stock.opportunity_score, 1)}`;
-  const directionTone = getDirectionTone(stock.inferred_direction);
-  const directionLabel = stock.inferred_direction ?? "NEUTRAL";
+  const directionTone = getDirectionTone(inferredDirection);
+  const directionLabel = inferredDirection;
   const confidenceLabel = `Conf ${formatConfidence(stock.direction_conf)}`;
-  const chaseWarning = stock.is_chase;
-  const alertStage = stock.alert_stage;
 
   return (
     <div
@@ -102,6 +114,7 @@ export function RFactorCard({ stock }: RFactorCardProps) {
         backgroundColor: "#111111",
         borderRadius: "8px",
         borderLeft: `4px solid ${borderColor}`,
+        boxShadow: chaseWarning ? "inset 0 0 0 1px rgba(249, 115, 22, 0.28)" : "none",
         padding: "14px",
         cursor: "pointer",
         transition: "background-color 0.15s ease",
@@ -133,7 +146,7 @@ export function RFactorCard({ stock }: RFactorCardProps) {
             </span>
           )}
           <StageBadge stage={stock.setup_stage} />
-          {alertStage && (
+          {alertStage && alertStage !== stock.setup_stage && (
             <span
               style={{
                 backgroundColor: "#1f2937",
@@ -319,7 +332,7 @@ export function RFactorCard({ stock }: RFactorCardProps) {
         </div>
       </div>
 
-      {(chaseWarning || stock.chase_reason) && (
+      {(chaseWarning || chaseReason) && (
         <div
           style={{
             marginTop: "10px",
@@ -344,7 +357,7 @@ export function RFactorCard({ stock }: RFactorCardProps) {
               CHASE
             </span>
             <span style={{ color: "#FCD9AE", fontSize: "11px", fontWeight: 600 }}>
-              {stock.chase_reason ?? "Price is extended away from the ideal early-entry zone"}
+              {chaseReason ?? "Price is extended away from the ideal early-entry zone"}
             </span>
           </div>
         </div>
@@ -357,20 +370,34 @@ export function RFactorCard({ stock }: RFactorCardProps) {
         {renderStat("RSI", stock.rsi.toFixed(1), getRsiMfiColor(stock.rsi))}
         {renderStat("MFI", stock.mfi.toFixed(1), getRsiMfiColor(stock.mfi))}
         {renderStat("RS", `${stock.relative_strength >= 0 ? "+" : ""}${stock.relative_strength.toFixed(2)}%`, stock.relative_strength >= 0 ? "#00C853" : "#F44336")}
-        {renderStat("Pre", formatMetricValue(stock.pre_score), "#93C5FD")}
-        {renderStat("Trigger", formatMetricValue(stock.trigger_score), "#FBBF24")}
+        {renderStat("Pre", formatMetricValue(resolvedPreScore), "#93C5FD")}
+        {renderStat("Trigger", formatMetricValue(resolvedTriggerScore), "#FBBF24")}
         {renderStat("Level", formatLevel(stock.nearest_level), "#E5E7EB")}
+        {renderStat("Dist %", stock.dist_pct === undefined ? "--" : `${formatInsightNumber(stock.dist_pct, 2)}%`, "#E2E8F0")}
         {renderStat("VWAP Acc", formatMetricValue(stock.vwap_acceptance), "#A5F3FC")}
         {renderStat("Direction", directionLabel, directionTone.color)}
         {renderStat("Breakout", formatMetricValue(stock.breakout_quality), "#FDBA74")}
+        {renderStat("Chase", chaseWarning ? "Risk" : "Clear", chaseWarning ? "#FB923C" : "#94A3B8")}
         {renderStat("Compression", formatMetricValue(stock.compression), "#C4B5FD")}
       </div>
 
-      {(stock.breakout_levels?.length || stock.proximity_score !== undefined || stock.dist_pct !== undefined) && (
-        <div style={{ marginTop: "10px", color: "#64748B", fontSize: "11px", lineHeight: 1.5 }}>
-          {stock.breakout_levels?.length ? `Levels: ${stock.breakout_levels.map((level) => formatLevel(level)).join(" / ")}` : ""}
-          {stock.proximity_score !== undefined ? `${stock.breakout_levels?.length ? " | " : ""}Proximity ${formatInsightNumber(stock.proximity_score, 1)}` : ""}
-          {stock.dist_pct !== undefined ? `${stock.proximity_score !== undefined || stock.breakout_levels?.length ? " | " : ""}Dist ${formatInsightNumber(stock.dist_pct, 2)}%` : ""}
+      {(stock.breakout_levels?.length || stock.proximity_score !== undefined) && (
+        <div className="flex items-center gap-2 flex-wrap" style={{ marginTop: "10px", color: "#64748B", fontSize: "11px", lineHeight: 1.5 }}>
+          {stock.breakout_levels?.length ? (
+            <InsightTooltip
+              label="Breakout Levels"
+              description={stock.breakout_levels.map((level) => formatLevel(level)).join(" / ")}
+            >
+              <span style={{ color: "#94A3B8", fontWeight: 600 }}>
+                Levels ({stock.breakout_levels.length})
+              </span>
+            </InsightTooltip>
+          ) : null}
+          {stock.proximity_score !== undefined ? (
+            <span>
+              {stock.breakout_levels?.length ? "| " : ""}Proximity {formatInsightNumber(stock.proximity_score, 1)}
+            </span>
+          ) : null}
         </div>
       )}
     </div>

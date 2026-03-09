@@ -9,7 +9,7 @@ export function apiUrl(path: string) {
   return `${API_BASE_URL}${path}`;
 }
 
-export type RFactorSortBy = "rfactor" | "opportunity" | "trend";
+export type RFactorSortBy = "rfactor" | "opportunity" | "trend" | "pre_score" | "trigger_score" | "direction_conf";
 
 const VALID_SETUP_STAGES: SetupStage[] = ["WARMING", "PRE_SIGNAL", "BREAKING", "CONFIRMED", "EXTENDED", "NEUTRAL"];
 
@@ -172,9 +172,12 @@ function normalizeRFactorStock(value: unknown): RFactorStock | null {
     rfactor_trend_acceleration: asOptionalNumber(stock.rfactor_trend_acceleration),
     rfactor_trend_points: asTrendPoints(stock.rfactor_trend_points),
     setup_stage: asSetupStage(stock.setup_stage),
-    pre_score: asOptionalNumber(stock.pre_score),
-    trigger_score: asOptionalNumber(stock.trigger_score),
-    alert_stage: asOptionalString(stock.alert_stage),
+    pre_score: asOptionalNumber(stock.pre_score) ?? asOptionalNumber(stock.prescore),
+    prescore: asOptionalNumber(stock.prescore),
+    trigger_score: asOptionalNumber(stock.trigger_score) ?? asOptionalNumber(stock.triggerscore),
+    triggerscore: asOptionalNumber(stock.triggerscore),
+    alert_stage: asOptionalString(stock.alert_stage) ?? asOptionalString(stock.alertstage) ?? asOptionalString(stock.setup_stage),
+    alertstage: asOptionalString(stock.alertstage),
     inferred_direction: asOptionalDirection(stock.inferred_direction),
     direction_conf: asOptionalNumber(stock.direction_conf),
     compression: asOptionalNumber(stock.compression),
@@ -187,8 +190,10 @@ function normalizeRFactorStock(value: unknown): RFactorStock | null {
     breakout_levels: asBreakoutLevels(stock.breakout_levels),
     breakout_quality: asOptionalInsightValue(stock.breakout_quality),
     vwap_acceptance: asOptionalInsightValue(stock.vwap_acceptance),
-    is_chase: asOptionalBoolean(stock.is_chase),
-    chase_reason: asOptionalString(stock.chase_reason),
+    is_chase: asOptionalBoolean(stock.is_chase) ?? asOptionalBoolean(stock.ischase),
+    ischase: asOptionalBoolean(stock.ischase),
+    chase_reason: asOptionalString(stock.chase_reason) ?? asOptionalString(stock.chasereason),
+    chasereason: asOptionalString(stock.chasereason),
   };
 }
 

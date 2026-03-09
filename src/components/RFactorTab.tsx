@@ -34,7 +34,7 @@ export function RFactorTab() {
           setData(nextData);
           setError(false);
         } else {
-          setData(rfactorMockData);
+          setData((currentData) => (currentData.stocks.length > 0 ? currentData : rfactorMockData));
           setError(true);
         }
       })
@@ -43,7 +43,7 @@ export function RFactorTab() {
           return;
         }
 
-        setData(rfactorMockData);
+        setData((currentData) => (currentData.stocks.length > 0 ? currentData : rfactorMockData));
         setError(true);
       })
       .finally(() => {
@@ -57,6 +57,10 @@ export function RFactorTab() {
   const [foOnly, setFoOnly] = useState<boolean>(false);
   const [minScore, setMinScore] = useState<number>(0);
   const [direction, setDirection] = useState<Direction>("ALL");
+  const maxRFactor = useMemo(() => {
+    const highestScore = data.stocks.reduce((currentMax, stock) => Math.max(currentMax, stock.rfactor), 0);
+    return Math.max(100, Math.ceil(highestScore / 10) * 10);
+  }, [data]);
 
   const filtered = useMemo(() => {
     return [...data.stocks]
@@ -140,8 +144,8 @@ export function RFactorTab() {
             <input
               type="range"
               min={0}
-              max={5}
-              step={0.5}
+              max={maxRFactor}
+              step={5}
               value={minScore}
               onChange={(e) => setMinScore(Number(e.target.value))}
               style={{

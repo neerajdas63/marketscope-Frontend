@@ -1,4 +1,5 @@
 import { RFactorStock } from "@/data/rfactorMockData";
+import type { InferredDirection } from "@/data/mockData";
 import { formatInsightNumber, InsightTooltip, StageBadge, TrendIndicator } from "./StockInsightWidgets";
 
 interface RFactorCardProps {
@@ -6,9 +7,9 @@ interface RFactorCardProps {
 }
 
 function getBorderColor(rfactor: number): string {
-  if (rfactor >= 3.5) return "#00C853";
-  if (rfactor >= 2.5) return "#FFD600";
-  if (rfactor >= 1.5) return "#FF6B00";
+  if (rfactor >= 75) return "#00C853";
+  if (rfactor >= 60) return "#FFD600";
+  if (rfactor >= 40) return "#FF6B00";
   return "#F44336";
 }
 
@@ -18,33 +19,82 @@ function getRsiMfiColor(value: number): string {
   return "#F44336";
 }
 
-function getVolumeColor(ratio: number): string {
-  if (ratio > 2) return "#FF6B00";
-  if (ratio > 1.5) return "#FFD600";
-  return "#ffffff";
+function getDirectionTone(direction?: InferredDirection) {
+  if (direction === "LONG") {
+    return { color: "#4ADE80", background: "rgba(34, 197, 94, 0.14)", border: "rgba(34, 197, 94, 0.28)" };
+  }
+
+  if (direction === "SHORT") {
+    return { color: "#F87171", background: "rgba(248, 113, 113, 0.14)", border: "rgba(248, 113, 113, 0.28)" };
+  }
+
+  return { color: "#CBD5E1", background: "rgba(148, 163, 184, 0.12)", border: "rgba(148, 163, 184, 0.25)" };
 }
 
-function getDeliveryColor(pct: number): string {
-  if (pct > 50) return "#00C853";
-  if (pct >= 30) return "#FFD600";
-  return "#ffffff";
+function formatMetricValue(value?: number | string | boolean, digits = 1) {
+  if (value === undefined || value === null) {
+    return "--";
+  }
+
+  if (typeof value === "number") {
+    return Number.isInteger(value) ? value.toString() : value.toFixed(digits);
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  return value;
 }
 
-function getBidAskColor(ratio: number): string {
-  if (ratio > 1.5) return "#00C853";
-  if (ratio < 0.7) return "#F44336";
-  return "#ffffff";
+function formatConfidence(confidence?: number) {
+  if (confidence === undefined || confidence === null || Number.isNaN(confidence)) {
+    return "--";
+  }
+
+  const normalized = confidence <= 1 ? confidence * 100 : confidence;
+  return Math.round(normalized).toString();
+}
+
+function formatLevel(value?: number | string) {
+  if (value === undefined || value === null) {
+    return "--";
+  }
+
+  if (typeof value === "number") {
+    return `₹${value.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+  }
+
+  return value;
+}
+
+function renderStat(label: string, value: string, color = "#ffffff") {
+  return (
+    <div>
+      <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+        {label}
+      </div>
+      <div style={{ color, fontSize: "13px", fontWeight: 600 }}>
+        {value}
+      </div>
+    </div>
+  );
 }
 
 export function RFactorCard({ stock }: RFactorCardProps) {
   const borderColor = getBorderColor(stock.rfactor);
   const isPositive = stock.change_pct >= 0;
-  const progressWidth = `${Math.max(0, Math.min(stock.rfactor <= 5 ? (stock.rfactor / 5) * 100 : stock.rfactor, 100))}%`;
+  const progressWidth = `${Math.max(0, Math.min(stock.rfactor, 100))}%`;
   const trendLabel =
     stock.rfactor_trend_15m === undefined
       ? "Trend --"
       : `Trend ${stock.rfactor_trend_15m > 0 ? "+" : ""}${stock.rfactor_trend_15m.toFixed(2)}`;
   const opportunityLabel = `Opportunity ${formatInsightNumber(stock.opportunity_score, 1)}`;
+  const directionTone = getDirectionTone(stock.inferred_direction);
+  const directionLabel = stock.inferred_direction ?? "NEUTRAL";
+  const confidenceLabel = `Conf ${formatConfidence(stock.direction_conf)}`;
+  const chaseWarning = stock.is_chase;
+  const alertStage = stock.alert_stage;
 
   return (
     <div
@@ -68,7 +118,7 @@ export function RFactorCard({ stock }: RFactorCardProps) {
         <span style={{ color: "#ffffff", fontWeight: "bold", fontSize: "15px" }}>
           {stock.symbol}
         </span>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-wrap justify-end flex-shrink-0">
           {stock.fo && (
             <span
               style={{
@@ -83,6 +133,20 @@ export function RFactorCard({ stock }: RFactorCardProps) {
             </span>
           )}
           <StageBadge stage={stock.setup_stage} />
+          {alertStage && (
+            <span
+              style={{
+                backgroundColor: "#1f2937",
+                color: "#cbd5e1",
+                fontSize: "10px",
+                padding: "2px 8px",
+                borderRadius: "9999px",
+                border: "1px solid #334155",
+              }}
+            >
+              {alertStage}
+            </span>
+          )}
           <span
             style={{
               backgroundColor: "#2a2a2a",
@@ -112,6 +176,32 @@ export function RFactorCard({ stock }: RFactorCardProps) {
           {isPositive ? "▲" : "▼"} {isPositive ? "+" : ""}
           {stock.change_pct.toFixed(2)}%
         </span>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            backgroundColor: directionTone.background,
+            border: `1px solid ${directionTone.border}`,
+            borderRadius: "9999px",
+            padding: "3px 10px",
+          }}
+        >
+          <span style={{ color: directionTone.color, fontSize: "11px", fontWeight: 700 }}>
+            {directionLabel}
+          </span>
+          <span style={{ color: "#cbd5e1", fontSize: "11px", fontWeight: 600 }}>
+            {confidenceLabel}
+          </span>
+        </div>
+        {stock.tier && (
+          <span style={{ color: "#64748b", fontSize: "11px", fontWeight: 600, textTransform: "uppercase" }}>
+            Tier {stock.tier}
+          </span>
+        )}
       </div>
 
       {/* Divider */}
@@ -229,120 +319,60 @@ export function RFactorCard({ stock }: RFactorCardProps) {
         </div>
       </div>
 
+      {(chaseWarning || stock.chase_reason) && (
+        <div
+          style={{
+            marginTop: "10px",
+            backgroundColor: "rgba(249, 115, 22, 0.12)",
+            border: "1px solid rgba(249, 115, 22, 0.3)",
+            borderRadius: "8px",
+            padding: "10px",
+          }}
+        >
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              style={{
+                backgroundColor: "rgba(239, 68, 68, 0.18)",
+                color: "#FB923C",
+                border: "1px solid rgba(251, 146, 60, 0.32)",
+                fontSize: "11px",
+                fontWeight: 700,
+                borderRadius: "9999px",
+                padding: "2px 8px",
+              }}
+            >
+              CHASE
+            </span>
+            <span style={{ color: "#FCD9AE", fontSize: "11px", fontWeight: 600 }}>
+              {stock.chase_reason ?? "Price is extended away from the ideal early-entry zone"}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Divider */}
       <div style={{ borderTop: "1px solid #222222", margin: "12px 0" }} />
 
-      {/* Row 5 — Stats Grid 2x3 */}
       <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-        {/* RSI */}
-        <div>
-          <div
-            style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}
-          >
-            RSI
-          </div>
-          <div
-            style={{
-              color: getRsiMfiColor(stock.rsi),
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            {stock.rsi.toFixed(1)}
-          </div>
-        </div>
-
-        {/* MFI */}
-        <div>
-          <div
-            style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}
-          >
-            MFI
-          </div>
-          <div
-            style={{
-              color: getRsiMfiColor(stock.mfi),
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            {stock.mfi.toFixed(1)}
-          </div>
-        </div>
-
-        {/* Volume */}
-        <div>
-          <div
-            style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}
-          >
-            Vol
-          </div>
-          <div
-            style={{
-              color: getVolumeColor(stock.volume_ratio),
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            {stock.volume_ratio}x
-          </div>
-        </div>
-
-        {/* RS */}
-        <div>
-          <div
-            style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}
-          >
-            RS
-          </div>
-          <div
-            style={{
-              color: stock.relative_strength >= 0 ? "#00C853" : "#F44336",
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            {stock.relative_strength >= 0 ? "+" : ""}
-            {stock.relative_strength.toFixed(2)}%
-          </div>
-        </div>
-
-        {/* Delivery % */}
-        <div>
-          <div
-            style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}
-          >
-            Delivery %
-          </div>
-          <div
-            style={{
-              color: stock.delivery_pct ? getDeliveryColor(stock.delivery_pct) : "#555555",
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            {stock.delivery_pct ? `${stock.delivery_pct.toFixed(1)}%` : "--"}
-          </div>
-        </div>
-
-        {/* Bid/Ask */}
-        <div>
-          <div
-            style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}
-          >
-            Bid/Ask
-          </div>
-          <div
-            style={{
-              color: stock.bid_ask_ratio ? getBidAskColor(stock.bid_ask_ratio) : "#555555",
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            {stock.bid_ask_ratio ? `${stock.bid_ask_ratio.toFixed(1)}x` : "--"}
-          </div>
-        </div>
+        {renderStat("RSI", stock.rsi.toFixed(1), getRsiMfiColor(stock.rsi))}
+        {renderStat("MFI", stock.mfi.toFixed(1), getRsiMfiColor(stock.mfi))}
+        {renderStat("RS", `${stock.relative_strength >= 0 ? "+" : ""}${stock.relative_strength.toFixed(2)}%`, stock.relative_strength >= 0 ? "#00C853" : "#F44336")}
+        {renderStat("Pre", formatMetricValue(stock.pre_score), "#93C5FD")}
+        {renderStat("Trigger", formatMetricValue(stock.trigger_score), "#FBBF24")}
+        {renderStat("Level", formatLevel(stock.nearest_level), "#E5E7EB")}
+        {renderStat("VWAP Acc", formatMetricValue(stock.vwap_acceptance), "#A5F3FC")}
+        {renderStat("Direction", directionLabel, directionTone.color)}
+        {renderStat("Breakout", formatMetricValue(stock.breakout_quality), "#FDBA74")}
+        {renderStat("Compression", formatMetricValue(stock.compression), "#C4B5FD")}
       </div>
+
+      {(stock.breakout_levels?.length || stock.proximity_score !== undefined || stock.dist_pct !== undefined) && (
+        <div style={{ marginTop: "10px", color: "#64748B", fontSize: "11px", lineHeight: 1.5 }}>
+          {stock.breakout_levels?.length ? `Levels: ${stock.breakout_levels.map((level) => formatLevel(level)).join(" / ")}` : ""}
+          {stock.proximity_score !== undefined ? `${stock.breakout_levels?.length ? " | " : ""}Proximity ${formatInsightNumber(stock.proximity_score, 1)}` : ""}
+          {stock.dist_pct !== undefined ? `${stock.proximity_score !== undefined || stock.breakout_levels?.length ? " | " : ""}Dist ${formatInsightNumber(stock.dist_pct, 2)}%` : ""}
+        </div>
+      )}
     </div>
   );
 }

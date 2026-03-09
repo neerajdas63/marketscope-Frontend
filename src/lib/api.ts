@@ -1,3 +1,6 @@
+import type { BreakoutLevel, InferredDirection, InsightValue, SetupStage } from "@/data/mockData";
+import type { RFactorData, RFactorStock } from "@/data/rfactorMockData";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://marketscope-backend1.onrender.com";
 
 export const API_BASE_URL = API_BASE.replace(/\/$/, "");
@@ -6,12 +9,18 @@ export function apiUrl(path: string) {
   return `${API_BASE_URL}${path}`;
 }
 
-import type { SetupStage } from "@/data/mockData";
-import type { RFactorData, RFactorStock } from "@/data/rfactorMockData";
-
 export type RFactorSortBy = "rfactor" | "opportunity" | "trend";
 
-const VALID_SETUP_STAGES: SetupStage[] = ["Building", "Triggering", "Extended", "Neutral"];
+const VALID_SETUP_STAGES: SetupStage[] = ["WARMING", "PRE_SIGNAL", "BREAKING", "CONFIRMED", "EXTENDED", "NEUTRAL"];
+
+const LEGACY_STAGE_ALIASES: Record<string, SetupStage> = {
+  Building: "WARMING",
+  Triggering: "BREAKING",
+  Extended: "EXTENDED",
+  Neutral: "NEUTRAL",
+};
+
+const VALID_DIRECTIONS: InferredDirection[] = ["LONG", "SHORT", "NEUTRAL"];
 
 function asFiniteNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -50,9 +59,43 @@ function asOptionalString(value: unknown) {
 }
 
 function asSetupStage(value: unknown): SetupStage | undefined {
-  return typeof value === "string" && VALID_SETUP_STAGES.includes(value as SetupStage)
-    ? (value as SetupStage)
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = LEGACY_STAGE_ALIASES[value] ?? value;
+
+  return VALID_SETUP_STAGES.includes(normalized as SetupStage)
+    ? (normalized as SetupStage)
     : undefined;
+}
+
+function asOptionalDirection(value: unknown): InferredDirection | undefined {
+  return typeof value === "string" && VALID_DIRECTIONS.includes(value as InferredDirection)
+    ? (value as InferredDirection)
+    : undefined;
+}
+
+function asOptionalBreakoutLevel(value: unknown): BreakoutLevel | undefined {
+  const numericValue = asFiniteNumber(value);
+  if (numericValue !== undefined) {
+    return numericValue;
+  }
+
+  return asOptionalString(value);
+}
+
+function asOptionalInsightValue(value: unknown): InsightValue | undefined {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  const numericValue = asFiniteNumber(value);
+  if (numericValue !== undefined) {
+    return numericValue;
+  }
+
+  return asOptionalString(value);
 }
 
 function asTrendPoints(value: unknown) {
@@ -65,6 +108,18 @@ function asTrendPoints(value: unknown) {
     .filter((point): point is number => point !== undefined);
 
   return points.length > 0 ? points : undefined;
+}
+
+function asBreakoutLevels(value: unknown) {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const levels = value
+    .map((level) => asOptionalBreakoutLevel(level))
+    .filter((level): level is BreakoutLevel => level !== undefined);
+
+  return levels.length > 0 ? levels : undefined;
 }
 
 function normalizeRFactorStock(value: unknown): RFactorStock | null {
@@ -111,11 +166,29 @@ function normalizeRFactorStock(value: unknown): RFactorStock | null {
     delivery_pct: asOptionalNumber(stock.delivery_pct),
     bid_ask_ratio: asOptionalNumber(stock.bid_ask_ratio),
     oi_change_pct: asOptionalNumber(stock.oi_change_pct),
+    tier: asOptionalString(stock.tier),
     opportunity_score: asOptionalNumber(stock.opportunity_score),
     rfactor_trend_15m: asOptionalNumber(stock.rfactor_trend_15m),
     rfactor_trend_acceleration: asOptionalNumber(stock.rfactor_trend_acceleration),
     rfactor_trend_points: asTrendPoints(stock.rfactor_trend_points),
     setup_stage: asSetupStage(stock.setup_stage),
+    pre_score: asOptionalNumber(stock.pre_score),
+    trigger_score: asOptionalNumber(stock.trigger_score),
+    alert_stage: asOptionalString(stock.alert_stage),
+    inferred_direction: asOptionalDirection(stock.inferred_direction),
+    direction_conf: asOptionalNumber(stock.direction_conf),
+    compression: asOptionalNumber(stock.compression),
+    obv_slope_score: asOptionalNumber(stock.obv_slope_score),
+    vol_accel: asOptionalNumber(stock.vol_accel),
+    rsi_slope_5m: asOptionalNumber(stock.rsi_slope_5m),
+    nearest_level: asOptionalBreakoutLevel(stock.nearest_level),
+    proximity_score: asOptionalNumber(stock.proximity_score),
+    dist_pct: asOptionalNumber(stock.dist_pct),
+    breakout_levels: asBreakoutLevels(stock.breakout_levels),
+    breakout_quality: asOptionalInsightValue(stock.breakout_quality),
+    vwap_acceptance: asOptionalInsightValue(stock.vwap_acceptance),
+    is_chase: asOptionalBoolean(stock.is_chase),
+    chase_reason: asOptionalString(stock.chase_reason),
   };
 }
 

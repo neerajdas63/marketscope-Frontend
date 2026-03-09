@@ -1,12 +1,42 @@
-export type SetupStage = "Building" | "Triggering" | "Extended" | "Neutral";
+export type SetupStage =
+  | "WARMING"
+  | "PRE_SIGNAL"
+  | "BREAKING"
+  | "CONFIRMED"
+  | "EXTENDED"
+  | "NEUTRAL";
+
+export type InferredDirection = "LONG" | "SHORT" | "NEUTRAL";
+
+export type BreakoutLevel = number | string;
+
+export type InsightValue = number | string | boolean;
 
 export interface StockInsightFields {
   rfactor?: number;
+  tier?: string;
   rfactor_trend_15m?: number;
   rfactor_trend_acceleration?: number;
   rfactor_trend_points?: number[];
   opportunity_score?: number;
   setup_stage?: SetupStage;
+  pre_score?: number;
+  trigger_score?: number;
+  alert_stage?: string;
+  inferred_direction?: InferredDirection;
+  direction_conf?: number;
+  compression?: number;
+  obv_slope_score?: number;
+  vol_accel?: number;
+  rsi_slope_5m?: number;
+  nearest_level?: BreakoutLevel;
+  proximity_score?: number;
+  dist_pct?: number;
+  breakout_levels?: BreakoutLevel[];
+  breakout_quality?: InsightValue;
+  vwap_acceptance?: InsightValue;
+  is_chase?: boolean;
+  chase_reason?: string;
 }
 
 export interface Stock extends StockInsightFields {

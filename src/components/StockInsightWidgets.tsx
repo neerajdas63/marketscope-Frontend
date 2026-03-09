@@ -5,22 +5,32 @@ import type { SetupStage } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 
 const stageStyles: Record<SetupStage, { background: string; border: string; color: string }> = {
-  Building: {
+  WARMING: {
     background: "rgba(245, 158, 11, 0.14)",
     border: "rgba(245, 158, 11, 0.32)",
     color: "#FBBF24",
   },
-  Triggering: {
-    background: "rgba(34, 197, 94, 0.14)",
-    border: "rgba(34, 197, 94, 0.36)",
-    color: "#4ADE80",
+  PRE_SIGNAL: {
+    background: "rgba(59, 130, 246, 0.14)",
+    border: "rgba(59, 130, 246, 0.34)",
+    color: "#60A5FA",
   },
-  Extended: {
+  BREAKING: {
     background: "rgba(249, 115, 22, 0.14)",
     border: "rgba(249, 115, 22, 0.36)",
     color: "#FB923C",
   },
-  Neutral: {
+  CONFIRMED: {
+    background: "rgba(34, 197, 94, 0.14)",
+    border: "rgba(34, 197, 94, 0.36)",
+    color: "#4ADE80",
+  },
+  EXTENDED: {
+    background: "rgba(239, 68, 68, 0.14)",
+    border: "rgba(239, 68, 68, 0.36)",
+    color: "#F87171",
+  },
+  NEUTRAL: {
     background: "rgba(148, 163, 184, 0.12)",
     border: "rgba(148, 163, 184, 0.25)",
     color: "#CBD5E1",
@@ -115,13 +125,17 @@ export function StageBadge({ stage, className }: StageBadgeProps) {
     <InsightTooltip
       label="Stage"
       description={
-        stage === "Building"
-          ? "Building = setup forming"
-          : stage === "Triggering"
-            ? "Triggering = active actionable phase"
-            : stage === "Extended"
-              ? "Extended = strong but likely late / stretched"
-              : "Neutral = no clear actionable phase"
+        stage === "WARMING"
+          ? "Warming = setup is beginning to organize"
+          : stage === "PRE_SIGNAL"
+            ? "Pre-signal = early pressure is building"
+            : stage === "BREAKING"
+              ? "Breaking = trigger conditions are activating"
+              : stage === "CONFIRMED"
+                ? "Confirmed = move has follow-through and confirmation"
+                : stage === "EXTENDED"
+                  ? "Extended = move is stretched and may be late"
+                  : "Neutral = no clear early-entry edge"
       }
     >
       <span

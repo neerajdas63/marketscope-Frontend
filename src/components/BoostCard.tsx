@@ -1,4 +1,4 @@
-import { BoostStock } from "@/data/boostMockData";
+import { type BoostComponents, type BoostDirection, BoostStock } from "@/data/boostMockData";
 
 interface BoostCardProps {
   stock: BoostStock;
@@ -33,10 +33,72 @@ function getVwapColor(pct: number): string {
   return "#888888";
 }
 
+function getDirectionBadgeStyle(direction: BoostDirection) {
+  if (direction === "up") {
+    return { label: "UP", bg: "rgba(34, 197, 94, 0.14)", border: "rgba(34, 197, 94, 0.28)", color: "#4ADE80" };
+  }
+
+  if (direction === "down") {
+    return { label: "DOWN", bg: "rgba(239, 68, 68, 0.14)", border: "rgba(239, 68, 68, 0.28)", color: "#F87171" };
+  }
+
+  return { label: "FLAT", bg: "rgba(148, 163, 184, 0.12)", border: "rgba(148, 163, 184, 0.24)", color: "#CBD5E1" };
+}
+
+function formatComponentValue(value: unknown) {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value === "number") {
+    return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return undefined;
+    }
+  }
+
+  return undefined;
+}
+
+function buildComponentsTooltip(components?: BoostComponents) {
+  if (!components) {
+    return undefined;
+  }
+
+  const rows = [
+    ["Rel Vol Burst", formatComponentValue(components.relative_volume_burst)],
+    ["Price Velocity", formatComponentValue(components.price_velocity_burst)],
+    ["Range Quality", formatComponentValue(components.range_expansion_quality)],
+    ["Directional Efficiency", formatComponentValue(components.directional_efficiency)],
+    ["Institutional Hint", formatComponentValue(components.institutional_hint)],
+    ["Confidence", formatComponentValue(components.confidence)],
+    ["Data Mode", formatComponentValue(components.data_mode)],
+    ["Details", formatComponentValue(components.details)],
+    ["Daily Context", formatComponentValue(components.daily_context)],
+  ].filter((entry): entry is [string, string] => Boolean(entry[1]));
+
+  return rows.length > 0
+    ? rows.map(([label, value]) => `${label}: ${value}`).join("\n")
+    : undefined;
+}
+
 export function BoostCard({ stock }: BoostCardProps) {
   const boostColor = getBoostColor(safeNum(stock.boost_score));
   const badge = getBoostLabel(safeNum(stock.boost_score));
   const isPositive = safeNum(stock.change_pct) >= 0;
+  const directionBadge = stock.boost_direction ? getDirectionBadgeStyle(stock.boost_direction) : null;
+  const institutionalHint = safeNum(stock.institutional_hint_score, Number.NaN);
+  const hasInstitutionalHint = Number.isFinite(institutionalHint);
+  const componentsTooltip = buildComponentsTooltip(stock.boost_components);
 
   let highLowDisplay: { icon: string; color: string } | null = null;
   if (stock.near_20d_high) {
@@ -55,6 +117,7 @@ export function BoostCard({ stock }: BoostCardProps) {
         cursor: "pointer",
         transition: "background-color 0.15s ease",
       }}
+      title={componentsTooltip}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.backgroundColor = "#1a1a1a";
       }}
@@ -67,7 +130,7 @@ export function BoostCard({ stock }: BoostCardProps) {
         <span style={{ color: "#ffffff", fontWeight: "bold", fontSize: "15px" }}>
           {stock.symbol}
         </span>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
           {stock.fo && (
             <span
               style={{
@@ -79,6 +142,22 @@ export function BoostCard({ stock }: BoostCardProps) {
               }}
             >
               F&amp;O
+            </span>
+          )}
+          {directionBadge && (
+            <span
+              style={{
+                backgroundColor: directionBadge.bg,
+                border: `1px solid ${directionBadge.border}`,
+                color: directionBadge.color,
+                fontSize: "10px",
+                fontWeight: 700,
+                padding: "2px 8px",
+                borderRadius: "9999px",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {directionBadge.label}
             </span>
           )}
           <span
@@ -162,19 +241,38 @@ export function BoostCard({ stock }: BoostCardProps) {
 
       {/* Row 5 — STRONG/MODERATE/WEAK Badge */}
       <div style={{ marginTop: "10px" }}>
-        <span
-          style={{
-            backgroundColor: badge.bg,
-            color: badge.color,
-            fontSize: "11px",
-            fontWeight: "bold",
-            padding: "3px 10px",
-            borderRadius: "4px",
-            letterSpacing: "0.05em",
-          }}
-        >
-          {badge.text}
-        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            style={{
+              backgroundColor: badge.bg,
+              color: badge.color,
+              fontSize: "11px",
+              fontWeight: "bold",
+              padding: "3px 10px",
+              borderRadius: "4px",
+              letterSpacing: "0.05em",
+            }}
+          >
+            {badge.text}
+          </span>
+          {hasInstitutionalHint && (
+            <span
+              title="Institutional hint is a soft heuristic only, not a certainty label."
+              style={{
+                backgroundColor: "rgba(148, 163, 184, 0.12)",
+                border: "1px solid rgba(148, 163, 184, 0.24)",
+                color: "#CBD5E1",
+                fontSize: "10px",
+                fontWeight: 600,
+                padding: "3px 8px",
+                borderRadius: "9999px",
+                letterSpacing: "0.03em",
+              }}
+            >
+              Inst. hint {institutionalHint.toFixed(0)}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Divider */}

@@ -1,10 +1,139 @@
 import { useState, useMemo, useEffect } from "react";
-import { BoostStock } from "@/data/boostMockData";
+import { type BoostComponents, type BoostDirection, BoostStock } from "@/data/boostMockData";
 import { BoostCard } from "./BoostCard";
 import { apiUrl } from "@/lib/api";
 
 type Direction = "ALL" | "GAINERS" | "LOSERS";
 type SortBy = "boost_score" | "change_pct" | "vol_surge";
+
+const VALID_BOOST_DIRECTIONS: BoostDirection[] = ["up", "down", "flat"];
+
+function asFiniteNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+}
+
+function asOptionalBoolean(value: unknown) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    if (value.toLowerCase() === "true") return true;
+    if (value.toLowerCase() === "false") return false;
+  }
+
+  return undefined;
+}
+
+function asOptionalString(value: unknown) {
+  return typeof value === "string" ? value : undefined;
+}
+
+function asBoostDirection(value: unknown): BoostDirection | undefined {
+  return typeof value === "string" && VALID_BOOST_DIRECTIONS.includes(value as BoostDirection)
+    ? (value as BoostDirection)
+    : undefined;
+}
+
+function asBoostComponents(value: unknown): BoostComponents | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const components = value as Record<string, unknown>;
+
+  return {
+    relative_volume_burst: asFiniteNumber(components.relative_volume_burst),
+    price_velocity_burst: asFiniteNumber(components.price_velocity_burst),
+    range_expansion_quality: asFiniteNumber(components.range_expansion_quality),
+    directional_efficiency: asFiniteNumber(components.directional_efficiency),
+    institutional_hint: asFiniteNumber(components.institutional_hint),
+    confidence: asFiniteNumber(components.confidence),
+    data_mode: asOptionalString(components.data_mode),
+    details: typeof components.details === "string" || (components.details && typeof components.details === "object")
+      ? (components.details as string | Record<string, unknown>)
+      : undefined,
+    daily_context: typeof components.daily_context === "string" || (components.daily_context && typeof components.daily_context === "object")
+      ? (components.daily_context as string | Record<string, unknown>)
+      : undefined,
+  };
+}
+
+function normalizeBoostStock(value: unknown): BoostStock | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const stock = value as Record<string, unknown>;
+  const symbol = asOptionalString(stock.symbol);
+  const sector = asOptionalString(stock.sector) ?? "Unknown";
+  const ltp = asFiniteNumber(stock.ltp);
+  const changePct = asFiniteNumber(stock.change_pct);
+  const boostScore = asFiniteNumber(stock.boost_score);
+  const volSurge = asFiniteNumber(stock.vol_surge);
+  const rangeRatio = asFiniteNumber(stock.range_ratio);
+  const vwapPct = asFiniteNumber(stock.vwap_pct);
+
+  if (
+    !symbol ||
+    ltp === undefined ||
+    changePct === undefined ||
+    boostScore === undefined ||
+    volSurge === undefined ||
+    rangeRatio === undefined ||
+    vwapPct === undefined
+  ) {
+    return null;
+  }
+
+  return {
+    symbol,
+    sector,
+    ltp,
+    change_pct: changePct,
+    fo: asOptionalBoolean(stock.fo) ?? false,
+    boost_score: boostScore,
+    boost_direction: asBoostDirection(stock.boost_direction),
+    institutional_hint_score: asFiniteNumber(stock.institutional_hint_score),
+    boost_components: asBoostComponents(stock.boost_components),
+    vol_surge: volSurge,
+    range_ratio: rangeRatio,
+    near_20d_high: asOptionalBoolean(stock.near_20d_high) ?? false,
+    near_20d_low: asOptionalBoolean(stock.near_20d_low) ?? false,
+    vwap_pct: vwapPct,
+  };
+}
+
+function normalizeBoostPayload(payload: unknown) {
+  if (!payload || typeof payload !== "object") {
+    return { stocks: [], lastUpdated: "" };
+  }
+
+  const data = payload as Record<string, unknown>;
+  const rawStocks = Array.isArray(data.stocks)
+    ? data.stocks
+    : Array.isArray(data.data)
+      ? data.data
+      : [];
+
+  return {
+    stocks: rawStocks
+      .map((stock) => normalizeBoostStock(stock))
+      .filter((stock): stock is BoostStock => stock !== null),
+    lastUpdated: asOptionalString(data.last_updated) ?? "",
+  };
+}
 
 export function BoostTab() {
   const [stocks, setStocks] = useState<BoostStock[]>([]);
@@ -20,8 +149,9 @@ export function BoostTab() {
         return r.json();
       })
       .then((d) => {
-        setStocks(d.stocks || []);
-        setLastUpdated(d.last_updated || "");
+        const normalized = normalizeBoostPayload(d);
+        setStocks(normalized.stocks);
+        setLastUpdated(normalized.lastUpdated);
         setLoading(false);
       })
       .catch((err) => {

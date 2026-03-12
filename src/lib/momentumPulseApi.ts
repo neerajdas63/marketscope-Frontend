@@ -1,5 +1,6 @@
 import { apiUrl } from "@/lib/api";
 import {
+  type MomentumPulseBehaviorState,
   createEmptyMomentumPulseResponse,
   type MomentumPulseDirection,
   type MomentumPulseDirectionFilter,
@@ -7,6 +8,7 @@ import {
   type MomentumPulseResponse,
   type MomentumPulseRow,
   type MomentumPulseTier,
+  type MomentumPulseTimeContextBucket,
   type MomentumPulseTrendLabel,
 } from "@/data/momentumPulseData";
 
@@ -14,6 +16,8 @@ const VALID_DIRECTIONS: MomentumPulseDirection[] = ["LONG", "SHORT", "NEUTRAL"];
 const VALID_DIRECTION_FILTERS: MomentumPulseDirectionFilter[] = ["ALL", ...VALID_DIRECTIONS];
 const VALID_TIERS: MomentumPulseTier[] = ["strong", "moderate", "weak", "veryweak"];
 const VALID_TREND_LABELS: MomentumPulseTrendLabel[] = ["Rising", "Flat", "Falling"];
+const VALID_BEHAVIOR_STATES: MomentumPulseBehaviorState[] = ["EARLY", "ACTIVE", "LATE", "EXTENDED"];
+const VALID_TIME_CONTEXT_BUCKETS: MomentumPulseTimeContextBucket[] = ["DISCOVERY", "TREND", "LATE", "--"];
 
 function asFiniteNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -71,6 +75,44 @@ function asTrendLabel(value: unknown): MomentumPulseTrendLabel {
     : "Flat";
 }
 
+function asBehaviorState(value: unknown): MomentumPulseBehaviorState | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim().toUpperCase();
+
+  if (VALID_BEHAVIOR_STATES.includes(normalized as MomentumPulseBehaviorState)) {
+    return normalized as MomentumPulseBehaviorState;
+  }
+
+  if (normalized === "DISCOVERY") {
+    return "EARLY";
+  }
+
+  if (normalized === "TREND") {
+    return "ACTIVE";
+  }
+
+  if (normalized === "LATE") {
+    return "LATE";
+  }
+
+  return undefined;
+}
+
+function asTimeContextBucket(value: unknown): MomentumPulseTimeContextBucket | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim().toUpperCase();
+
+  return VALID_TIME_CONTEXT_BUCKETS.includes(normalized as MomentumPulseTimeContextBucket)
+    ? (normalized as MomentumPulseTimeContextBucket)
+    : undefined;
+}
+
 function asNumberArray(value: unknown) {
   if (!Array.isArray(value)) {
     return [];
@@ -103,6 +145,15 @@ function normalizeMomentumPulseRow(value: unknown, fallbackRank: number): Moment
   if (!symbol || ltp === undefined || changePct === undefined || score === undefined) {
     return null;
   }
+
+  const scoreTimeBucket = asOptionalString(row.score_time_bucket) ?? "--";
+  const isExtended = asOptionalBoolean(row.is_extended) ?? false;
+  const timeContextBucket = asTimeContextBucket(row.time_context_bucket)
+    ?? asTimeContextBucket(row.score_time_bucket)
+    ?? "--";
+  const behaviorState = asBehaviorState(row.behavior_state)
+    ?? asBehaviorState(row.score_time_bucket)
+    ?? (isExtended ? "EXTENDED" : "ACTIVE");
 
   return {
     symbol,
@@ -142,8 +193,10 @@ function normalizeMomentumPulseRow(value: unknown, fallbackRank: number): Moment
     pulse_trend_label: asTrendLabel(row.pulse_trend_label),
     vwap: asFiniteNumber(row.vwap) ?? 0,
     distance_from_vwap_pct: asFiniteNumber(row.distance_from_vwap_pct) ?? 0,
-    score_time_bucket: asOptionalString(row.score_time_bucket) ?? "--",
-    is_extended: asOptionalBoolean(row.is_extended) ?? false,
+    behavior_state: behaviorState,
+    score_time_bucket: scoreTimeBucket,
+    time_context_bucket: timeContextBucket,
+    is_extended: isExtended,
     warning_flags: asStringArray(row.warning_flags),
     volume_surge: asOptionalBoolean(row.volume_surge) ?? false,
     range_expansion: asOptionalBoolean(row.range_expansion) ?? false,

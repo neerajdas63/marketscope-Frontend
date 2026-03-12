@@ -6,6 +6,10 @@ export type MomentumPulseTier = "strong" | "moderate" | "weak" | "veryweak";
 
 export type MomentumPulseTrendLabel = "Rising" | "Flat" | "Falling";
 
+export type MomentumPulseBehaviorState = "EARLY" | "ACTIVE" | "LATE" | "EXTENDED";
+
+export type MomentumPulseTimeContextBucket = "DISCOVERY" | "TREND" | "LATE" | "--";
+
 export interface MomentumPulseRow {
   symbol: string;
   ltp: number;
@@ -44,7 +48,9 @@ export interface MomentumPulseRow {
   pulse_trend_label: MomentumPulseTrendLabel;
   vwap: number;
   distance_from_vwap_pct: number;
+  behavior_state: MomentumPulseBehaviorState;
   score_time_bucket: string;
+  time_context_bucket: MomentumPulseTimeContextBucket | string;
   is_extended: boolean;
   warning_flags: string[];
   volume_surge: boolean;

@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   createEmptyMomentumPulseResponse,
+  type MomentumPulseBehaviorState,
   type MomentumPulseDirection,
   type MomentumPulseDirectionFilter,
   type MomentumPulseQuery,
@@ -28,12 +29,20 @@ type SortKey =
 
 const LIMIT_OPTIONS: MomentumPulseQuery["limit"][] = [20, 40, 60, 100];
 const DIRECTION_OPTIONS: MomentumPulseDirectionFilter[] = ["ALL", "LONG", "SHORT"];
+const BEHAVIOR_STATE_ORDER: MomentumPulseBehaviorState[] = ["EARLY", "ACTIVE", "LATE", "EXTENDED"];
 
 const tierStyles: Record<MomentumPulseTier, { bg: string; border: string; color: string }> = {
   strong: { bg: "rgba(16, 185, 129, 0.14)", border: "rgba(16, 185, 129, 0.34)", color: "#34D399" },
   moderate: { bg: "rgba(56, 189, 248, 0.14)", border: "rgba(56, 189, 248, 0.3)", color: "#7DD3FC" },
   weak: { bg: "rgba(245, 158, 11, 0.14)", border: "rgba(245, 158, 11, 0.3)", color: "#FBBF24" },
   veryweak: { bg: "rgba(239, 68, 68, 0.12)", border: "rgba(239, 68, 68, 0.28)", color: "#FCA5A5" },
+};
+
+const behaviorStateStyles: Record<MomentumPulseBehaviorState, { bg: string; border: string; color: string }> = {
+  EARLY: { bg: "rgba(14, 165, 233, 0.14)", border: "rgba(56, 189, 248, 0.32)", color: "#67E8F9" },
+  ACTIVE: { bg: "rgba(34, 197, 94, 0.14)", border: "rgba(34, 197, 94, 0.28)", color: "#4ADE80" },
+  LATE: { bg: "rgba(249, 115, 22, 0.14)", border: "rgba(249, 115, 22, 0.3)", color: "#FDBA74" },
+  EXTENDED: { bg: "rgba(239, 68, 68, 0.14)", border: "rgba(239, 68, 68, 0.28)", color: "#F87171" },
 };
 
 const trendStyles: Record<MomentumPulseTrendLabel, { bg: string; border: string; color: string }> = {
@@ -276,6 +285,35 @@ function TrendBadge({ label, strength }: { label: MomentumPulseTrendLabel; stren
   );
 }
 
+function StateBadge({ state, timeContextBucket }: { state: MomentumPulseBehaviorState; timeContextBucket?: string }) {
+  const style = behaviorStateStyles[state];
+  const tooltip = timeContextBucket && timeContextBucket !== "--"
+    ? `Behavior state: ${state} | Session context: ${timeContextBucket}`
+    : `Behavior state: ${state}`;
+
+  return (
+    <span
+      title={tooltip}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        backgroundColor: style.bg,
+        border: `1px solid ${style.border}`,
+        color: style.color,
+        borderRadius: "9999px",
+        padding: "2px 8px",
+        fontSize: "10px",
+        fontWeight: 700,
+        textTransform: "uppercase",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {state}
+    </span>
+  );
+}
+
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -324,7 +362,7 @@ function MomentumPulseTopCard({ row }: { row: MomentumPulseRow }) {
       <div className="flex items-center gap-2 flex-wrap mt-3">
         <TierBadge tier={row.tier} />
         <TrendBadge label={row.pulse_trend_label} strength={row.pulse_trend_strength} />
-        {row.is_extended ? <Badge tone="warning">Extended</Badge> : null}
+        <StateBadge state={row.behavior_state} timeContextBucket={row.time_context_bucket} />
       </div>
 
       <div className="flex items-center justify-between mt-3 gap-3">
@@ -385,7 +423,7 @@ function ExpandedPulseDetails({ row }: { row: MomentumPulseRow }) {
       </div>
 
       <div className="flex items-center gap-2 flex-wrap mt-3">
-        {row.is_extended ? <Badge tone="warning">Extended</Badge> : null}
+        <StateBadge state={row.behavior_state} timeContextBucket={row.time_context_bucket} />
         {row.warning_flags.map((flag) => (
           <Badge key={flag} tone="warning">{flag}</Badge>
         ))}
@@ -396,7 +434,7 @@ function ExpandedPulseDetails({ row }: { row: MomentumPulseRow }) {
           <div style={{ color: "#64748B", fontSize: "10px", textTransform: "uppercase" }}>Score History</div>
           <PulseSparkline row={row} />
         </div>
-        <DetailStat label="Time Bucket" value={row.score_time_bucket} />
+        <DetailStat label="Behavior State" value={row.behavior_state} />
       </div>
     </div>
   );
@@ -414,7 +452,7 @@ function DesktopRow({ row, isOpen, onToggle }: { row: MomentumPulseRow; isOpen: 
             <span className="font-semibold text-slate-100">{row.symbol}</span>
             <div className="flex items-center gap-1.5 flex-wrap">
               <TierBadge tier={row.tier} />
-              {row.is_extended ? <Badge tone="warning">Extended</Badge> : null}
+              <StateBadge state={row.behavior_state} timeContextBucket={row.time_context_bucket} />
             </div>
           </div>
         </TableCell>
@@ -440,7 +478,7 @@ function DesktopRow({ row, isOpen, onToggle }: { row: MomentumPulseRow; isOpen: 
         <TableCell className="py-3 text-slate-300">{formatPercent(row.score_change_5m, 1)}</TableCell>
         <TableCell className="py-3"><PulseSparkline row={row} /></TableCell>
         <TableCell className="py-3 text-slate-300">{formatPercent(row.distance_from_vwap_pct)}</TableCell>
-        <TableCell className="py-3 text-slate-400">{row.score_time_bucket}</TableCell>
+        <TableCell className="py-3"><StateBadge state={row.behavior_state} timeContextBucket={row.time_context_bucket} /></TableCell>
         <TableCell className="py-3">
           <div className="flex gap-1 flex-wrap">
             {row.warning_flags.slice(0, 2).map((flag) => (
@@ -483,7 +521,7 @@ function MobileCard({ row }: { row: MomentumPulseRow }) {
           <div className="flex gap-1.5 flex-wrap justify-end">
             <Badge tone={row.direction === "LONG" ? "positive" : row.direction === "SHORT" ? "negative" : "neutral"}>{row.direction}</Badge>
             <TierBadge tier={row.tier} />
-            {row.is_extended ? <Badge tone="warning">Extended</Badge> : null}
+            <StateBadge state={row.behavior_state} timeContextBucket={row.time_context_bucket} />
           </div>
         </div>
 
@@ -498,7 +536,7 @@ function MobileCard({ row }: { row: MomentumPulseRow }) {
           <DetailStat label="Score 5m" value={formatPercent(row.score_change_5m, 1)} />
           <DetailStat label="Score 10m" value={formatPercent(row.score_change_10m, 1)} />
           <DetailStat label="Dist VWAP" value={formatPercent(row.distance_from_vwap_pct)} />
-          <DetailStat label="Time Bucket" value={row.score_time_bucket} />
+          <DetailStat label="State" value={row.behavior_state} />
         </div>
 
         <div className="flex items-center justify-between mt-3 gap-3">
@@ -605,6 +643,15 @@ export function MomentumPulseTab() {
   const shortCount = useMemo(() => sortedRows.filter((row) => row.direction === "SHORT").length, [sortedRows]);
   const strongCount = useMemo(() => sortedRows.filter((row) => row.tier === "strong").length, [sortedRows]);
   const risingCount = useMemo(() => sortedRows.filter((row) => row.pulse_trend_label === "Rising").length, [sortedRows]);
+  const behaviorStateCounts = useMemo(() => {
+    return sortedRows.reduce<Record<MomentumPulseBehaviorState, number>>(
+      (counts, row) => {
+        counts[row.behavior_state] += 1;
+        return counts;
+      },
+      { EARLY: 0, ACTIVE: 0, LATE: 0, EXTENDED: 0 },
+    );
+  }, [sortedRows]);
 
   if (loading) {
     return (
@@ -640,11 +687,11 @@ export function MomentumPulseTab() {
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <div style={{ color: "#7DD3FC", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.12em" }}>
-                Live Intraday Discovery
+                Live Intraday Momentum
               </div>
               <div style={{ color: "#F8FAFC", fontSize: "22px", fontWeight: 800 }}>Momentum Pulse</div>
               <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "2px" }}>
-                Surface strong score + rising trend, early improvers, and strong shorts without hiding extended names.
+                Surface live momentum by behavior state, rising trend, and directional conviction without hiding late or extended names.
               </div>
             </div>
 
@@ -681,6 +728,18 @@ export function MomentumPulseTab() {
             <SummaryChip label="Short" value={String(shortCount)} tone="negative" />
             <SummaryChip label="Strong" value={String(strongCount)} />
             <SummaryChip label="Rising" value={String(risingCount)} tone="positive" />
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap mt-4">
+            <span style={{ color: "#64748B", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              State Legend
+            </span>
+            {BEHAVIOR_STATE_ORDER.map((state) => (
+              <div key={state} className="flex items-center gap-1.5">
+                <StateBadge state={state} />
+                <span style={{ color: "#CBD5E1", fontSize: "11px", fontWeight: 700 }}>{behaviorStateCounts[state]}</span>
+              </div>
+            ))}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap mt-4">
@@ -777,14 +836,14 @@ export function MomentumPulseTab() {
           <div className="flex flex-col items-center justify-center gap-2 mt-4 rounded-2xl border border-slate-800 bg-slate-950/60 px-6 py-16 text-center">
             <div style={{ color: "#7DD3FC", fontSize: "18px", fontWeight: 700 }}>Momentum Pulse is warming up</div>
             <div style={{ color: "#94A3B8", fontSize: "13px", maxWidth: "560px" }}>
-              The backend is reachable, but there are no live discovery names yet for the current filters. Try a manual refresh or widen the direction and very-weak settings.
+              The backend is reachable, but there are no live momentum names yet for the current filters. Try a manual refresh or widen the direction and very-weak settings.
             </div>
           </div>
         ) : null}
 
         {!warmingUp && sortedRows.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 mt-4 rounded-2xl border border-slate-800 bg-slate-950/60 px-6 py-16 text-center">
-            <div style={{ color: "#E2E8F0", fontSize: "18px", fontWeight: 700 }}>No discovery names match the current filters</div>
+            <div style={{ color: "#E2E8F0", fontSize: "18px", fontWeight: 700 }}>No momentum names match the current filters</div>
             <div style={{ color: "#94A3B8", fontSize: "13px" }}>Try switching direction, increasing the limit, or including very weak names.</div>
           </div>
         ) : null}
@@ -821,7 +880,7 @@ export function MomentumPulseTab() {
                     <TableHead className="text-[11px] uppercase tracking-wide">Trend</TableHead>
                     <TableHead className="text-[11px] uppercase tracking-wide">5m / 10m</TableHead>
                     <TableHead className="text-[11px] uppercase tracking-wide">VWAP Dist</TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wide">Bucket</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-wide">State</TableHead>
                     <TableHead className="text-[11px] uppercase tracking-wide">Flags</TableHead>
                   </TableRow>
                 </TableHeader>

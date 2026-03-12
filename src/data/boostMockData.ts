@@ -14,47 +14,41 @@ export interface BoostComponents {
 
 export interface BoostStock {
   symbol: string;
-  sector: string;
-  ltp: number;
-  change_pct: number;
-  fo: boolean;
-  boost_score: number;     // 0–5 scale
+  ltp?: number;
+  change_pct?: number;
+  volume_ratio?: number;
+  fo?: boolean;
+  day_high?: number;
+  day_low?: number;
+  day_open?: number;
+  vwap?: number;
+  quote_source?: string;
+  delivery_source?: string;
+  delivery_pct?: number;
+  bid_ask_ratio?: number;
+  bid_qty?: number;
+  ask_qty?: number;
+  boost_score?: number;     // 0–5 scale
   boost_direction?: BoostDirection;
   institutional_hint_score?: number;
   boost_components?: BoostComponents;
-  vol_surge: number;       // volume ratio
-  range_ratio: number;     // intraday range expansion vs avg
-  near_20d_high: boolean;
-  near_20d_low: boolean;
-  vwap_pct: number;        // % deviation from VWAP
 }
 
 export interface BoostData {
   stocks: BoostStock[];
+  total: number;
   last_updated: string;
+  status?: "ready" | "warming_up";
+  message?: string;
 }
 
 export const boostMockData: BoostData = {
   stocks: [
-    { symbol: "TIINDIA",    sector: "AUTO",              ltp: 2849, change_pct:  3.47, fo: true,  boost_score: 4.2, boost_direction: "up", institutional_hint_score: 74, boost_components: { relative_volume_burst: 84, price_velocity_burst: 77, range_expansion_quality: 71, directional_efficiency: 79, institutional_hint: 74, confidence: 82, data_mode: "intraday", details: "Broad-based demand with clean VWAP hold", daily_context: "Opening range continuation" }, vol_surge: 3.2, range_ratio: 2.1, near_20d_high: true,  near_20d_low: false, vwap_pct:  1.2 },
-    { symbol: "MUTHOOTFIN", sector: "BANKING & FINANCE", ltp: 1840, change_pct:  3.50, fo: true,  boost_score: 3.9, boost_direction: "up", institutional_hint_score: 68, boost_components: { relative_volume_burst: 79, price_velocity_burst: 72, range_expansion_quality: 66, directional_efficiency: 70, institutional_hint: 68, confidence: 76, data_mode: "intraday", details: "Steady accumulation pattern", daily_context: "Sector leadership confirmation" }, vol_surge: 3.1, range_ratio: 1.9, near_20d_high: true,  near_20d_low: false, vwap_pct:  0.8 },
-    { symbol: "KEI",        sector: "INFRA",             ltp: 3800, change_pct:  2.50, fo: true,  boost_score: 3.7, vol_surge: 3.4, range_ratio: 1.7, near_20d_high: true,  near_20d_low: false, vwap_pct:  1.5 },
-    { symbol: "NATIONALUM", sector: "METALS",            ltp:  363, change_pct:  2.40, fo: true,  boost_score: 3.6, vol_surge: 2.8, range_ratio: 2.3, near_20d_high: false, near_20d_low: false, vwap_pct:  0.6 },
-    { symbol: "MCX",        sector: "BANKING & FINANCE", ltp: 6200, change_pct:  2.60, fo: true,  boost_score: 3.5, vol_surge: 2.3, range_ratio: 1.8, near_20d_high: true,  near_20d_low: false, vwap_pct:  0.9 },
-    { symbol: "BEL",        sector: "PSU & DEFENCE",     ltp:  290, change_pct:  2.10, fo: true,  boost_score: 3.2, vol_surge: 2.6, range_ratio: 1.6, near_20d_high: false, near_20d_low: false, vwap_pct:  0.4 },
-    { symbol: "PERSISTENT", sector: "IT",                ltp: 5200, change_pct: -1.10, fo: true,  boost_score: 2.9, boost_direction: "down", institutional_hint_score: 41, vol_surge: 2.5, range_ratio: 1.4, near_20d_high: false, near_20d_low: false, vwap_pct: -0.7 },
-    { symbol: "HINDZINC",   sector: "METALS",            ltp:  490, change_pct:  2.30, fo: true,  boost_score: 2.8, vol_surge: 1.8, range_ratio: 1.5, near_20d_high: false, near_20d_low: false, vwap_pct:  0.3 },
-    { symbol: "CLEAN",      sector: "CHEMICALS",         ltp: 1850, change_pct:  1.00, fo: false, boost_score: 2.6, vol_surge: 2.2, range_ratio: 1.3, near_20d_high: false, near_20d_low: false, vwap_pct:  0.2 },
-    { symbol: "LAURUSLABS", sector: "PHARMA",            ltp:  580, change_pct: -0.80, fo: true,  boost_score: 2.5, vol_surge: 1.9, range_ratio: 1.2, near_20d_high: false, near_20d_low: false, vwap_pct: -0.5 },
-    { symbol: "SUNPHARMA",  sector: "PHARMA",            ltp: 1720, change_pct:  1.00, fo: true,  boost_score: 2.3, vol_surge: 1.6, range_ratio: 1.1, near_20d_high: false, near_20d_low: false, vwap_pct:  0.1 },
-    { symbol: "HAL",        sector: "PSU & DEFENCE",     ltp: 4200, change_pct:  1.10, fo: true,  boost_score: 2.1, vol_surge: 1.5, range_ratio: 1.0, near_20d_high: false, near_20d_low: false, vwap_pct:  0.2 },
-    { symbol: "ONGC",       sector: "ENERGY",            ltp:  260, change_pct:  0.90, fo: true,  boost_score: 1.9, vol_surge: 1.7, range_ratio: 0.9, near_20d_high: false, near_20d_low: false, vwap_pct: -0.3 },
-    { symbol: "ITC",        sector: "FMCG",              ltp:  450, change_pct:  0.30, fo: true,  boost_score: 1.5, boost_direction: "flat", institutional_hint_score: 33, vol_surge: 1.2, range_ratio: 0.8, near_20d_high: false, near_20d_low: false, vwap_pct:  0.0 },
-    { symbol: "IRCTC",      sector: "INFRA",             ltp:  890, change_pct:  0.10, fo: true,  boost_score: 1.2, vol_surge: 0.9, range_ratio: 0.7, near_20d_high: false, near_20d_low: false, vwap_pct: -0.1 },
-    { symbol: "TATASTEEL",  sector: "METALS",            ltp:  150, change_pct: -0.60, fo: true,  boost_score: 1.0, vol_surge: 1.1, range_ratio: 0.9, near_20d_high: false, near_20d_low: true,  vwap_pct: -0.8 },
-    { symbol: "RBLBANK",    sector: "BANKING & FINANCE", ltp:  240, change_pct: -2.00, fo: true,  boost_score: 0.8, vol_surge: 3.5, range_ratio: 2.4, near_20d_high: false, near_20d_low: true,  vwap_pct: -1.5 },
-    { symbol: "SWIGGY",     sector: "FMCG",              ltp:  420, change_pct: -4.20, fo: false, boost_score: 0.5, vol_surge: 4.1, range_ratio: 3.1, near_20d_high: false, near_20d_low: true,  vwap_pct: -2.1 },
-    { symbol: "RVNL",       sector: "REALTY",            ltp:  380, change_pct: -5.10, fo: true,  boost_score: 0.3, vol_surge: 3.8, range_ratio: 2.8, near_20d_high: false, near_20d_low: true,  vwap_pct: -2.8 },
+    { symbol: "TIINDIA", ltp: 2849, change_pct: 3.47, volume_ratio: 3.2, fo: true, day_high: 2866, day_low: 2782, day_open: 2794, vwap: 2814, quote_source: "nse_quote", delivery_source: "bhavcopy", delivery_pct: 61.2, bid_ask_ratio: 1.6, bid_qty: 184320, ask_qty: 115040, boost_score: 4.2, boost_direction: "up", institutional_hint_score: 74, boost_components: { relative_volume_burst: 84, price_velocity_burst: 77, range_expansion_quality: 71, directional_efficiency: 79, institutional_hint: 74, confidence: 82, data_mode: "intraday", details: { note: "Broad-based demand with clean VWAP hold" }, daily_context: { setup: "Opening range continuation" } } },
+    { symbol: "MUTHOOTFIN", ltp: 1840, change_pct: 3.5, volume_ratio: 3.1, fo: true, day_high: 1859, day_low: 1788, day_open: 1796, vwap: 1818, quote_source: "nse_quote", delivery_source: "bhavcopy", delivery_pct: 58.7, bid_ask_ratio: 1.4, bid_qty: 133120, ask_qty: 94720, boost_score: 3.9, boost_direction: "up", institutional_hint_score: 68, boost_components: { relative_volume_burst: 79, price_velocity_burst: 72, range_expansion_quality: 66, directional_efficiency: 70, institutional_hint: 68, confidence: 76, data_mode: "intraday", details: { note: "Steady accumulation pattern" }, daily_context: { setup: "Sector leadership confirmation" } } },
+    { symbol: "PERSISTENT", ltp: 5200, change_pct: -1.1, volume_ratio: 2.5, fo: true, day_high: 5288, day_low: 5174, day_open: 5266, vwap: 5231, quote_source: "nse_quote", bid_ask_ratio: 0.82, bid_qty: 28160, ask_qty: 34320, boost_score: 2.9, boost_direction: "down", institutional_hint_score: 41 },
+    { symbol: "ITC", ltp: 450, change_pct: 0.3, volume_ratio: 1.2, fo: true, day_high: 452.8, day_low: 447.9, day_open: 448.4, vwap: 449.7, quote_source: "nse_quote", boost_score: 1.5, boost_direction: "flat", institutional_hint_score: 33 },
   ],
+  total: 4,
   last_updated: "14:35:22",
 };

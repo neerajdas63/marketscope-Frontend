@@ -33,6 +33,42 @@ function getVwapColor(pct: number): string {
   return "#888888";
 }
 
+function formatNumber(value?: number, digits = 1) {
+  if (value === undefined || value === null || Number.isNaN(value)) {
+    return "--";
+  }
+
+  return Number.isInteger(value) ? value.toString() : value.toFixed(digits);
+}
+
+function formatPercent(value?: number, digits = 1) {
+  if (value === undefined || value === null || Number.isNaN(value)) {
+    return "--";
+  }
+
+  return `${value >= 0 ? "+" : ""}${value.toFixed(digits)}%`;
+}
+
+function formatCompactQuantity(value?: number) {
+  if (value === undefined || value === null || Number.isNaN(value)) {
+    return "--";
+  }
+
+  if (Math.abs(value) >= 1_00_00_000) {
+    return `${(value / 1_00_00_000).toFixed(2)}Cr`;
+  }
+
+  if (Math.abs(value) >= 1_00_000) {
+    return `${(value / 1_00_000).toFixed(2)}L`;
+  }
+
+  if (Math.abs(value) >= 1000) {
+    return `${(value / 1000).toFixed(1)}K`;
+  }
+
+  return value.toFixed(0);
+}
+
 function getDirectionBadgeStyle(direction: BoostDirection) {
   if (direction === "up") {
     return { label: "UP", bg: "rgba(34, 197, 94, 0.14)", border: "rgba(34, 197, 94, 0.28)", color: "#4ADE80" };
@@ -95,17 +131,13 @@ export function BoostCard({ stock }: BoostCardProps) {
   const boostColor = getBoostColor(safeNum(stock.boost_score));
   const badge = getBoostLabel(safeNum(stock.boost_score));
   const isPositive = safeNum(stock.change_pct) >= 0;
-  const directionBadge = stock.boost_direction ? getDirectionBadgeStyle(stock.boost_direction) : null;
+  const directionBadge = getDirectionBadgeStyle(stock.boost_direction ?? "flat");
   const institutionalHint = safeNum(stock.institutional_hint_score, Number.NaN);
   const hasInstitutionalHint = Number.isFinite(institutionalHint);
   const componentsTooltip = buildComponentsTooltip(stock.boost_components);
-
-  let highLowDisplay: { icon: string; color: string } | null = null;
-  if (stock.near_20d_high) {
-    highLowDisplay = { icon: "✅", color: "#00C853" };
-  } else if (stock.near_20d_low) {
-    highLowDisplay = { icon: "📉", color: "#F44336" };
-  }
+  const vwapDeltaPct = stock.vwap && stock.vwap !== 0
+    ? ((safeNum(stock.ltp) - stock.vwap) / stock.vwap) * 100
+    : undefined;
 
   return (
     <div
@@ -144,22 +176,20 @@ export function BoostCard({ stock }: BoostCardProps) {
               F&amp;O
             </span>
           )}
-          {directionBadge && (
-            <span
-              style={{
-                backgroundColor: directionBadge.bg,
-                border: `1px solid ${directionBadge.border}`,
-                color: directionBadge.color,
-                fontSize: "10px",
-                fontWeight: 700,
-                padding: "2px 8px",
-                borderRadius: "9999px",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {directionBadge.label}
-            </span>
-          )}
+          <span
+            style={{
+              backgroundColor: directionBadge.bg,
+              border: `1px solid ${directionBadge.border}`,
+              color: directionBadge.color,
+              fontSize: "10px",
+              fontWeight: 700,
+              padding: "2px 8px",
+              borderRadius: "9999px",
+              letterSpacing: "0.05em",
+            }}
+          >
+            {directionBadge.label}
+          </span>
           <span
             style={{
               backgroundColor: "#2a2a2a",
@@ -169,7 +199,7 @@ export function BoostCard({ stock }: BoostCardProps) {
               borderRadius: "9999px",
             }}
           >
-            {stock.sector}
+            {stock.quote_source ?? "BOOST"}
           </span>
         </div>
       </div>
@@ -280,64 +310,79 @@ export function BoostCard({ stock }: BoostCardProps) {
 
       {/* Row 6 — Stats Grid 2x2 */}
       <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-        {/* Vol Surge */}
         <div>
           <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
-            Vol Surge
+            Vol Ratio
           </div>
           <div
             style={{
               color:
-                safeNum(stock.vol_surge) > 2 ? "#FF6B00" : safeNum(stock.vol_surge) > 1.5 ? "#FFD600" : "#ffffff",
+                safeNum(stock.volume_ratio) > 2 ? "#FF6B00" : safeNum(stock.volume_ratio) > 1.5 ? "#FFD600" : "#ffffff",
               fontSize: "13px",
               fontWeight: 600,
             }}
           >
-            {safe(stock.vol_surge, 1)}x
+            {formatNumber(stock.volume_ratio, 2)}x
           </div>
         </div>
 
-        {/* Range */}
         <div>
           <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
-            Range
+            Delivery
           </div>
           <div
             style={{
               color:
-                safeNum(stock.range_ratio) > 2 ? "#00C853" : safeNum(stock.range_ratio) > 1.5 ? "#FFD600" : "#888888",
+                safeNum(stock.delivery_pct) >= 60 ? "#00C853" : safeNum(stock.delivery_pct) >= 40 ? "#FFD600" : "#888888",
               fontSize: "13px",
               fontWeight: 600,
             }}
           >
-            {safe(stock.range_ratio, 1)}x
+            {formatPercent(stock.delivery_pct)}
           </div>
         </div>
 
-        {/* 20D High/Low */}
         <div>
           <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
-            20D High
+            Bid / Ask
           </div>
-          <div style={{ fontSize: "13px", fontWeight: 600, color: highLowDisplay?.color ?? "#555555" }}>
-            {highLowDisplay ? highLowDisplay.icon : "--"}
+          <div style={{ fontSize: "13px", fontWeight: 600, color: "#E5E7EB" }}>
+            {formatNumber(stock.bid_ask_ratio, 2)}
           </div>
         </div>
 
-        {/* VWAP */}
         <div>
           <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
-            VWAP
+            VWAP Delta
           </div>
           <div
             style={{
-              color: getVwapColor(safeNum(stock.vwap_pct)),
+              color: getVwapColor(vwapDeltaPct ?? Number.NaN),
               fontSize: "13px",
               fontWeight: 600,
             }}
           >
-            {safeNum(stock.vwap_pct) >= 0 ? "+" : ""}
-            {safe(stock.vwap_pct, 1)}%
+            {formatPercent(vwapDeltaPct)}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-y-2 gap-x-4" style={{ marginTop: "10px" }}>
+        <div>
+          <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+            Bid Qty
+          </div>
+          <div style={{ color: "#CBD5E1", fontSize: "13px", fontWeight: 600 }}>
+            {formatCompactQuantity(stock.bid_qty)}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+            Ask Qty
+          </div>
+          <div style={{ color: "#CBD5E1", fontSize: "13px", fontWeight: 600 }}>
+            {formatCompactQuantity(stock.ask_qty)}
           </div>
         </div>
       </div>

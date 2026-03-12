@@ -4,7 +4,17 @@ import { BoostCard } from "./BoostCard";
 import { apiUrl } from "@/lib/api";
 
 type Direction = "ALL" | "GAINERS" | "LOSERS";
-type SortBy = "boost_score" | "change_pct" | "vol_surge";
+type SortBy = "backend" | "boost_score" | "change_pct" | "vol_surge";
+
+type BoostStatus = "ready" | "warming_up";
+
+interface BoostResponse {
+  stocks: BoostStock[];
+  total: number;
+  lastUpdated: string;
+  status: BoostStatus;
+  message: string;
+}
 
 const VALID_BOOST_DIRECTIONS: BoostDirection[] = ["up", "down", "flat"];
 
@@ -77,110 +87,108 @@ function normalizeBoostStock(value: unknown): BoostStock | null {
 
   const stock = value as Record<string, unknown>;
   const symbol = asOptionalString(stock.symbol);
-  const sector = asOptionalString(stock.sector) ?? "Unknown";
-  const ltp = asFiniteNumber(stock.ltp);
-  const changePct = asFiniteNumber(stock.change_pct);
-  const boostScore = asFiniteNumber(stock.boost_score);
-  const volSurge = asFiniteNumber(stock.vol_surge);
-  const rangeRatio = asFiniteNumber(stock.range_ratio);
-  const vwapPct = asFiniteNumber(stock.vwap_pct);
-
-  if (
-    !symbol ||
-    ltp === undefined ||
-    changePct === undefined ||
-    boostScore === undefined ||
-    volSurge === undefined ||
-    rangeRatio === undefined ||
-    vwapPct === undefined
-  ) {
+  if (!symbol) {
     return null;
   }
 
   return {
     symbol,
-    sector,
-    ltp,
-    change_pct: changePct,
+    ltp: asFiniteNumber(stock.ltp),
+    change_pct: asFiniteNumber(stock.change_pct),
+    volume_ratio: asFiniteNumber(stock.volume_ratio),
     fo: asOptionalBoolean(stock.fo) ?? false,
-    boost_score: boostScore,
+    day_high: asFiniteNumber(stock.day_high),
+    day_low: asFiniteNumber(stock.day_low),
+    day_open: asFiniteNumber(stock.day_open),
+    vwap: asFiniteNumber(stock.vwap),
+    quote_source: asOptionalString(stock.quote_source),
+    delivery_source: asOptionalString(stock.delivery_source),
+    delivery_pct: asFiniteNumber(stock.delivery_pct),
+    bid_ask_ratio: asFiniteNumber(stock.bid_ask_ratio),
+    bid_qty: asFiniteNumber(stock.bid_qty),
+    ask_qty: asFiniteNumber(stock.ask_qty),
+    boost_score: asFiniteNumber(stock.boost_score),
     boost_direction: asBoostDirection(stock.boost_direction),
     institutional_hint_score: asFiniteNumber(stock.institutional_hint_score),
     boost_components: asBoostComponents(stock.boost_components),
-    vol_surge: volSurge,
-    range_ratio: rangeRatio,
-    near_20d_high: asOptionalBoolean(stock.near_20d_high) ?? false,
-    near_20d_low: asOptionalBoolean(stock.near_20d_low) ?? false,
-    vwap_pct: vwapPct,
   };
 }
 
-function normalizeBoostPayload(payload: unknown) {
+function normalizeBoostPayload(payload: unknown): BoostResponse {
   if (!payload || typeof payload !== "object") {
-    return { stocks: [], lastUpdated: "" };
+    return { stocks: [], total: 0, lastUpdated: "", status: "ready", message: "" };
   }
 
   const data = payload as Record<string, unknown>;
-  const rawStocks = Array.isArray(data.stocks)
-    ? data.stocks
-    : Array.isArray(data.data)
-      ? data.data
-      : [];
+  const rawStocks = Array.isArray(data.stocks) ? data.stocks : [];
 
   return {
     stocks: rawStocks
       .map((stock) => normalizeBoostStock(stock))
       .filter((stock): stock is BoostStock => stock !== null),
+    total: asFiniteNumber(data.total) ?? rawStocks.length,
     lastUpdated: asOptionalString(data.last_updated) ?? "",
+    status: asOptionalString(data.status) === "warming_up" ? "warming_up" : "ready",
+    message: asOptionalString(data.message) ?? "",
   };
 }
 
 export function BoostTab() {
-  const [stocks, setStocks] = useState<BoostStock[]>([]);
+  const [response, setResponse] = useState<BoostResponse>({ stocks: [], total: 0, lastUpdated: "", status: "ready", message: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [lastUpdated, setLastUpdated] = useState("");
+  const [limit] = useState<number>(50);
+  const [foOnly, setFoOnly] = useState<boolean>(false);
+  const [minScore, setMinScore] = useState<number>(0);
+  const [direction, setDirection] = useState<Direction>("ALL");
+  const [sortBy, setSortBy] = useState<SortBy>("backend");
 
   useEffect(() => {
     setLoading(true);
-    fetch(apiUrl("/boost?limit=50"))
+    setError("");
+
+    const params = new URLSearchParams({
+      limit: String(limit),
+      fo_only: String(foOnly),
+      min_score: String(minScore),
+    });
+
+    fetch(apiUrl(`/boost?${params.toString()}`))
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then((d) => {
         const normalized = normalizeBoostPayload(d);
-        setStocks(normalized.stocks);
-        setLastUpdated(normalized.lastUpdated);
+        setResponse(normalized);
         setLoading(false);
       })
       .catch((err) => {
         setError(`Backend error: ${err.message}. Start server: python main.py`);
         setLoading(false);
       });
-  }, []);
-
-  const [foOnly, setFoOnly] = useState<boolean>(false);
-  const [minScore, setMinScore] = useState<number>(0);
-  const [direction, setDirection] = useState<Direction>("ALL");
-  const [sortBy, setSortBy] = useState<SortBy>("boost_score");
+  }, [limit, foOnly, minScore]);
 
   const filtered = useMemo(() => {
+    const stocks = response.stocks ?? [];
+
     return stocks
-      .filter((s) => !foOnly || s.fo)
-      .filter((s) => s.boost_score >= minScore)
       .filter(
         (s) =>
           direction === "ALL" ||
-          (direction === "GAINERS" && s.change_pct > 0) ||
-          (direction === "LOSERS" && s.change_pct < 0)
+          (direction === "GAINERS" && (s.change_pct ?? 0) > 0) ||
+          (direction === "LOSERS" && (s.change_pct ?? 0) < 0)
       )
       .sort((a, b) => {
-        if (sortBy === "boost_score") return b.boost_score - a.boost_score;
-        if (sortBy === "change_pct") return Math.abs(b.change_pct) - Math.abs(a.change_pct);
-        return b.vol_surge - a.vol_surge;
+        if (sortBy === "backend") return 0;
+        if (sortBy === "boost_score") return (b.boost_score ?? 0) - (a.boost_score ?? 0);
+        if (sortBy === "change_pct") return Math.abs(b.change_pct ?? 0) - Math.abs(a.change_pct ?? 0);
+        return (b.volume_ratio ?? 0) - (a.volume_ratio ?? 0);
       });
-  }, [stocks, foOnly, minScore, direction, sortBy]);
+  }, [response.stocks, direction, sortBy]);
+
+  const hasStocks = Array.isArray(response.stocks) && response.stocks.length > 0;
+  const isWarmingUp = response.status === "warming_up";
 
   if (loading)
     return (
@@ -196,7 +204,15 @@ export function BoostTab() {
       </div>
     );
 
-  if (stocks.length === 0)
+  if (isWarmingUp)
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", flexDirection: "column", gap: "10px", color: "#2979FF", fontSize: "16px" }}>
+        <span>⏳ Intraday Boost is warming up...</span>
+        <span style={{ color: "#888888", fontSize: "13px" }}>{response.message || "Waiting for the backend to publish the first boost snapshot."}</span>
+      </div>
+    );
+
+  if (!hasStocks)
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", color: "#555", fontSize: "16px" }}>
         No boost data available
@@ -308,6 +324,7 @@ export function BoostTab() {
               outline: "none",
             }}
           >
+            <option value="backend">Backend Order</option>
             <option value="boost_score">Boost Score ↓</option>
             <option value="change_pct">% Change ↓</option>
             <option value="vol_surge">Volume ↓</option>
@@ -322,14 +339,14 @@ export function BoostTab() {
               whiteSpace: "nowrap",
             }}
           >
-            Updated: {lastUpdated}
+            Updated: {response.lastUpdated}
           </span>
         </div>
       </div>
 
       {/* Results Count */}
       <div style={{ color: "#555555", fontSize: "13px", padding: "8px 16px" }}>
-        Showing {filtered.length} stocks
+        Showing {filtered.length} of {response.total} stocks
       </div>
 
       {/* Card Grid or Empty State */}

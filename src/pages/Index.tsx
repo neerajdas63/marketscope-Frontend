@@ -14,6 +14,7 @@ import { BreadthTab } from "@/components/BreadthTab";
 import { FiftyTwoWeekTab } from "@/components/FiftyTwoWeekTab";
 import { FoRadarTab } from "@/components/FoRadarTab";
 import { MomentumPulseTab } from "@/components/MomentumPulseTab";
+import { SequenceSignalsTab } from "@/components/SequenceSignalsTab";
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode; name: string },
@@ -43,7 +44,7 @@ class ErrorBoundary extends React.Component<
 const Index = () => {
   const [activeTab, setActiveTab] = useState<
     "heatmap" | "scanner" | "boost" | "breakout" | "52w" | "oi" | "breadth" |
-    "opening" | "sectorscope" | "rfactor" | "planner" | "watchlist" | "foradar" | "momentum-pulse"
+    "opening" | "sectorscope" | "rfactor" | "planner" | "watchlist" | "foradar" | "momentum-pulse" | "sequence-signals"
   >("heatmap");
   const [refreshTrigger] = useState<number>(0);
 
@@ -62,11 +63,12 @@ const Index = () => {
     watchlist:  "WATCHLIST",
     foradar:    "F&O RADAR",
     "momentum-pulse": "MOMENTUM PULSE",
+    "sequence-signals": "SEQUENCE SIGNALS",
   };
 
   const ALL_TABS = [
     "heatmap","scanner","boost","breakout","52w","oi","breadth",
-    "opening","sectorscope","rfactor","momentum-pulse","planner","foradar","watchlist",
+    "opening","sectorscope","rfactor","momentum-pulse","sequence-signals","planner","foradar","watchlist",
   ] as const;
 
   return (
@@ -124,6 +126,9 @@ const Index = () => {
         )}
         {activeTab === "momentum-pulse" && (
           <ErrorBoundary name="MomentumPulseTab"><MomentumPulseTab /></ErrorBoundary>
+        )}
+        {activeTab === "sequence-signals" && (
+          <ErrorBoundary name="SequenceSignalsTab"><SequenceSignalsTab /></ErrorBoundary>
         )}
         {activeTab === "planner" && (
           <ErrorBoundary name="TradePlannerTab"><TradePlannerTab /></ErrorBoundary>

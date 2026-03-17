@@ -14,6 +14,7 @@ import { BreadthTab } from "@/components/BreadthTab";
 import { FiftyTwoWeekTab } from "@/components/FiftyTwoWeekTab";
 import { FoRadarTab } from "@/components/FoRadarTab";
 import { MomentumPulseTab } from "@/components/MomentumPulseTab";
+import { PulseNavigatorTab } from "@/components/PulseNavigatorTab";
 import { SequenceSignalsTab } from "@/components/SequenceSignalsTab";
 
 class ErrorBoundary extends React.Component<
@@ -44,7 +45,7 @@ class ErrorBoundary extends React.Component<
 const Index = () => {
   const [activeTab, setActiveTab] = useState<
     "heatmap" | "scanner" | "boost" | "breakout" | "52w" | "oi" | "breadth" |
-    "opening" | "sectorscope" | "rfactor" | "planner" | "watchlist" | "foradar" | "momentum-pulse" | "sequence-signals"
+    "opening" | "sectorscope" | "rfactor" | "planner" | "watchlist" | "foradar" | "momentum-pulse" | "pulse-navigator" | "sequence-signals"
   >("heatmap");
   const [refreshTrigger] = useState<number>(0);
 
@@ -63,12 +64,13 @@ const Index = () => {
     watchlist:  "WATCHLIST",
     foradar:    "F&O RADAR",
     "momentum-pulse": "MOMENTUM PULSE",
+    "pulse-navigator": "PULSE NAVIGATOR",
     "sequence-signals": "SEQUENCE SIGNALS",
   };
 
   const ALL_TABS = [
     "heatmap","scanner","boost","breakout","52w","oi","breadth",
-    "opening","sectorscope","rfactor","momentum-pulse","sequence-signals","planner","foradar","watchlist",
+    "opening","sectorscope","rfactor","momentum-pulse","pulse-navigator","sequence-signals","planner","foradar","watchlist",
   ] as const;
 
   return (
@@ -126,6 +128,9 @@ const Index = () => {
         )}
         {activeTab === "momentum-pulse" && (
           <ErrorBoundary name="MomentumPulseTab"><MomentumPulseTab /></ErrorBoundary>
+        )}
+        {activeTab === "pulse-navigator" && (
+          <ErrorBoundary name="PulseNavigatorTab"><PulseNavigatorTab /></ErrorBoundary>
         )}
         {activeTab === "sequence-signals" && (
           <ErrorBoundary name="SequenceSignalsTab"><SequenceSignalsTab /></ErrorBoundary>

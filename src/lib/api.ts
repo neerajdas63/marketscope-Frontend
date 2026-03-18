@@ -1,43 +1,74 @@
 import type { BreakoutLevel, InferredDirection, InsightValue, SetupStage } from "@/data/mockData";
 import type { RFactorData, RFactorStock } from "@/data/rfactorMockData";
 
+export const DEFAULT_API_BASE_URL = "https://marketscope-backend1.onrender.com";
+
 function readApiBaseUrl() {
   return import.meta.env.VITE_API_BASE_URL?.trim();
 }
 
-export function getApiBaseUrlValidationError(baseUrl = readApiBaseUrl()) {
+function trimTrailingSlash(value: string) {
+  return value.replace(/\/$/, "");
+}
+
+function getCurrentOrigin() {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  return window.location.origin;
+}
+
+export function getApiBaseUrlValidationError(baseUrl = readApiBaseUrl(), currentOrigin = getCurrentOrigin()) {
   if (!baseUrl) {
-    return "VITE_API_BASE_URL is missing. Set it to your backend origin, for example https://marketscope-backend1.onrender.com.";
+    return `VITE_API_BASE_URL is missing. Falling back to ${DEFAULT_API_BASE_URL}.`;
   }
 
   try {
     const parsedUrl = new URL(baseUrl);
 
     if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
-      return "VITE_API_BASE_URL must start with http:// or https://.";
+      return `VITE_API_BASE_URL must start with http:// or https://. Falling back to ${DEFAULT_API_BASE_URL}.`;
+    }
+
+    if (currentOrigin && parsedUrl.origin === currentOrigin) {
+      return `VITE_API_BASE_URL points to the current frontend origin (${currentOrigin}). Falling back to ${DEFAULT_API_BASE_URL}.`;
     }
 
     return null;
   } catch {
-    return "VITE_API_BASE_URL must be a valid absolute URL.";
+    return `VITE_API_BASE_URL must be a valid absolute URL. Falling back to ${DEFAULT_API_BASE_URL}.`;
   }
+}
+
+let hasWarnedAboutApiBaseUrl = false;
+
+function warnAboutApiBaseUrl(message: string) {
+  if (hasWarnedAboutApiBaseUrl || typeof console === "undefined") {
+    return;
+  }
+
+  console.warn(message);
+  hasWarnedAboutApiBaseUrl = true;
 }
 
 export function getApiBaseUrl() {
-  const validationError = getApiBaseUrlValidationError();
+  const configuredBaseUrl = readApiBaseUrl();
+  const validationError = getApiBaseUrlValidationError(configuredBaseUrl);
 
   if (validationError) {
-    throw new Error(validationError);
+    warnAboutApiBaseUrl(validationError);
+    return DEFAULT_API_BASE_URL;
   }
 
-  return readApiBaseUrl()!.replace(/\/$/, "");
+  return trimTrailingSlash(configuredBaseUrl!);
 }
 
-export const API_BASE_URL = readApiBaseUrl()?.replace(/\/$/, "") ?? "";
+export const API_BASE_URL = trimTrailingSlash(readApiBaseUrl() || DEFAULT_API_BASE_URL);
 
 export function buildApiUrl(baseUrl: string, path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return new URL(normalizedPath, `${baseUrl.replace(/\/$/, "")}/`).toString();
+  return new URL(normalizedPath, `${trimTrailingSlash(baseUrl)}/`).toString();
 }
 
 export function apiUrl(path: string) {

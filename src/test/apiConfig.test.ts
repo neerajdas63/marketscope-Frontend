@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildApiUrl, getApiBaseUrlValidationError } from "@/lib/api";
+import { buildApiUrl, DEFAULT_API_BASE_URL, getApiBaseUrlValidationError } from "@/lib/api";
 
 describe("api configuration", () => {
   it("accepts a valid absolute backend URL", () => {
@@ -12,7 +12,13 @@ describe("api configuration", () => {
   it("rejects a missing API base URL", () => {
     const result = getApiBaseUrlValidationError("");
 
-    expect(result).toContain("VITE_API_BASE_URL");
+    expect(result).toContain(DEFAULT_API_BASE_URL);
+  });
+
+  it("rejects an API base URL pointing at the frontend origin", () => {
+    const result = getApiBaseUrlValidationError("https://marketscope-frontend.vercel.app", "https://marketscope-frontend.vercel.app");
+
+    expect(result).toContain("current frontend origin");
   });
 
   it("builds absolute backend URLs", () => {

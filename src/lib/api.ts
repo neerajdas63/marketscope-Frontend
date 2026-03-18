@@ -26,9 +26,14 @@ export function getApiBaseUrlValidationError(baseUrl = readApiBaseUrl(), current
 
   try {
     const parsedUrl = new URL(baseUrl);
+    const hostname = parsedUrl.hostname.toLowerCase();
 
     if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
       return `VITE_API_BASE_URL must start with http:// or https://. Falling back to ${DEFAULT_API_BASE_URL}.`;
+    }
+
+    if (hostname === "supabase.com" || hostname.endsWith(".supabase.co")) {
+      return `VITE_API_BASE_URL points to a Supabase host (${parsedUrl.origin}), which is invalid for backend data APIs. Falling back to ${DEFAULT_API_BASE_URL}.`;
     }
 
     if (currentOrigin && parsedUrl.origin === currentOrigin) {

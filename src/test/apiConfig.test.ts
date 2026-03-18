@@ -21,6 +21,12 @@ describe("api configuration", () => {
     expect(result).toContain("current frontend origin");
   });
 
+  it("rejects Supabase hosts for backend data APIs", () => {
+    const result = getApiBaseUrlValidationError("https://supabase.com");
+
+    expect(result).toContain("Supabase host");
+  });
+
   it("builds absolute backend URLs", () => {
     expect(buildApiUrl("https://marketscope-backend1.onrender.com", "/heatmap")).toBe(
       "https://marketscope-backend1.onrender.com/heatmap",

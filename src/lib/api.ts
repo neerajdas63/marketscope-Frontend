@@ -1,12 +1,47 @@
 import type { BreakoutLevel, InferredDirection, InsightValue, SetupStage } from "@/data/mockData";
 import type { RFactorData, RFactorStock } from "@/data/rfactorMockData";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://marketscope-backend1.onrender.com";
+function readApiBaseUrl() {
+  return import.meta.env.VITE_API_BASE_URL?.trim();
+}
 
-export const API_BASE_URL = API_BASE.replace(/\/$/, "");
+export function getApiBaseUrlValidationError(baseUrl = readApiBaseUrl()) {
+  if (!baseUrl) {
+    return "VITE_API_BASE_URL is missing. Set it to your backend origin, for example https://marketscope-backend1.onrender.com.";
+  }
+
+  try {
+    const parsedUrl = new URL(baseUrl);
+
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      return "VITE_API_BASE_URL must start with http:// or https://.";
+    }
+
+    return null;
+  } catch {
+    return "VITE_API_BASE_URL must be a valid absolute URL.";
+  }
+}
+
+export function getApiBaseUrl() {
+  const validationError = getApiBaseUrlValidationError();
+
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  return readApiBaseUrl()!.replace(/\/$/, "");
+}
+
+export const API_BASE_URL = readApiBaseUrl()?.replace(/\/$/, "") ?? "";
+
+export function buildApiUrl(baseUrl: string, path: string) {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return new URL(normalizedPath, `${baseUrl.replace(/\/$/, "")}/`).toString();
+}
 
 export function apiUrl(path: string) {
-  return `${API_BASE_URL}${path}`;
+  return buildApiUrl(getApiBaseUrl(), path);
 }
 
 export type RFactorSortBy = "rfactor" | "opportunity" | "trend" | "pre_score" | "trigger_score" | "direction_conf";

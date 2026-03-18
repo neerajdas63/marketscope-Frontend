@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildApiUrl, DEFAULT_API_BASE_URL, getApiBaseUrlValidationError } from "@/lib/api";
+import { buildApiUrl, getApiBaseUrlValidationError } from "@/lib/api";
 
 describe("api configuration", () => {
   it("accepts a valid absolute backend URL", () => {
@@ -12,7 +12,7 @@ describe("api configuration", () => {
   it("rejects a missing API base URL", () => {
     const result = getApiBaseUrlValidationError("");
 
-    expect(result).toContain(DEFAULT_API_BASE_URL);
+    expect(result).toContain("VITE_API_BASE_URL is missing");
   });
 
   it("rejects an API base URL pointing at the frontend origin", () => {

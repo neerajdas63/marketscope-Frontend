@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { createEmptyPulseNavigatorResponse, mergePulseNavigatorResponse } from "@/data/pulseNavigatorData";
 import { normalizePulseNavigatorResponse } from "@/lib/pulseNavigatorApi";
 
 describe("normalizePulseNavigatorResponse", () => {
@@ -97,5 +98,67 @@ describe("normalizePulseNavigatorResponse", () => {
     expect(response.tabs.sectors.sectors).toHaveLength(1);
     expect(response.tabs.sectors.sectors[0]?.sector).toBe("Auto");
     expect(response.tabs.sectors.sectors[0]?.leader?.symbol).toBe("M&M");
+  });
+
+  it("preserves prior curated data during stale_refreshing when sections come back empty", () => {
+    const current = normalizePulseNavigatorResponse(
+      {
+        status: "ready",
+        last_updated: "10:45 IST",
+        benchmark_change_pct: 0.82,
+        hero: {
+          market_mode: { primary: "Risk On", secondary: "Broad participation" },
+          best_long: { symbol: "RELIANCE", direction: "LONG", score: 88.4 },
+          best_short: { symbol: "HDFCBANK", direction: "SHORT", score: 75.1 },
+          best_fresh: { symbol: "SBIN", direction: "LONG", score: 71.9 },
+          strongest_sector: { sector: "Banks", score: 83.2 },
+        },
+        tabs: {
+          discover: {
+            buckets: {
+              curated_now: [{ symbol: "RELIANCE", direction: "LONG", momentum_pulse_score: 88.4 }],
+            },
+          },
+          fresh: {
+            stocks: [{ symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 }],
+          },
+          sectors: {
+            sectors: [{ sector: "Banks", leader: { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 } }],
+          },
+        },
+      },
+      { limit: 12, preset: "balanced", direction: "ALL" },
+    );
+
+    const incoming = createEmptyPulseNavigatorResponse({ limit: 12, preset: "balanced", direction: "ALL" });
+    incoming.status = "stale_refreshing";
+
+    const merged = mergePulseNavigatorResponse(current, incoming);
+
+    expect(merged.status).toBe("stale_refreshing");
+    expect(merged.hero.best_long?.primary).toBe("RELIANCE");
+    expect(merged.tabs.discover.buckets[0]?.stocks[0]?.symbol).toBe("RELIANCE");
+    expect(merged.tabs.fresh.stocks[0]?.symbol).toBe("SBIN");
+    expect(merged.tabs.sectors.sectors[0]?.leader?.symbol).toBe("SBIN");
+    expect(merged.benchmark.value).toBe("+0.82%");
+    expect(merged.last_updated).toBe("10:45 IST");
+  });
+
+  it("does not invent unavailable hero data when stale_refreshing includes a real highlight", () => {
+    const current = createEmptyPulseNavigatorResponse({ limit: 12, preset: "balanced", direction: "ALL" });
+    const incoming = normalizePulseNavigatorResponse(
+      {
+        status: "stale_refreshing",
+        hero: {
+          best_long: { symbol: "TCS", direction: "LONG", score: 64.5 },
+        },
+      },
+      { limit: 12, preset: "balanced", direction: "ALL" },
+    );
+
+    const merged = mergePulseNavigatorResponse(current, incoming);
+
+    expect(merged.hero.best_long?.primary).toBe("TCS");
+    expect(merged.hero.best_short).toBeNull();
   });
 });

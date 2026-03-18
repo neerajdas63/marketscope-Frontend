@@ -6,6 +6,11 @@ import { PulseNavigatorStockCard } from "@/components/PulseNavigatorStockCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   createEmptyPulseNavigatorResponse,
+  hasPulseNavigatorDiscoverData,
+  hasPulseNavigatorFreshData,
+  hasPulseNavigatorSectorsData,
+  hasPulseNavigatorUsableData,
+  mergePulseNavigatorResponse,
   type PulseNavigatorHeroHighlight,
   type PulseNavigatorInnerTab,
   type PulseNavigatorPreset,
@@ -123,14 +128,7 @@ export function PulseNavigatorTab() {
   });
 
   const queryKey = useMemo(() => `${query.limit}:${query.preset}:${query.direction}:${refreshTick}`, [query, refreshTick]);
-  const hasVisibleData = useMemo(
-    () => (
-      data.tabs.discover.buckets.some((bucket) => bucket.stocks.length > 0)
-      || data.tabs.fresh.stocks.length > 0
-      || data.tabs.sectors.sectors.length > 0
-    ),
-    [data.tabs.discover.buckets, data.tabs.fresh.stocks.length, data.tabs.sectors.sectors.length],
-  );
+  const hasVisibleData = useMemo(() => hasPulseNavigatorUsableData(data), [data]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -145,7 +143,7 @@ export function PulseNavigatorTab() {
 
     fetchPulseNavigatorData(query, controller.signal)
       .then((response) => {
-        setData(response);
+        setData((current) => mergePulseNavigatorResponse(current, response));
         setTabRequestKeys({ fresh: "", sectors: "" });
       })
       .catch((fetchError) => {
@@ -184,12 +182,17 @@ export function PulseNavigatorTab() {
     fetchPulseNavigatorTabData(activeTab, query, controller.signal)
       .then((response) => {
         setData((current) => ({
-          ...current,
-          last_updated: response.last_updated || current.last_updated,
-          tabs: {
-            ...current.tabs,
-            [activeTab]: response.tabs[activeTab],
-          },
+          ...mergePulseNavigatorResponse(current, {
+            ...current,
+            status: current.status,
+            last_updated: response.last_updated || current.last_updated,
+            preset: response.preset,
+            direction: response.direction,
+            tabs: {
+              ...current.tabs,
+              [activeTab]: response.tabs[activeTab],
+            },
+          }),
         }));
         setTabRequestKeys((current) => ({ ...current, [activeTab]: queryKey }));
       })
@@ -212,9 +215,12 @@ export function PulseNavigatorTab() {
     : data.benchmark.tone === "negative"
       ? "#FCA5A5"
       : "#CBD5E1";
-  const discoverHasData = data.tabs.discover.buckets.some((bucket) => bucket.stocks.length > 0);
-  const freshHasData = data.tabs.fresh.stocks.length > 0;
-  const sectorsHasData = data.tabs.sectors.sectors.length > 0;
+  const discoverHasData = hasPulseNavigatorDiscoverData(data.tabs.discover);
+  const freshHasData = hasPulseNavigatorFreshData(data.tabs.fresh);
+  const sectorsHasData = hasPulseNavigatorSectorsData(data.tabs.sectors);
+  const isWarmingUp = data.status === "warming" || data.status === "warming_up";
+  const isStaleRefreshing = data.status === "stale_refreshing";
+  const showWaitingState = isWarmingUp && !hasVisibleData;
 
   if (loading) {
     return (
@@ -318,6 +324,22 @@ export function PulseNavigatorTab() {
               </button>
             ))}
 
+            {isStaleRefreshing ? (
+              <span
+                style={{
+                  color: "#CFFAFE",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  padding: "4px 8px",
+                  borderRadius: "9999px",
+                  border: "1px solid rgba(34, 211, 238, 0.28)",
+                  backgroundColor: "rgba(8, 47, 73, 0.55)",
+                }}
+              >
+                Refreshing in background
+              </span>
+            ) : null}
+
             <span style={{ color: "#64748B", fontSize: "11px", marginLeft: "auto" }}>
               Updated: {data.last_updated || "Waiting for first navigator snapshot..."}
             </span>
@@ -366,7 +388,7 @@ export function PulseNavigatorTab() {
           </TabsList>
 
           <TabsContent value="discover">
-            {data.status !== "ready" && !discoverHasData ? <WarmingState status={data.status} /> : null}
+            {showWaitingState && !discoverHasData ? <WarmingState status={data.status} /> : null}
             {discoverHasData ? (
               <div className="grid grid-cols-1 gap-4 mt-4">
                 {data.tabs.discover.buckets.map((bucket) => (
@@ -400,7 +422,7 @@ export function PulseNavigatorTab() {
                 ))}
               </div>
             ) : null}
-            {data.status === "ready" && !discoverHasData ? (
+            {!showWaitingState && !discoverHasData ? (
               <EmptyState
                 title="No Discover buckets available"
                 body="The navigator returned no curated names for the current preset and direction. Try another preset or refresh after the next backend update."
@@ -412,7 +434,7 @@ export function PulseNavigatorTab() {
             {tabRefreshing === "fresh" ? (
               <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Fresh Movers...</div>
             ) : null}
-            {data.status !== "ready" && !freshHasData ? <WarmingState status={data.status} /> : null}
+            {showWaitingState && !freshHasData ? <WarmingState status={data.status} /> : null}
             {freshHasData ? (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-4">
                 {data.tabs.fresh.stocks.map((stock) => (
@@ -420,7 +442,7 @@ export function PulseNavigatorTab() {
                 ))}
               </div>
             ) : null}
-            {data.status === "ready" && !freshHasData ? (
+            {!showWaitingState && !freshHasData ? (
               <EmptyState
                 title="No Fresh Movers right now"
                 body="Newly emerging names are not available for the current filters. Widen direction or switch to Discover for the broader curated set."
@@ -432,7 +454,7 @@ export function PulseNavigatorTab() {
             {tabRefreshing === "sectors" ? (
               <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Sector Leaders...</div>
             ) : null}
-            {data.status !== "ready" && !sectorsHasData ? <WarmingState status={data.status} /> : null}
+            {showWaitingState && !sectorsHasData ? <WarmingState status={data.status} /> : null}
             {sectorsHasData ? (
               <div className="grid grid-cols-1 gap-4 mt-4">
                 {data.tabs.sectors.sectors.map((sector) => (
@@ -440,7 +462,7 @@ export function PulseNavigatorTab() {
                 ))}
               </div>
             ) : null}
-            {data.status === "ready" && !sectorsHasData ? (
+            {!showWaitingState && !sectorsHasData ? (
               <EmptyState
                 title="No Sector Leaders available"
                 body="Sector leadership data is currently empty for this preset. Refresh or switch back to Discover while the sector view catches up."

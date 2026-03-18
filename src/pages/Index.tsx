@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "@/auth/AuthProvider";
 import { Navbar } from "@/components/Navbar";
 import { HeatmapTab } from "@/components/HeatmapTab";
 import { ScannerTab } from "@/components/ScannerTab";
@@ -43,6 +44,7 @@ class ErrorBoundary extends React.Component<
 }
 
 const Index = () => {
+  const { signOut, signOutPending, user } = useAuth();
   const [activeTab, setActiveTab] = useState<
     "heatmap" | "scanner" | "boost" | "breakout" | "52w" | "oi" | "breadth" |
     "opening" | "sectorscope" | "rfactor" | "planner" | "watchlist" | "foradar" | "momentum-pulse" | "pulse-navigator" | "sequence-signals"
@@ -75,7 +77,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar userEmail={user?.email} onSignOut={signOut} signingOut={signOutPending} />
 
       {/* Tab Buttons */}
       <div className="flex flex-wrap gap-1 px-4 pt-3 pb-1 bg-background">

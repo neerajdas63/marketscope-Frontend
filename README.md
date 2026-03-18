@@ -36,6 +36,40 @@ npm i
 npm run dev
 ```
 
+## Environment setup
+
+Create a local `.env` file before testing Google sign-in:
+
+```sh
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-public-anon-key
+```
+
+These values are required by the frontend auth flow. Do not commit real secrets.
+
+## Supabase auth redirect setup
+
+Configure Supabase Auth so the Google OAuth callback can return to the protected app route:
+
+1. In Supabase, open Authentication -> URL Configuration.
+2. Set Site URL to your frontend origin.
+3. Add the app route as an allowed redirect URL for each environment:
+
+```txt
+http://localhost:5173/app
+https://your-production-domain.com/app
+```
+
+4. In Authentication -> Providers -> Google, enable Google sign-in and use the same authorized redirect domain there.
+
+The frontend redirect target is centralized at `/app` in `src/lib/authRoutes.ts` and used by the client OAuth flow.
+
+## Backend membership enforcement
+
+Status: pending.
+
+Authenticated Supabase users can enter the app today, but backend entitlement or approved-user membership validation is not enforced yet. The placeholder hook for that future check lives in `src/auth/accessPolicy.ts`.
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).

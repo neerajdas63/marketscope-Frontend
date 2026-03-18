@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { SectorBlock } from "./SectorBlock";
 import { MarketData } from "@/data/mockData"; // sirf TYPE import
 import { getAdaptiveBgColor } from "@/lib/market";
-import { apiUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export function HeatmapTab() {
   const [data, setData] = useState<MarketData | null>(null);
@@ -10,7 +10,7 @@ export function HeatmapTab() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(apiUrl("/heatmap"))
+    apiFetch("/heatmap")
       .then(r => r.json())
       .then(d => {
         setData(d);

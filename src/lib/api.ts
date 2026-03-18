@@ -1,6 +1,8 @@
 import type { BreakoutLevel, InferredDirection, InsightValue, SetupStage } from "@/data/mockData";
 import type { RFactorData, RFactorStock } from "@/data/rfactorMockData";
 
+import { getSupabaseConfigurationError, supabase } from "@/lib/supabase";
+
 function readApiBaseUrl() {
   return import.meta.env.VITE_API_BASE_URL?.trim();
 }
@@ -64,6 +66,41 @@ export function buildApiUrl(baseUrl: string, path: string) {
 
 export function apiUrl(path: string) {
   return buildApiUrl(getApiBaseUrl(), path);
+}
+
+async function getAccessToken() {
+  if (!supabase) {
+    throw new Error(getSupabaseConfigurationError() ?? "Supabase session is not available.");
+  }
+
+  const { data } = await supabase.auth.getSession();
+  const accessToken = data.session?.access_token;
+
+  if (!accessToken) {
+    throw new Error("Supabase session is not ready. Retry after session restoration completes.");
+  }
+
+  return accessToken;
+}
+
+export async function getAuthorizedHeaders(headers?: HeadersInit) {
+  const resolvedHeaders = new Headers(headers);
+
+  if (!resolvedHeaders.has("Authorization")) {
+    resolvedHeaders.set("Authorization", `Bearer ${await getAccessToken()}`);
+  }
+
+  return resolvedHeaders;
+}
+
+export async function apiFetch(pathOrUrl: string, init: RequestInit = {}) {
+  const target = /^https?:\/\//i.test(pathOrUrl) ? pathOrUrl : apiUrl(pathOrUrl);
+  const headers = await getAuthorizedHeaders(init.headers);
+
+  return fetch(target, {
+    ...init,
+    headers,
+  });
 }
 
 export type RFactorSortBy = "rfactor" | "opportunity" | "trend" | "pre_score" | "trigger_score" | "direction_conf";
@@ -277,7 +314,7 @@ function getRFactorStocksEnvelope(payload: unknown) {
 }
 
 export async function fetchRFactorData(sortBy: RFactorSortBy, signal?: AbortSignal): Promise<RFactorData | null> {
-  const response = await fetch(apiUrl(`/rfactor?sort_by=${sortBy}`), { signal });
+  const response = await apiFetch(`/rfactor?sort_by=${sortBy}`, { signal });
 
   if (!response.ok) {
     throw new Error(`Failed to load /rfactor (${response.status})`);

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { type BoostComponents, type BoostDirection, BoostStock } from "@/data/boostMockData";
 import { BoostCard } from "./BoostCard";
-import { apiUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 type Direction = "ALL" | "GAINERS" | "LOSERS";
 type SortBy = "backend" | "boost_score" | "change_pct" | "vol_surge";
@@ -153,7 +153,7 @@ export function BoostTab() {
       min_score: String(minScore),
     });
 
-    fetch(apiUrl(`/boost?${params.toString()}`))
+    apiFetch(`/boost?${params.toString()}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

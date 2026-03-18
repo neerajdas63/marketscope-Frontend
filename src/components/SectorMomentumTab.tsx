@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { apiUrl } from "@/lib/api";
+import { apiFetch, apiUrl } from "@/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -505,7 +505,7 @@ export function SectorMomentumTab() {
     const isHistorical = mode !== "today";
     const url = buildUrl(mode, custom);
     if (!url) return;
-    fetch(url)
+    apiFetch(url)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { apiUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -343,7 +343,7 @@ export function TradePlannerTab() {
 
   function doFetch(dir?: Direction | "ALL") {
     const qs = dir && dir !== "ALL" ? `?direction=${dir}` : "";
-    fetch(apiUrl(`/trade-plan/bulk${qs}`))
+    apiFetch(`/trade-plan/bulk${qs}`)
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d: unknown) => {
         const raw = d as { plans?: unknown[]; last_updated?: string; long_count?: number; short_count?: number };

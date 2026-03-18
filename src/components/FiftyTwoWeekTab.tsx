@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { apiUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ export function FiftyTwoWeekTab() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function doFetch() {
-    fetch(apiUrl("/52w-breakouts"))
+    apiFetch("/52w-breakouts")
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d: W52Response) => {
         setData(d); setIsOffline(false);

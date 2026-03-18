@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { mockData, Stock } from "@/data/mockData";
 import { getChangeTextColor, formatCurrency, getSignal } from "@/lib/market";
-import { apiUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { formatInsightNumber, InsightTooltip, StageBadge, TrendIndicator } from "./StockInsightWidgets";
 
 interface Filters {
@@ -40,7 +40,7 @@ export function ScannerTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(apiUrl("/scanner?min_change=0"))
+    apiFetch("/scanner?min_change=0")
       .then((r) => r.json())
       .then((d) => {
         if (d.stocks) setData(d);

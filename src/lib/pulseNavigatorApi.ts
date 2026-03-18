@@ -1,4 +1,4 @@
-import { apiUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import {
   createEmptyPulseNavigatorResponse,
   type PulseNavigatorActionabilityLabel,
@@ -404,7 +404,7 @@ export async function fetchPulseNavigatorData(
     direction: query.direction,
   });
 
-  const response = await fetch(apiUrl(`/pulse-navigator?${params.toString()}`), { signal });
+  const response = await apiFetch(`/pulse-navigator?${params.toString()}`, { signal });
 
   if (!response.ok) {
     throw new Error(`Failed to load /pulse-navigator (${response.status})`);
@@ -428,7 +428,7 @@ export async function fetchPulseNavigatorTabData(
     : tab === "fresh"
       ? "/pulse-navigator/fresh"
       : "/pulse-navigator/sectors";
-  const response = await fetch(apiUrl(`${path}?${params.toString()}`), { signal });
+  const response = await apiFetch(`${path}?${params.toString()}`, { signal });
 
   if (!response.ok) {
     throw new Error(`Failed to load ${path} (${response.status})`);

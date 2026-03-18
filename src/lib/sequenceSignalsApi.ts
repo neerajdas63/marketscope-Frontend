@@ -1,4 +1,4 @@
-import { apiUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import {
   createEmptySequenceSignalsResponse,
   type SequenceSignalFilterSide,
@@ -205,7 +205,7 @@ export async function fetchSequenceSignalsData(
     params.set("session_date", query.session_date);
   }
 
-  const response = await fetch(apiUrl(`/sequence-signals?${params.toString()}`), { signal });
+  const response = await apiFetch(`/sequence-signals?${params.toString()}`, { signal });
 
   if (!response.ok) {
     throw new Error(`Failed to load /sequence-signals (${response.status})`);

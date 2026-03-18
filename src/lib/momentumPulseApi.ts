@@ -1,4 +1,4 @@
-import { apiUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import {
   type MomentumPulseBehaviorState,
   createEmptyMomentumPulseResponse,
@@ -242,7 +242,7 @@ export async function fetchMomentumPulseData(
     include_veryweak: String(query.includeVeryWeak),
   });
 
-  const response = await fetch(apiUrl(`/momentum-pulse?${params.toString()}`), { signal });
+  const response = await apiFetch(`/momentum-pulse?${params.toString()}`, { signal });
 
   if (!response.ok) {
     throw new Error(`Failed to load /momentum-pulse (${response.status})`);

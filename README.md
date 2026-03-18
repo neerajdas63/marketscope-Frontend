@@ -41,8 +41,9 @@ npm run dev
 Create a local `.env` file before testing Google sign-in:
 
 ```sh
-VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_URL=https://flbdwuhoyqbbidbkrmmi.supabase.co
 VITE_SUPABASE_ANON_KEY=your-public-anon-key
+VITE_API_BASE_URL=https://marketscope-backend1.onrender.com
 ```
 
 These values are required by the frontend auth flow. Do not commit real secrets.
@@ -63,6 +64,7 @@ https://your-production-domain.com/app
 4. In Authentication -> Providers -> Google, enable Google sign-in and use the same authorized redirect domain there.
 
 The frontend redirect target is centralized at `/app` in `src/lib/authRoutes.ts` and used by the client OAuth flow.
+Runtime auth code rejects Supabase dashboard URLs and only accepts project domains ending in `.supabase.co`.
 
 ## Backend membership enforcement
 

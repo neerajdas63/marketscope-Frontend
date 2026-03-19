@@ -17,7 +17,6 @@ export function PostLoginGate() {
     }
 
     let isMounted = true;
-    setDecision(null);
 
     resolveAppAccess(session).then((nextDecision) => {
       if (isMounted) {

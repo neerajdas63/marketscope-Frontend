@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/auth/AuthProvider";
 import { Navbar } from "@/components/Navbar";
 import { HeatmapTab } from "@/components/HeatmapTab";
@@ -17,6 +18,7 @@ import { FoRadarTab } from "@/components/FoRadarTab";
 import { MomentumPulseTab } from "@/components/MomentumPulseTab";
 import { PulseNavigatorTab } from "@/components/PulseNavigatorTab";
 import { SequenceSignalsTab } from "@/components/SequenceSignalsTab";
+import { APP_TAB_LABELS, APP_TABS, DEFAULT_APP_TAB, resolveAppTab, type AppTab } from "@/lib/appTabs";
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode; name: string },
@@ -45,35 +47,35 @@ class ErrorBoundary extends React.Component<
 
 const Index = () => {
   const { signOut, signOutPending, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<
-    "heatmap" | "scanner" | "boost" | "breakout" | "52w" | "oi" | "breadth" |
-    "opening" | "sectorscope" | "rfactor" | "planner" | "watchlist" | "foradar" | "momentum-pulse" | "pulse-navigator" | "sequence-signals"
-  >("heatmap");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [refreshTrigger] = useState<number>(0);
+  const activeTab = useMemo(() => resolveAppTab(searchParams.get("tab")), [searchParams]);
 
-  const TAB_LABELS: Record<string, string> = {
-    heatmap:    "HEATMAP",
-    scanner:    "SCANNER",
-    boost:      "BOOST",
-    breakout:   "BREAKOUT",
-    "52w":      "52W",
-    oi:         "OI",
-    breadth:    "BREADTH",
-    opening:    "OPENING",
-    sectorscope:"SECTOR SCOPE",
-    rfactor:    "RFACTOR",
-    planner:    "PLANNER",
-    watchlist:  "WATCHLIST",
-    foradar:    "F&O RADAR",
-    "momentum-pulse": "MOMENTUM PULSE",
-    "pulse-navigator": "PULSE NAVIGATOR",
-    "sequence-signals": "SEQUENCE SIGNALS",
+  useEffect(() => {
+    const rawTab = searchParams.get("tab");
+
+    if (!rawTab) {
+      return;
+    }
+
+    if (rawTab === DEFAULT_APP_TAB || resolveAppTab(rawTab) !== rawTab) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("tab");
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  const handleTabChange = (tab: AppTab) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (tab === DEFAULT_APP_TAB) {
+      nextParams.delete("tab");
+    } else {
+      nextParams.set("tab", tab);
+    }
+
+    setSearchParams(nextParams, { replace: true });
   };
-
-  const ALL_TABS = [
-    "heatmap","scanner","boost","breakout","52w","oi","breadth",
-    "opening","sectorscope","rfactor","momentum-pulse","pulse-navigator","sequence-signals","planner","foradar","watchlist",
-  ] as const;
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,17 +83,17 @@ const Index = () => {
 
       {/* Tab Buttons */}
       <div className="flex flex-wrap gap-1 px-4 pt-3 pb-1 bg-background">
-        {ALL_TABS.map((tab) => (
+        {APP_TABS.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => handleTabChange(tab)}
             className={`px-5 py-2 text-sm font-bold rounded-t transition-all duration-200 ${
               activeTab === tab
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
-            {TAB_LABELS[tab]}
+            {APP_TAB_LABELS[tab]}
           </button>
         ))}
       </div>

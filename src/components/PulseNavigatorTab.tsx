@@ -8,6 +8,7 @@ import {
   createEmptyPulseNavigatorResponse,
   hasPulseNavigatorDiscoverData,
   hasPulseNavigatorFreshData,
+  hasPulseNavigatorLeadersData,
   hasPulseNavigatorSectorsData,
   hasPulseNavigatorUsableData,
   mergePulseNavigatorResponse,
@@ -113,6 +114,61 @@ function EmptyState({ title, body }: { title: string; body: string }) {
   );
 }
 
+function StockSection({
+  title,
+  subtitle,
+  stocks,
+  emphasis,
+  emptyCopy,
+}: {
+  title: string;
+  subtitle: string;
+  stocks: PulseNavigatorResponse["tabs"]["fresh"]["longs"];
+  emphasis: "fresh" | "leader";
+  emptyCopy: string;
+}) {
+  return (
+    <section
+      style={{
+        borderRadius: "18px",
+        border: `1px solid ${emphasis === "leader" ? "rgba(245, 158, 11, 0.16)" : "rgba(56, 189, 248, 0.16)"}`,
+        background: "rgba(9, 15, 28, 0.84)",
+        padding: "16px",
+      }}
+    >
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div style={{ color: "#F8FAFC", fontSize: "18px", fontWeight: 800 }}>{title}</div>
+          <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "4px", maxWidth: "540px" }}>{subtitle}</div>
+        </div>
+        <span
+          style={{
+            color: emphasis === "leader" ? "#FDE68A" : "#7DD3FC",
+            fontSize: "11px",
+            fontWeight: 700,
+            padding: "5px 10px",
+            borderRadius: "9999px",
+            border: `1px solid ${emphasis === "leader" ? "rgba(245, 158, 11, 0.24)" : "rgba(56, 189, 248, 0.24)"}`,
+            backgroundColor: emphasis === "leader" ? "rgba(120, 53, 15, 0.16)" : "rgba(8, 47, 73, 0.18)",
+          }}
+        >
+          {stocks.length} name{stocks.length === 1 ? "" : "s"}
+        </span>
+      </div>
+
+      {stocks.length > 0 ? (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-4">
+          {stocks.map((stock) => (
+            <PulseNavigatorStockCard key={`${emphasis}-${title}-${stock.symbol}`} stock={stock} emphasis={emphasis} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ color: "#94A3B8", fontSize: "13px", marginTop: "16px" }}>{emptyCopy}</div>
+      )}
+    </section>
+  );
+}
+
 export function PulseNavigatorTab() {
   const [query, setQuery] = useState<PulseNavigatorQuery>(DEFAULT_QUERY);
   const [activeTab, setActiveTab] = useState<PulseNavigatorInnerTab>("discover");
@@ -123,6 +179,7 @@ export function PulseNavigatorTab() {
   const [refreshTick, setRefreshTick] = useState(0);
   const [tabRefreshing, setTabRefreshing] = useState<Exclude<PulseNavigatorInnerTab, "discover"> | null>(null);
   const [tabRequestKeys, setTabRequestKeys] = useState<Record<Exclude<PulseNavigatorInnerTab, "discover">, string>>({
+    leaders: "",
     fresh: "",
     sectors: "",
   });
@@ -144,7 +201,7 @@ export function PulseNavigatorTab() {
     fetchPulseNavigatorData(query, controller.signal)
       .then((response) => {
         setData((current) => mergePulseNavigatorResponse(current, response));
-        setTabRequestKeys({ fresh: "", sectors: "" });
+        setTabRequestKeys({ leaders: "", fresh: "", sectors: "" });
       })
       .catch((fetchError) => {
         if (controller.signal.aborted) {
@@ -216,6 +273,7 @@ export function PulseNavigatorTab() {
       ? "#FCA5A5"
       : "#CBD5E1";
   const discoverHasData = hasPulseNavigatorDiscoverData(data.tabs.discover);
+  const leadersHasData = hasPulseNavigatorLeadersData(data.tabs.leaders);
   const freshHasData = hasPulseNavigatorFreshData(data.tabs.fresh);
   const sectorsHasData = hasPulseNavigatorSectorsData(data.tabs.sectors);
   const isWarmingUp = data.status === "warming" || data.status === "warming_up";
@@ -363,11 +421,12 @@ export function PulseNavigatorTab() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3 mt-4">
           <HeroCard label="Market Mode" value={data.hero.market_mode} accent="rgba(56, 189, 248, 0.28)" />
-          <HeroCard label="Best Long" value={data.hero.best_long} accent="rgba(74, 222, 128, 0.28)" />
-          <HeroCard label="Best Short" value={data.hero.best_short} accent="rgba(248, 113, 113, 0.28)" />
-          <HeroCard label="Best Fresh" value={data.hero.best_fresh} accent="rgba(250, 204, 21, 0.28)" />
+          <HeroCard label="Leader Long" value={data.hero.leader_long} accent="rgba(74, 222, 128, 0.28)" />
+          <HeroCard label="Leader Short" value={data.hero.leader_short} accent="rgba(248, 113, 113, 0.28)" />
+          <HeroCard label="Fresh Long" value={data.hero.fresh_long} accent="rgba(125, 211, 252, 0.28)" />
+          <HeroCard label="Fresh Short" value={data.hero.fresh_short} accent="rgba(251, 146, 60, 0.28)" />
           <HeroCard label="Strongest Sector" value={data.hero.strongest_sector} accent="rgba(192, 132, 252, 0.28)" />
         </div>
 
@@ -377,12 +436,16 @@ export function PulseNavigatorTab() {
               <Sparkles size={14} />
               Discover
             </TabsTrigger>
+            <TabsTrigger value="leaders" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
+              <Target size={14} />
+              Session Leaders
+            </TabsTrigger>
             <TabsTrigger value="fresh" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
               <TrendingUp size={14} />
               Fresh Movers
             </TabsTrigger>
             <TabsTrigger value="sectors" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
-              <Target size={14} />
+              <Compass size={14} />
               Sector Leaders
             </TabsTrigger>
           </TabsList>
@@ -430,16 +493,58 @@ export function PulseNavigatorTab() {
             ) : null}
           </TabsContent>
 
+          <TabsContent value="leaders">
+            {tabRefreshing === "leaders" ? (
+              <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Session Leaders...</div>
+            ) : null}
+            {showWaitingState && !leadersHasData ? <WarmingState status={data.status} /> : null}
+            {leadersHasData ? (
+              <div className="grid grid-cols-1 gap-4 mt-4">
+                <StockSection
+                  title="Leader Longs"
+                  subtitle="Stable upside names that have led through the session, not just improved recently."
+                  stocks={data.tabs.leaders.longs}
+                  emphasis="leader"
+                  emptyCopy="No stable long leaders are available for the current filters."
+                />
+                <StockSection
+                  title="Leader Shorts"
+                  subtitle="Persistent downside leaders with session-level control still intact."
+                  stocks={data.tabs.leaders.shorts}
+                  emphasis="leader"
+                  emptyCopy="No stable short leaders are available for the current filters."
+                />
+              </div>
+            ) : null}
+            {!showWaitingState && !leadersHasData ? (
+              <EmptyState
+                title="No Session Leaders available"
+                body="Stable leadership data is empty for the current preset. The view falls back cleanly, but there are no session leaders to show right now."
+              />
+            ) : null}
+          </TabsContent>
+
           <TabsContent value="fresh">
             {tabRefreshing === "fresh" ? (
               <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Fresh Movers...</div>
             ) : null}
             {showWaitingState && !freshHasData ? <WarmingState status={data.status} /> : null}
             {freshHasData ? (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-4">
-                {data.tabs.fresh.stocks.map((stock) => (
-                  <PulseNavigatorStockCard key={`fresh-${stock.symbol}`} stock={stock} emphasis="fresh" />
-                ))}
+              <div className="grid grid-cols-1 gap-4 mt-4">
+                <StockSection
+                  title="Fresh Longs"
+                  subtitle="Reactive upside names improving now, with recent score acceleration driving the move."
+                  stocks={data.tabs.fresh.longs}
+                  emphasis="fresh"
+                  emptyCopy="No fresh long movers are available for the current filters."
+                />
+                <StockSection
+                  title="Fresh Shorts"
+                  subtitle="Reactive downside names improving now, separate from stable session leadership."
+                  stocks={data.tabs.fresh.shorts}
+                  emphasis="fresh"
+                  emptyCopy="No fresh short movers are available for the current filters."
+                />
               </div>
             ) : null}
             {!showWaitingState && !freshHasData ? (

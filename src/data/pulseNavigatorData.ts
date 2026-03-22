@@ -4,7 +4,7 @@ export type PulseNavigatorDirection = "LONG" | "SHORT" | "NEUTRAL";
 
 export type PulseNavigatorDirectionFilter = "ALL" | "LONG" | "SHORT";
 
-export type PulseNavigatorInnerTab = "discover" | "fresh" | "sectors";
+export type PulseNavigatorInnerTab = "discover" | "leaders" | "fresh" | "sectors";
 
 export type PulseNavigatorActionabilityLabel =
   | "clean_setup"
@@ -18,10 +18,14 @@ export interface PulseNavigatorStock {
   sector: string;
   direction: PulseNavigatorDirection;
   momentum_pulse_score: number;
+  session_leader_score: number;
   direction_confidence: number;
   actionability_label: PulseNavigatorActionabilityLabel;
+  leader_reason: string;
   reasons: string[];
   ui_tags: string[];
+  change_pct: number;
+  distance_from_vwap_pct: number;
   relative_strength: number;
   pulse_trend_label: string;
   pulse_trend_strength: number;
@@ -51,9 +55,10 @@ export interface PulseNavigatorHeroHighlight {
 
 export interface PulseNavigatorHero {
   market_mode: PulseNavigatorHeroHighlight | null;
-  best_long: PulseNavigatorHeroHighlight | null;
-  best_short: PulseNavigatorHeroHighlight | null;
-  best_fresh: PulseNavigatorHeroHighlight | null;
+  leader_long: PulseNavigatorHeroHighlight | null;
+  leader_short: PulseNavigatorHeroHighlight | null;
+  fresh_long: PulseNavigatorHeroHighlight | null;
+  fresh_short: PulseNavigatorHeroHighlight | null;
   strongest_sector: PulseNavigatorHeroHighlight | null;
 }
 
@@ -75,8 +80,13 @@ export interface PulseNavigatorResponse {
     discover: {
       buckets: PulseNavigatorDiscoverBucket[];
     };
+    leaders: {
+      longs: PulseNavigatorStock[];
+      shorts: PulseNavigatorStock[];
+    };
     fresh: {
-      stocks: PulseNavigatorStock[];
+      longs: PulseNavigatorStock[];
+      shorts: PulseNavigatorStock[];
     };
     sectors: {
       sectors: PulseNavigatorSectorEntry[];
@@ -114,9 +124,10 @@ export function hasPulseNavigatorBenchmarkData(value: PulseNavigatorBenchmarkStr
 
 export function hasPulseNavigatorHeroData(value: PulseNavigatorHero) {
   return hasPulseNavigatorHighlightData(value.market_mode)
-    || hasPulseNavigatorHighlightData(value.best_long)
-    || hasPulseNavigatorHighlightData(value.best_short)
-    || hasPulseNavigatorHighlightData(value.best_fresh)
+    || hasPulseNavigatorHighlightData(value.leader_long)
+    || hasPulseNavigatorHighlightData(value.leader_short)
+    || hasPulseNavigatorHighlightData(value.fresh_long)
+    || hasPulseNavigatorHighlightData(value.fresh_short)
     || hasPulseNavigatorHighlightData(value.strongest_sector);
 }
 
@@ -124,8 +135,12 @@ export function hasPulseNavigatorDiscoverData(value: PulseNavigatorResponse["tab
   return value.buckets.some((bucket) => bucket.stocks.length > 0);
 }
 
+export function hasPulseNavigatorLeadersData(value: PulseNavigatorResponse["tabs"]["leaders"]) {
+  return value.longs.length > 0 || value.shorts.length > 0;
+}
+
 export function hasPulseNavigatorFreshData(value: PulseNavigatorResponse["tabs"]["fresh"]) {
-  return value.stocks.length > 0;
+  return value.longs.length > 0 || value.shorts.length > 0;
 }
 
 export function hasPulseNavigatorSectorsData(value: PulseNavigatorResponse["tabs"]["sectors"]) {
@@ -135,6 +150,7 @@ export function hasPulseNavigatorSectorsData(value: PulseNavigatorResponse["tabs
 export function hasPulseNavigatorUsableData(value: PulseNavigatorResponse) {
   return hasPulseNavigatorHeroData(value.hero)
     || hasPulseNavigatorDiscoverData(value.tabs.discover)
+    || hasPulseNavigatorLeadersData(value.tabs.leaders)
     || hasPulseNavigatorFreshData(value.tabs.fresh)
     || hasPulseNavigatorSectorsData(value.tabs.sectors);
 }
@@ -153,15 +169,17 @@ export function mergePulseNavigatorResponse(
     benchmark: hasPulseNavigatorBenchmarkData(incoming.benchmark) ? incoming.benchmark : current.benchmark,
     hero: {
       market_mode: hasPulseNavigatorHighlightData(incoming.hero.market_mode) ? incoming.hero.market_mode : current.hero.market_mode,
-      best_long: hasPulseNavigatorHighlightData(incoming.hero.best_long) ? incoming.hero.best_long : current.hero.best_long,
-      best_short: hasPulseNavigatorHighlightData(incoming.hero.best_short) ? incoming.hero.best_short : current.hero.best_short,
-      best_fresh: hasPulseNavigatorHighlightData(incoming.hero.best_fresh) ? incoming.hero.best_fresh : current.hero.best_fresh,
+      leader_long: hasPulseNavigatorHighlightData(incoming.hero.leader_long) ? incoming.hero.leader_long : current.hero.leader_long,
+      leader_short: hasPulseNavigatorHighlightData(incoming.hero.leader_short) ? incoming.hero.leader_short : current.hero.leader_short,
+      fresh_long: hasPulseNavigatorHighlightData(incoming.hero.fresh_long) ? incoming.hero.fresh_long : current.hero.fresh_long,
+      fresh_short: hasPulseNavigatorHighlightData(incoming.hero.fresh_short) ? incoming.hero.fresh_short : current.hero.fresh_short,
       strongest_sector: hasPulseNavigatorHighlightData(incoming.hero.strongest_sector)
         ? incoming.hero.strongest_sector
         : current.hero.strongest_sector,
     },
     tabs: {
       discover: hasPulseNavigatorDiscoverData(incoming.tabs.discover) ? incoming.tabs.discover : current.tabs.discover,
+      leaders: hasPulseNavigatorLeadersData(incoming.tabs.leaders) ? incoming.tabs.leaders : current.tabs.leaders,
       fresh: hasPulseNavigatorFreshData(incoming.tabs.fresh) ? incoming.tabs.fresh : current.tabs.fresh,
       sectors: hasPulseNavigatorSectorsData(incoming.tabs.sectors) ? incoming.tabs.sectors : current.tabs.sectors,
     },
@@ -184,14 +202,16 @@ export function createEmptyPulseNavigatorResponse(
     },
     hero: {
       market_mode: null,
-      best_long: null,
-      best_short: null,
-      best_fresh: null,
+      leader_long: null,
+      leader_short: null,
+      fresh_long: null,
+      fresh_short: null,
       strongest_sector: null,
     },
     tabs: {
       discover: { buckets: [] },
-      fresh: { stocks: [] },
+      leaders: { longs: [], shorts: [] },
+      fresh: { longs: [], shorts: [] },
       sectors: { sectors: [] },
     },
   };

@@ -182,10 +182,14 @@ function normalizeStock(value: unknown): PulseNavigatorStock | null {
       sector: "Unknown",
       direction: "NEUTRAL",
       momentum_pulse_score: 0,
+      session_leader_score: 0,
       direction_confidence: 0,
       actionability_label: "neutral",
+      leader_reason: "",
       reasons: [],
       ui_tags: [],
+      change_pct: 0,
+      distance_from_vwap_pct: 0,
       relative_strength: 0,
       pulse_trend_label: "--",
       pulse_trend_strength: 0,
@@ -217,10 +221,14 @@ function normalizeStock(value: unknown): PulseNavigatorStock | null {
     sector: asOptionalString(row.sector) ?? asOptionalString(row.group) ?? "Unknown",
     direction: asDirection(row.direction ?? row.inferred_direction),
     momentum_pulse_score: asFiniteNumber(row.momentum_pulse_score) ?? asFiniteNumber(row.score) ?? 0,
+    session_leader_score: asFiniteNumber(row.session_leader_score) ?? 0,
     direction_confidence: asFiniteNumber(row.direction_confidence) ?? asFiniteNumber(row.direction_conf) ?? 0,
     actionability_label: asActionabilityLabel(row.actionability_label, warningFlags, isExtended),
+    leader_reason: asOptionalString(row.leader_reason) ?? "",
     reasons: asStringArray(row.reasons).slice(0, 3),
     ui_tags: (asStringArray(row.ui_tags).length > 0 ? asStringArray(row.ui_tags) : asStringArray(row.tags)).slice(0, 4),
+    change_pct: asFiniteNumber(row.change_pct) ?? asFiniteNumber(row.pct_change) ?? 0,
+    distance_from_vwap_pct: asFiniteNumber(row.distance_from_vwap_pct) ?? 0,
     relative_strength: asFiniteNumber(row.relative_strength) ?? 0,
     pulse_trend_label: asOptionalString(row.pulse_trend_label) ?? "--",
     pulse_trend_strength: asFiniteNumber(row.pulse_trend_strength) ?? 0,
@@ -317,6 +325,23 @@ function normalizeStatus(value: unknown) {
   return "ready";
 }
 
+function normalizeStockList(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((stock) => normalizeStock(stock))
+    .filter((stock): stock is PulseNavigatorStock => stock !== null);
+}
+
+function splitStocksByDirection(stocks: PulseNavigatorStock[]) {
+  return {
+    longs: stocks.filter((stock) => stock.direction === "LONG"),
+    shorts: stocks.filter((stock) => stock.direction === "SHORT"),
+  };
+}
+
 function inferBenchmarkTone(changePct?: number) {
   if (changePct === undefined || Number.isNaN(changePct) || changePct === 0) {
     return "neutral" as const;
@@ -355,6 +380,9 @@ export function normalizePulseNavigatorResponse(
   const discoverSource = tab === "discover"
     ? data
     : (tabsData.discover && typeof tabsData.discover === "object" ? tabsData.discover as Record<string, unknown> : {});
+  const leadersSource = tab === "leaders"
+    ? data
+    : (tabsData.leaders && typeof tabsData.leaders === "object" ? tabsData.leaders as Record<string, unknown> : {});
   const freshSource = tab === "fresh"
     ? data
     : (tabsData.fresh && typeof tabsData.fresh === "object" ? tabsData.fresh as Record<string, unknown> : {});
@@ -363,9 +391,19 @@ export function normalizePulseNavigatorResponse(
     : (tabsData.sectors && typeof tabsData.sectors === "object" ? tabsData.sectors as Record<string, unknown> : {});
 
   const discoverBuckets = normalizeDiscoverBuckets(discoverSource.buckets ?? discoverSource.groups ?? discoverSource.sections);
-  const freshStocks = (Array.isArray(freshSource.stocks) ? freshSource.stocks : Array.isArray(freshSource.data) ? freshSource.data : [])
-    .map((stock) => normalizeStock(stock))
-    .filter((stock): stock is PulseNavigatorStock => stock !== null);
+  const discoverStocks = discoverBuckets.flatMap((bucket) => bucket.stocks);
+  const legacyFreshStocks = normalizeStockList(
+    Array.isArray(freshSource.stocks) ? freshSource.stocks : Array.isArray(freshSource.data) ? freshSource.data : [],
+  );
+  const explicitLeaderLongs = normalizeStockList(leadersSource.longs);
+  const explicitLeaderShorts = normalizeStockList(leadersSource.shorts);
+  const explicitFreshLongs = normalizeStockList(freshSource.longs);
+  const explicitFreshShorts = normalizeStockList(freshSource.shorts);
+  const hasExplicitLeaders = explicitLeaderLongs.length > 0 || explicitLeaderShorts.length > 0;
+  const hasExplicitFresh = explicitFreshLongs.length > 0 || explicitFreshShorts.length > 0;
+  const leaderFallback = discoverStocks.length > 0 ? discoverStocks : legacyFreshStocks;
+  const splitLeaderFallback = splitStocksByDirection(leaderFallback);
+  const splitFreshFallback = splitStocksByDirection(legacyFreshStocks);
   const sectorEntries = normalizeSectorEntries(sectorsSource.sectors ?? sectorsSource.data ?? sectorsSource.groups);
 
   return {
@@ -381,14 +419,22 @@ export function normalizePulseNavigatorResponse(
     },
     hero: {
       market_mode: marketModeHighlight,
-      best_long: normalizeHighlight(heroData.best_long),
-      best_short: normalizeHighlight(heroData.best_short),
-      best_fresh: normalizeHighlight(heroData.best_fresh),
+      leader_long: normalizeHighlight(heroData.leader_long ?? heroData.best_long),
+      leader_short: normalizeHighlight(heroData.leader_short ?? heroData.best_short),
+      fresh_long: normalizeHighlight(heroData.fresh_long ?? heroData.best_fresh),
+      fresh_short: normalizeHighlight(heroData.fresh_short),
       strongest_sector: normalizeHighlight(heroData.strongest_sector),
     },
     tabs: {
       discover: { buckets: discoverBuckets },
-      fresh: { stocks: freshStocks },
+      leaders: {
+        longs: hasExplicitLeaders ? explicitLeaderLongs : splitLeaderFallback.longs,
+        shorts: hasExplicitLeaders ? explicitLeaderShorts : splitLeaderFallback.shorts,
+      },
+      fresh: {
+        longs: hasExplicitFresh ? explicitFreshLongs : splitFreshFallback.longs,
+        shorts: hasExplicitFresh ? explicitFreshShorts : splitFreshFallback.shorts,
+      },
       sectors: { sectors: sectorEntries },
     },
   };
@@ -425,6 +471,8 @@ export async function fetchPulseNavigatorTabData(
   });
   const path = tab === "discover"
     ? "/pulse-navigator/discover"
+    : tab === "leaders"
+      ? "/pulse-navigator/leaders"
     : tab === "fresh"
       ? "/pulse-navigator/fresh"
       : "/pulse-navigator/sectors";

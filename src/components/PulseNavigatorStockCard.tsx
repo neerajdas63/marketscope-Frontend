@@ -59,6 +59,30 @@ function formatSignedPercent(value: number, digits = 1) {
   return `${value > 0 ? "+" : ""}${value.toFixed(digits)}%`;
 }
 
+function getProfileMeta(emphasis: "default" | "fresh" | "leader") {
+  if (emphasis === "leader") {
+    return {
+      badge: "Session Leader",
+      sublabel: "Stable Leader",
+      badgeColor: "#FDE68A",
+      badgeBackground: "rgba(120, 53, 15, 0.22)",
+      badgeBorder: "rgba(245, 158, 11, 0.26)",
+    };
+  }
+
+  if (emphasis === "fresh") {
+    return {
+      badge: "Fresh Move",
+      sublabel: "Improving Now",
+      badgeColor: "#7DD3FC",
+      badgeBackground: "rgba(8, 47, 73, 0.34)",
+      badgeBorder: "rgba(56, 189, 248, 0.28)",
+    };
+  }
+
+  return null;
+}
+
 function Stat({ label, value, valueStyle }: { label: string; value: string; valueStyle?: CSSProperties }) {
   return (
     <div>
@@ -79,11 +103,18 @@ export function PulseNavigatorStockCard({
   const directionTone = directionStyles[stock.direction];
   const actionabilityTone = actionabilityStyles[stock.actionability_label];
   const showWarningToggle = stock.warning_count > 0 || stock.warning_flags.length > 0;
+  const profileMeta = getProfileMeta(emphasis);
   const accentBorder = emphasis === "leader"
-    ? actionabilityTone.border
+    ? "rgba(245, 158, 11, 0.3)"
     : emphasis === "fresh"
       ? "rgba(56, 189, 248, 0.28)"
       : "rgba(51, 65, 85, 0.72)";
+  const explanation = emphasis === "leader"
+    ? stock.leader_reason || stock.reasons[0] || "Session leadership explanation is not available yet."
+    : emphasis === "fresh"
+      ? stock.reasons[0] || "Momentum is improving now."
+      : "";
+  const statColumns = emphasis === "default" ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-4";
 
   return (
     <div
@@ -99,6 +130,26 @@ export function PulseNavigatorStockCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
+          {profileMeta ? (
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              <span
+                style={{
+                  color: profileMeta.badgeColor,
+                  background: profileMeta.badgeBackground,
+                  border: `1px solid ${profileMeta.badgeBorder}`,
+                  fontSize: "10px",
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  borderRadius: "9999px",
+                  padding: "4px 9px",
+                }}
+              >
+                {profileMeta.badge}
+              </span>
+              <span style={{ color: "#94A3B8", fontSize: "12px", fontWeight: 700 }}>{profileMeta.sublabel}</span>
+            </div>
+          ) : null}
           <div style={{ color: "#F8FAFC", fontSize: emphasis === "leader" ? "20px" : "18px", fontWeight: 800 }}>{stock.symbol}</div>
           <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "2px" }}>{stock.sector}</div>
         </div>
@@ -133,20 +184,36 @@ export function PulseNavigatorStockCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+      <div className={`grid ${statColumns} gap-3 mt-4`}>
         <Stat label="Pulse Score" value={formatNumber(stock.momentum_pulse_score, 1)} valueStyle={{ color: "#F8FAFC", fontSize: emphasis === "leader" ? "18px" : "16px" }} />
-        <Stat label="Confidence" value={`${formatNumber(stock.direction_confidence, 0)}%`} valueStyle={{ color: directionTone.color }} />
-        <Stat label="Rel Strength" value={formatSignedPercent(stock.relative_strength, 1)} valueStyle={{ color: stock.relative_strength >= 0 ? "#86EFAC" : "#FCA5A5" }} />
-        <Stat label="10m Delta" value={formatSignedPercent(stock.score_change_10m, 1)} valueStyle={{ color: stock.score_change_10m >= 0 ? "#7DD3FC" : "#FCA5A5" }} />
+        {emphasis === "leader" ? (
+          <Stat label="Leader Score" value={formatNumber(stock.session_leader_score, 1)} valueStyle={{ color: "#FDE68A" }} />
+        ) : emphasis === "fresh" ? (
+          <Stat label="10m Delta" value={formatSignedPercent(stock.score_change_10m, 1)} valueStyle={{ color: stock.score_change_10m >= 0 ? "#7DD3FC" : "#FCA5A5" }} />
+        ) : (
+          <Stat label="Confidence" value={`${formatNumber(stock.direction_confidence, 0)}%`} valueStyle={{ color: directionTone.color }} />
+        )}
+        {emphasis === "leader" ? (
+          <Stat label="Day Change" value={formatSignedPercent(stock.change_pct, 1)} valueStyle={{ color: stock.change_pct >= 0 ? "#86EFAC" : "#FCA5A5" }} />
+        ) : emphasis === "fresh" ? (
+          <Stat label="Trend Strength" value={formatNumber(stock.pulse_trend_strength, 1)} valueStyle={{ color: "#CFFAFE" }} />
+        ) : (
+          <Stat label="Rel Strength" value={formatSignedPercent(stock.relative_strength, 1)} valueStyle={{ color: stock.relative_strength >= 0 ? "#86EFAC" : "#FCA5A5" }} />
+        )}
+        {emphasis === "leader" ? (
+          <Stat label="VWAP Gap" value={formatSignedPercent(stock.distance_from_vwap_pct, 1)} valueStyle={{ color: stock.distance_from_vwap_pct >= 0 ? "#CFFAFE" : "#FCA5A5" }} />
+        ) : emphasis === "fresh" ? (
+          <Stat label="Day Change" value={formatSignedPercent(stock.change_pct, 1)} valueStyle={{ color: stock.change_pct >= 0 ? "#86EFAC" : "#FCA5A5" }} />
+        ) : (
+          <Stat label="10m Delta" value={formatSignedPercent(stock.score_change_10m, 1)} valueStyle={{ color: stock.score_change_10m >= 0 ? "#7DD3FC" : "#FCA5A5" }} />
+        )}
+        <Stat label="Trend" value={stock.pulse_trend_label} valueStyle={{ color: directionTone.color }} />
       </div>
 
       <div className="flex items-center justify-between gap-3 flex-wrap mt-4">
         <div className="flex items-center gap-2 flex-wrap">
-          <span style={{ color: "#CFFAFE", fontSize: "12px", fontWeight: 700 }}>
-            {stock.pulse_trend_label}
-          </span>
           <span style={{ color: "#64748B", fontSize: "12px" }}>
-            Trend {formatNumber(stock.pulse_trend_strength, 1)}
+            {emphasis === "leader" ? "Stable through session" : emphasis === "fresh" ? "Reacting in the last 10 minutes" : `Trend ${formatNumber(stock.pulse_trend_strength, 1)}`}
           </span>
         </div>
         <span style={{ color: "#94A3B8", fontSize: "12px" }}>
@@ -154,7 +221,26 @@ export function PulseNavigatorStockCard({
         </span>
       </div>
 
-      {stock.reasons.length > 0 ? (
+      {emphasis === "leader" || emphasis === "fresh" ? (
+        <div
+          style={{
+            marginTop: "14px",
+            borderRadius: "12px",
+            border: `1px solid ${emphasis === "leader" ? "rgba(245, 158, 11, 0.24)" : "rgba(56, 189, 248, 0.22)"}`,
+            background: emphasis === "leader" ? "rgba(120, 53, 15, 0.12)" : "rgba(8, 47, 73, 0.16)",
+            padding: "12px",
+          }}
+        >
+          <div style={{ color: emphasis === "leader" ? "#FDE68A" : "#7DD3FC", fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            {emphasis === "leader" ? "Leader Reason" : "Move Summary"}
+          </div>
+          <div style={{ color: "#E2E8F0", fontSize: emphasis === "leader" ? "13px" : "12px", fontWeight: emphasis === "leader" ? 700 : 600, marginTop: "6px", lineHeight: 1.5 }}>
+            {explanation}
+          </div>
+        </div>
+      ) : null}
+
+      {emphasis === "default" && stock.reasons.length > 0 ? (
         <div className="grid grid-cols-1 gap-2 mt-4">
           {stock.reasons.slice(0, 3).map((reason) => (
             <div
@@ -173,9 +259,9 @@ export function PulseNavigatorStockCard({
             </div>
           ))}
         </div>
-      ) : (
+      ) : emphasis === "default" ? (
         <div style={{ color: "#64748B", fontSize: "12px", marginTop: "14px" }}>Awaiting fresh explanatory reasons.</div>
-      )}
+      ) : null}
 
       {stock.ui_tags.length > 0 ? (
         <div className="flex items-center gap-2 flex-wrap mt-4">

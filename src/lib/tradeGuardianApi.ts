@@ -345,6 +345,71 @@ async function readJson(response: Response) {
   return text ? JSON.parse(text) : null;
 }
 
+function extractApiErrorMessage(payload: unknown, fallback: string) {
+  if (!payload) {
+    return fallback;
+  }
+
+  if (typeof payload === "string") {
+    return payload;
+  }
+
+  const record = asRecord(payload);
+  if (!record) {
+    return fallback;
+  }
+
+  if (typeof record.message === "string" && record.message.trim()) {
+    return record.message;
+  }
+
+  if (typeof record.error === "string" && record.error.trim()) {
+    return record.error;
+  }
+
+  if (typeof record.detail === "string" && record.detail.trim()) {
+    return record.detail;
+  }
+
+  if (Array.isArray(record.detail)) {
+    const detailParts = record.detail
+      .map((item) => {
+        const detailRecord = asRecord(item);
+        if (!detailRecord) {
+          return typeof item === "string" ? item : "";
+        }
+
+        const location = Array.isArray(detailRecord.loc)
+          ? detailRecord.loc.filter((part): part is string => typeof part === "string").join(".")
+          : "";
+        const message = asString(detailRecord.msg || detailRecord.message);
+
+        return location && message ? `${location}: ${message}` : message || location;
+      })
+      .filter(Boolean);
+
+    if (detailParts.length > 0) {
+      return detailParts.join(" | ");
+    }
+  }
+
+  return fallback;
+}
+
+async function createApiError(response: Response, fallback: string) {
+  try {
+    const payload = await readJson(response);
+    return new Error(extractApiErrorMessage(payload, fallback));
+  } catch {
+    try {
+      const text = await response.text();
+      return new Error(text || fallback);
+    } catch {
+      return new Error(fallback);
+    }
+  }
+}
+
 async function postJson(path: string, body?: unknown) {
   const response = await apiFetch(path, {
     method: "POST",
@@ -353,7 +418,7 @@ async function postJson(path: string, body?: unknown) {
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed (${response.status})`);
+    throw await createApiError(response, `Request failed (${response.status})`);
   }
 
   return readJson(response);
@@ -392,7 +457,7 @@ export async function createTradeGuardianTrade(input: CreateTradeGuardianTradeIn
 }
 
 export async function closeTradeGuardianTrade(tradeId: string) {
-  const payload = await postJson(`${TRADE_GUARDIAN_BASE}/trades/${tradeId}/close`);
+  const payload = await postJson(`${TRADE_GUARDIAN_BASE}/trades/${tradeId}/close`, {});
   return payload ? normalizeTradeGuardianTradeDetail(payload) : null;
 }
 
@@ -406,14 +471,14 @@ export async function fetchTradeGuardianAlerts(signal?: AbortSignal) {
 }
 
 export async function acknowledgeTradeGuardianAlert(alertId: string) {
-  const payload = await postJson(`${TRADE_GUARDIAN_BASE}/alerts/${alertId}/acknowledge`);
+  const payload = await postJson(`${TRADE_GUARDIAN_BASE}/alerts/${alertId}/acknowledge`, {});
   return payload ? normalizeTradeGuardianAlert(payload) : null;
 }
 
 export async function triggerTradeGuardianMonitor() {
-  return postJson(`${TRADE_GUARDIAN_BASE}/monitor`);
+  return postJson(`${TRADE_GUARDIAN_BASE}/monitor`, {});
 }
 
 export async function sendTradeGuardianTestTelegram() {
-  return postJson(`${TRADE_GUARDIAN_BASE}/test-telegram`);
+  return postJson(`${TRADE_GUARDIAN_BASE}/test-telegram`, {});
 }

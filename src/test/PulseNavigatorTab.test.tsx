@@ -4,16 +4,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PulseNavigatorQuery, PulseNavigatorResponse, PulseNavigatorSectorEntry, PulseNavigatorStock } from "@/data/pulseNavigatorData";
 import { createEmptyPulseNavigatorResponse } from "@/data/pulseNavigatorData";
 import { PulseNavigatorTab } from "@/components/PulseNavigatorTab";
+import { normalizePulseNavigatorResponse } from "@/lib/pulseNavigatorApi";
 
 const pulseNavigatorApiState = vi.hoisted(() => ({
   fetchPulseNavigatorData: vi.fn(),
   fetchPulseNavigatorTabData: vi.fn(),
 }));
 
-vi.mock("@/lib/pulseNavigatorApi", () => ({
-  fetchPulseNavigatorData: pulseNavigatorApiState.fetchPulseNavigatorData,
-  fetchPulseNavigatorTabData: pulseNavigatorApiState.fetchPulseNavigatorTabData,
-}));
+vi.mock("@/lib/pulseNavigatorApi", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/pulseNavigatorApi")>("@/lib/pulseNavigatorApi");
+
+  return {
+    ...actual,
+    fetchPulseNavigatorData: pulseNavigatorApiState.fetchPulseNavigatorData,
+    fetchPulseNavigatorTabData: pulseNavigatorApiState.fetchPulseNavigatorTabData,
+  };
+});
 
 function createStock(symbol: string, direction: "LONG" | "SHORT", sector: string): PulseNavigatorStock {
   return {
@@ -126,5 +132,50 @@ describe("PulseNavigatorTab", () => {
     expect(screen.getAllByText("Top Pulse Names")).toHaveLength(5);
     expect(screen.getAllByText("LONG").length).toBeGreaterThan(0);
     expect(screen.getAllByText("SHORT").length).toBeGreaterThan(0);
+  });
+
+  it("does not show the sectors empty state when strongest-sector hero data and normalized sector cards are available", async () => {
+    const query: PulseNavigatorQuery = { limit: 12, preset: "balanced", direction: "ALL" };
+    const response = normalizePulseNavigatorResponse(
+      {
+        status: "ready",
+        hero: {
+          strongest_sector: { sector: "Banks", score: 83.2 },
+        },
+        sectors: [
+          {
+            sector: "Banks",
+            best_stock: { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
+            top_stocks: [
+              { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
+              { symbol: "ICICIBANK", direction: "LONG", momentum_pulse_score: 66.1 },
+            ],
+          },
+        ],
+      },
+      query,
+    );
+
+    pulseNavigatorApiState.fetchPulseNavigatorData.mockResolvedValue(response);
+    pulseNavigatorApiState.fetchPulseNavigatorTabData.mockResolvedValue(response);
+
+    render(<PulseNavigatorTab />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pulse Navigator")).toBeInTheDocument();
+    });
+
+    const sectorsTab = screen.getByText("Sectors");
+
+    fireEvent.mouseDown(sectorsTab);
+    fireEvent.click(sectorsTab);
+    fireEvent.keyDown(sectorsTab, { key: "Enter", code: "Enter" });
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Best Stock in Sector")).toHaveLength(1);
+    });
+
+    expect(screen.queryByText("No Top Sector Opportunities available")).not.toBeInTheDocument();
+    expect(screen.queryAllByText("Banks").length).toBeGreaterThan(0);
   });
 });

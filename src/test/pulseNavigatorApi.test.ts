@@ -201,6 +201,61 @@ describe("normalizePulseNavigatorResponse", () => {
   it("normalizes a tab-specific sectors payload", () => {
     const response = normalizePulseNavigatorResponse(
       {
+        tab: "sectors",
+        title: "Top Sector Opportunities",
+        sectors: [
+          {
+            sector: "Auto",
+            best_stock: { symbol: "M&M", direction: "LONG", momentum_pulse_score: 68.2 },
+            top_stocks: [
+              { symbol: "M&M", direction: "LONG", momentum_pulse_score: 68.2 },
+              { symbol: "TATAMOTORS", direction: "LONG", momentum_pulse_score: 62.4 },
+            ],
+          },
+        ],
+      },
+      { limit: 12, preset: "balanced", direction: "ALL" },
+      "sectors",
+    );
+
+    expect(response.tabs.sectors.sectors).toHaveLength(1);
+    expect(response.tabs.sectors.sectors[0]?.sector).toBe("Auto");
+    expect(response.tabs.sectors.sectors[0]?.best_stock?.symbol).toBe("M&M");
+    expect(response.tabs.sectors.sectors[0]?.sector_direction).toBe("LONG");
+    expect(response.tabs.sectors.sectors[0]?.sector_score).toBe(68.2);
+    expect(response.tabs.sectors.sectors[0]?.top_stocks.map((stock) => stock.symbol)).toEqual(["M&M", "TATAMOTORS"]);
+  });
+
+  it("normalizes sectors from a full response root path when tabs.sectors is absent", () => {
+    const response = normalizePulseNavigatorResponse(
+      {
+        status: "ready",
+        hero: {
+          strongest_sector: { sector: "Banks", score: 83.2 },
+        },
+        sectors: [
+          {
+            sector: "Banks",
+            best_stock: { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
+            top_stocks: [
+              { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
+              { symbol: "ICICIBANK", direction: "LONG", momentum_pulse_score: 66.1 },
+            ],
+          },
+        ],
+      },
+      { limit: 12, preset: "balanced", direction: "ALL" },
+    );
+
+    expect(response.hero.strongest_sector?.primary).toBe("Banks");
+    expect(response.tabs.sectors.sectors).toHaveLength(1);
+    expect(response.tabs.sectors.sectors[0]?.sector).toBe("Banks");
+    expect(response.tabs.sectors.sectors[0]?.best_stock?.symbol).toBe("SBIN");
+  });
+
+  it("keeps legacy sector payloads renderable", () => {
+    const response = normalizePulseNavigatorResponse(
+      {
         sectors: {
           Auto: {
             leader: { symbol: "M&M", direction: "LONG", momentum_pulse_score: 68.2 },
@@ -214,9 +269,9 @@ describe("normalizePulseNavigatorResponse", () => {
     );
 
     expect(response.tabs.sectors.sectors).toHaveLength(1);
-    expect(response.tabs.sectors.sectors[0]?.sector).toBe("Auto");
     expect(response.tabs.sectors.sectors[0]?.best_stock?.symbol).toBe("M&M");
     expect(response.tabs.sectors.sectors[0]?.sector_direction).toBe("LONG");
+    expect(response.tabs.sectors.sectors[0]?.sector_score).toBe(68.2);
     expect(response.tabs.sectors.sectors[0]?.top_stocks.map((stock) => stock.symbol)).toEqual(["M&M", "TATAMOTORS", "ASHOKLEY"]);
   });
 

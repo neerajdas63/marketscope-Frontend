@@ -316,7 +316,7 @@ function normalizeSectorEntry(value: unknown, fallbackSector: string): PulseNavi
     leader,
     challenger,
     laggard,
-    sector_score: asFiniteNumber(sector.sector_score) ?? asFiniteNumber(sector.score) ?? null,
+    sector_score: asFiniteNumber(sector.sector_score) ?? asFiniteNumber(sector.score) ?? bestStock?.momentum_pulse_score ?? null,
     market_relative_score: asFiniteNumber(sector.market_relative_score) ?? asFiniteNumber(sector.relative_score) ?? null,
     average_change_pct: asFiniteNumber(sector.average_change_pct) ?? asFiniteNumber(sector.avg_change_pct) ?? null,
     candidate_count: asFiniteNumber(sector.candidate_count) ?? asFiniteNumber(sector.stock_count) ?? null,
@@ -338,6 +338,32 @@ function normalizeSectorEntries(value: unknown): PulseNavigatorSectorEntry[] {
   return Object.entries(value as Record<string, unknown>)
     .map(([sectorName, sectorValue]) => normalizeSectorEntry(sectorValue, sectorName))
     .filter((entry): entry is PulseNavigatorSectorEntry => entry !== null);
+}
+
+function normalizeSectorEntriesFromCandidates(...candidates: unknown[]) {
+  for (const candidate of candidates) {
+    const normalized = normalizeSectorEntries(candidate);
+
+    if (normalized.length > 0) {
+      return normalized;
+    }
+  }
+
+  return [];
+}
+
+function readSectorCollection(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return record.sectors ?? record.data ?? record.groups ?? value;
 }
 
 function normalizeStatus(value: unknown) {
@@ -427,7 +453,14 @@ export function normalizePulseNavigatorResponse(
   const leaderFallback = discoverStocks.length > 0 ? discoverStocks : legacyFreshStocks;
   const splitLeaderFallback = splitStocksByDirection(leaderFallback);
   const splitFreshFallback = splitStocksByDirection(legacyFreshStocks);
-  const sectorEntries = normalizeSectorEntries(sectorsSource.sectors ?? sectorsSource.data ?? sectorsSource.groups);
+  const sectorEntries = normalizeSectorEntriesFromCandidates(
+    readSectorCollection(sectorsSource),
+    readSectorCollection(data.sectors),
+    readSectorCollection(data.sector_groups),
+    readSectorCollection(data.groups),
+    readSectorCollection(data.data),
+    readSectorCollection(tabsData.sectors),
+  );
 
   return {
     status: normalizeStatus(data.status ?? data.state ?? (asOptionalBoolean(data.ready) ? "ready" : undefined)),

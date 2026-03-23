@@ -32,7 +32,7 @@ export const APP_TAB_LABELS: Record<AppTab, string> = {
   opening: "OPENING",
   sectorscope: "SECTOR SCOPE",
   rfactor: "RFACTOR",
-  planner: "PLANNER",
+  planner: "TRADE GUARDIAN",
   watchlist: "WATCHLIST",
   foradar: "F&O RADAR",
   "momentum-pulse": "MOMENTUM PULSE",

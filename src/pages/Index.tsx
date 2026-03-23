@@ -11,7 +11,7 @@ import { BreakoutTab } from "@/components/BreakoutTab";
 import { SectorMomentumTab } from "@/components/SectorMomentumTab";
 import { MorningWatchlist } from "@/components/MorningWatchlist";
 import { OiTab } from "@/components/OiTab";
-import { TradePlannerTab } from "@/components/TradePlannerTab";
+import { TradeGuardianTab } from "@/components/TradeGuardianTab";
 import { BreadthTab } from "@/components/BreadthTab";
 import { FiftyTwoWeekTab } from "@/components/FiftyTwoWeekTab";
 import { FoRadarTab } from "@/components/FoRadarTab";
@@ -140,7 +140,7 @@ const Index = () => {
           <ErrorBoundary name="SequenceSignalsTab"><SequenceSignalsTab /></ErrorBoundary>
         )}
         {activeTab === "planner" && (
-          <ErrorBoundary name="TradePlannerTab"><TradePlannerTab /></ErrorBoundary>
+          <ErrorBoundary name="TradeGuardianTab"><TradeGuardianTab /></ErrorBoundary>
         )}
         {activeTab === "foradar" && (
           <ErrorBoundary name="FoRadarTab"><FoRadarTab /></ErrorBoundary>

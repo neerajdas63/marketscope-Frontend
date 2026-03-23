@@ -17,6 +17,7 @@ describe("normalizePulseNavigatorResponse", () => {
           fresh_long: { symbol: "SBIN", direction: "LONG", score: 71.9 },
           fresh_short: { symbol: "AXISBANK", direction: "SHORT", score: 68.2 },
           strongest_sector: { sector: "Banks", score: 83.2 },
+          leaders_overview: { primary: "Leadership is broadening", secondary: "Longs still lead, but shorts remain actionable." },
         },
         tabs: {
           discover: {
@@ -109,9 +110,32 @@ describe("normalizePulseNavigatorResponse", () => {
             sectors: [
               {
                 sector: "Banks",
+                sector_direction: "LONG",
+                sector_score: 83.2,
+                market_relative_score: 4.6,
+                average_change_pct: 1.4,
+                candidate_count: 7,
+                best_stock: {
+                  symbol: "SBIN",
+                  sector: "Banks",
+                  direction: "LONG",
+                  momentum_pulse_score: 71.9,
+                  direction_confidence: 72,
+                  actionability_label: "clean_setup",
+                  reasons: ["Aligned with sector trend", "Persistent relative strength"],
+                  change_pct: 1.8,
+                  relative_strength: 1.4,
+                  pulse_trend_label: "Rising",
+                  pulse_trend_strength: 6.8,
+                },
                 leader: { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
                 challenger: { symbol: "ICICIBANK", direction: "LONG", momentum_pulse_score: 66.1 },
                 laggard: { symbol: "AUBANK", direction: "SHORT", momentum_pulse_score: 41.5 },
+                top_stocks: [
+                  { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
+                  { symbol: "ICICIBANK", direction: "LONG", momentum_pulse_score: 66.1 },
+                  { symbol: "BANKBARODA", direction: "LONG", momentum_pulse_score: 61.4 },
+                ],
               },
             ],
           },
@@ -124,11 +148,15 @@ describe("normalizePulseNavigatorResponse", () => {
     expect(response.benchmark.value).toBe("+0.82%");
     expect(response.hero.leader_long?.primary).toBe("RELIANCE");
     expect(response.hero.fresh_short?.primary).toBe("AXISBANK");
+    expect(response.hero.leaders_overview?.primary).toBe("Leadership is broadening");
     expect(response.tabs.discover.buckets[0]?.stocks[0]?.actionability_label).toBe("clean_setup");
     expect(response.tabs.leaders.longs[0]?.leader_reason).toContain("above VWAP");
     expect(response.tabs.fresh.longs[0]?.warning_count).toBe(1);
     expect(response.tabs.fresh.shorts[0]?.symbol).toBe("AXISBANK");
-    expect(response.tabs.sectors.sectors[0]?.leader?.symbol).toBe("SBIN");
+    expect(response.tabs.sectors.sectors[0]?.best_stock?.symbol).toBe("SBIN");
+    expect(response.tabs.sectors.sectors[0]?.sector_direction).toBe("LONG");
+    expect(response.tabs.sectors.sectors[0]?.candidate_count).toBe(7);
+    expect(response.tabs.sectors.sectors[0]?.top_stocks).toHaveLength(3);
   });
 
   it("falls back to the legacy hero and fresh payload shape when new fields are missing", () => {
@@ -187,7 +215,9 @@ describe("normalizePulseNavigatorResponse", () => {
 
     expect(response.tabs.sectors.sectors).toHaveLength(1);
     expect(response.tabs.sectors.sectors[0]?.sector).toBe("Auto");
-    expect(response.tabs.sectors.sectors[0]?.leader?.symbol).toBe("M&M");
+    expect(response.tabs.sectors.sectors[0]?.best_stock?.symbol).toBe("M&M");
+    expect(response.tabs.sectors.sectors[0]?.sector_direction).toBe("LONG");
+    expect(response.tabs.sectors.sectors[0]?.top_stocks.map((stock) => stock.symbol)).toEqual(["M&M", "TATAMOTORS", "ASHOKLEY"]);
   });
 
   it("preserves prior curated data during stale_refreshing when sections come back empty", () => {
@@ -235,7 +265,7 @@ describe("normalizePulseNavigatorResponse", () => {
     expect(merged.tabs.discover.buckets[0]?.stocks[0]?.symbol).toBe("RELIANCE");
     expect(merged.tabs.leaders.longs[0]?.symbol).toBe("RELIANCE");
     expect(merged.tabs.fresh.longs[0]?.symbol).toBe("SBIN");
-    expect(merged.tabs.sectors.sectors[0]?.leader?.symbol).toBe("SBIN");
+    expect(merged.tabs.sectors.sectors[0]?.best_stock?.symbol ?? merged.tabs.sectors.sectors[0]?.leader?.symbol).toBe("SBIN");
     expect(merged.benchmark.value).toBe("+0.82%");
     expect(merged.last_updated).toBe("10:45 IST");
   });

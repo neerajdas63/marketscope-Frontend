@@ -94,6 +94,25 @@ function HeroCard({
   );
 }
 
+function HeroOverviewCard({ value }: { value: PulseNavigatorHeroHighlight | null }) {
+  const resolved = value ?? formatHighlightFallback("Leaders Overview");
+
+  return (
+    <div
+      style={{
+        borderRadius: "16px",
+        border: "1px solid rgba(148, 163, 184, 0.2)",
+        background: "rgba(9, 15, 28, 0.84)",
+        padding: "14px",
+      }}
+    >
+      <div style={{ color: "#64748B", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em" }}>Leaders Overview</div>
+      <div style={{ color: "#F8FAFC", fontSize: "16px", fontWeight: 800, marginTop: "8px" }}>{resolved.primary}</div>
+      <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "6px", lineHeight: 1.55 }}>{resolved.secondary || "Snapshot summary unavailable."}</div>
+    </div>
+  );
+}
+
 function WarmingState({ status }: { status: string }) {
   const content = copyForStatus(status);
 
@@ -276,6 +295,7 @@ export function PulseNavigatorTab() {
   const leadersHasData = hasPulseNavigatorLeadersData(data.tabs.leaders);
   const freshHasData = hasPulseNavigatorFreshData(data.tabs.fresh);
   const sectorsHasData = hasPulseNavigatorSectorsData(data.tabs.sectors);
+  const visibleSectors = useMemo(() => data.tabs.sectors.sectors.slice(0, 5), [data.tabs.sectors.sectors]);
   const isWarmingUp = data.status === "warming" || data.status === "warming_up";
   const isStaleRefreshing = data.status === "stale_refreshing";
   const showWaitingState = isWarmingUp && !hasVisibleData;
@@ -318,7 +338,7 @@ export function PulseNavigatorTab() {
               </div>
               <div style={{ color: "#F8FAFC", fontSize: "22px", fontWeight: 800, marginTop: "4px" }}>Pulse Navigator</div>
               <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "2px", maxWidth: "720px" }}>
-                Discovery-first momentum curation built on the existing pulse engine, tuned for faster scanning instead of raw tables.
+                Discovery-first momentum curation tuned for earlier session reads, aligned stock leadership, and sector opportunity ranking instead of simple percent gain tables.
               </div>
             </div>
 
@@ -427,8 +447,10 @@ export function PulseNavigatorTab() {
           <HeroCard label="Leader Short" value={data.hero.leader_short} accent="rgba(248, 113, 113, 0.28)" />
           <HeroCard label="Fresh Long" value={data.hero.fresh_long} accent="rgba(125, 211, 252, 0.28)" />
           <HeroCard label="Fresh Short" value={data.hero.fresh_short} accent="rgba(251, 146, 60, 0.28)" />
-          <HeroCard label="Strongest Sector" value={data.hero.strongest_sector} accent="rgba(192, 132, 252, 0.28)" />
+          <HeroCard label="Top Sector Opportunities" value={data.hero.strongest_sector} accent="rgba(192, 132, 252, 0.28)" />
         </div>
+
+        {data.hero.leaders_overview ? <div className="mt-3"><HeroOverviewCard value={data.hero.leaders_overview} /></div> : null}
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PulseNavigatorInnerTab)}>
           <TabsList className="h-auto flex flex-wrap justify-start rounded-xl bg-slate-950/70 border border-slate-800 p-1 mt-4">
@@ -438,7 +460,7 @@ export function PulseNavigatorTab() {
             </TabsTrigger>
             <TabsTrigger value="leaders" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
               <Target size={14} />
-              Session Leaders
+              Leaders
             </TabsTrigger>
             <TabsTrigger value="fresh" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
               <TrendingUp size={14} />
@@ -446,7 +468,7 @@ export function PulseNavigatorTab() {
             </TabsTrigger>
             <TabsTrigger value="sectors" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
               <Compass size={14} />
-              Sector Leaders
+              Sectors
             </TabsTrigger>
           </TabsList>
 
@@ -495,21 +517,21 @@ export function PulseNavigatorTab() {
 
           <TabsContent value="leaders">
             {tabRefreshing === "leaders" ? (
-              <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Session Leaders...</div>
+              <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Leaders...</div>
             ) : null}
             {showWaitingState && !leadersHasData ? <WarmingState status={data.status} /> : null}
             {leadersHasData ? (
-              <div className="grid grid-cols-1 gap-4 mt-4">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
                 <StockSection
                   title="Leader Longs"
-                  subtitle="Stable upside names that have led through the session, not just improved recently."
+                  subtitle="Higher-conviction long names ranked by sustained Momentum Pulse leadership rather than raw move size."
                   stocks={data.tabs.leaders.longs}
                   emphasis="leader"
                   emptyCopy="No stable long leaders are available for the current filters."
                 />
                 <StockSection
                   title="Leader Shorts"
-                  subtitle="Persistent downside leaders with session-level control still intact."
+                  subtitle="Higher-conviction short names with downside control still intact across the session."
                   stocks={data.tabs.leaders.shorts}
                   emphasis="leader"
                   emptyCopy="No stable short leaders are available for the current filters."
@@ -557,20 +579,20 @@ export function PulseNavigatorTab() {
 
           <TabsContent value="sectors">
             {tabRefreshing === "sectors" ? (
-              <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Sector Leaders...</div>
+              <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Top Sector Opportunities...</div>
             ) : null}
             {showWaitingState && !sectorsHasData ? <WarmingState status={data.status} /> : null}
-            {sectorsHasData ? (
+            {visibleSectors.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 mt-4">
-                {data.tabs.sectors.sectors.map((sector) => (
+                {visibleSectors.map((sector) => (
                   <PulseNavigatorSectorCard key={sector.sector} sector={sector} />
                 ))}
               </div>
             ) : null}
-            {!showWaitingState && !sectorsHasData ? (
+            {!showWaitingState && visibleSectors.length === 0 ? (
               <EmptyState
-                title="No Sector Leaders available"
-                body="Sector leadership data is currently empty for this preset. Refresh or switch back to Discover while the sector view catches up."
+                title="No Top Sector Opportunities available"
+                body="Sector opportunity data is currently empty for this preset. Refresh or switch back to Discover while the sector ranking view catches up."
               />
             ) : null}
           </TabsContent>

@@ -43,9 +43,16 @@ export interface PulseNavigatorDiscoverBucket {
 
 export interface PulseNavigatorSectorEntry {
   sector: string;
+  sector_direction: PulseNavigatorDirection | null;
+  best_stock: PulseNavigatorStock | null;
   leader: PulseNavigatorStock | null;
   challenger: PulseNavigatorStock | null;
   laggard: PulseNavigatorStock | null;
+  sector_score: number | null;
+  market_relative_score: number | null;
+  average_change_pct: number | null;
+  candidate_count: number | null;
+  top_stocks: PulseNavigatorStock[];
 }
 
 export interface PulseNavigatorHeroHighlight {
@@ -60,6 +67,7 @@ export interface PulseNavigatorHero {
   fresh_long: PulseNavigatorHeroHighlight | null;
   fresh_short: PulseNavigatorHeroHighlight | null;
   strongest_sector: PulseNavigatorHeroHighlight | null;
+  leaders_overview: PulseNavigatorHeroHighlight | null;
 }
 
 export interface PulseNavigatorBenchmarkStrip {
@@ -128,7 +136,8 @@ export function hasPulseNavigatorHeroData(value: PulseNavigatorHero) {
     || hasPulseNavigatorHighlightData(value.leader_short)
     || hasPulseNavigatorHighlightData(value.fresh_long)
     || hasPulseNavigatorHighlightData(value.fresh_short)
-    || hasPulseNavigatorHighlightData(value.strongest_sector);
+    || hasPulseNavigatorHighlightData(value.strongest_sector)
+    || hasPulseNavigatorHighlightData(value.leaders_overview);
 }
 
 export function hasPulseNavigatorDiscoverData(value: PulseNavigatorResponse["tabs"]["discover"]) {
@@ -176,6 +185,9 @@ export function mergePulseNavigatorResponse(
       strongest_sector: hasPulseNavigatorHighlightData(incoming.hero.strongest_sector)
         ? incoming.hero.strongest_sector
         : current.hero.strongest_sector,
+      leaders_overview: hasPulseNavigatorHighlightData(incoming.hero.leaders_overview)
+        ? incoming.hero.leaders_overview
+        : current.hero.leaders_overview,
     },
     tabs: {
       discover: hasPulseNavigatorDiscoverData(incoming.tabs.discover) ? incoming.tabs.discover : current.tabs.discover,
@@ -207,6 +219,7 @@ export function createEmptyPulseNavigatorResponse(
       fresh_long: null,
       fresh_short: null,
       strongest_sector: null,
+      leaders_overview: null,
     },
     tabs: {
       discover: { buckets: [] },

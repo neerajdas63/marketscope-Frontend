@@ -148,6 +148,10 @@ function normalizeHighlight(value: unknown): PulseNavigatorHeroHighlight | null 
   const record = value as Record<string, unknown>;
   const primary =
     asOptionalString(record.primary)
+    ?? asOptionalString(record.summary)
+    ?? asOptionalString(record.overview)
+    ?? asOptionalString(record.text)
+    ?? asOptionalString(record.description)
     ?? asOptionalString(record.symbol)
     ?? asOptionalString(record.sector)
     ?? asOptionalString(record.name)
@@ -292,12 +296,31 @@ function normalizeSectorEntry(value: unknown, fallbackSector: string): PulseNavi
   }
 
   const sector = value as Record<string, unknown>;
+  const leader = normalizeStock(sector.leader);
+  const challenger = normalizeStock(sector.challenger);
+  const laggard = normalizeStock(sector.laggard);
+  const bestStock = normalizeStock(sector.best_stock) ?? leader;
+  const explicitTopStocks = normalizeStockList(sector.top_stocks);
+  const fallbackTopStocks = [bestStock, challenger, laggard].filter((stock): stock is PulseNavigatorStock => stock !== null);
+  const topStocks = (explicitTopStocks.length > 0 ? explicitTopStocks : fallbackTopStocks)
+    .filter((stock, index, stocks) => stocks.findIndex((candidate) => candidate.symbol === stock.symbol) === index);
+  const sectorDirectionRaw = asOptionalString(sector.sector_direction) ?? asOptionalString(sector.direction);
+  const normalizedDirection = sectorDirectionRaw
+    ? asDirection(sectorDirectionRaw)
+    : bestStock?.direction ?? leader?.direction ?? null;
 
   return {
     sector: asOptionalString(sector.sector) ?? asOptionalString(sector.name) ?? fallbackSector,
-    leader: normalizeStock(sector.leader),
-    challenger: normalizeStock(sector.challenger),
-    laggard: normalizeStock(sector.laggard),
+    sector_direction: normalizedDirection,
+    best_stock: bestStock,
+    leader,
+    challenger,
+    laggard,
+    sector_score: asFiniteNumber(sector.sector_score) ?? asFiniteNumber(sector.score) ?? null,
+    market_relative_score: asFiniteNumber(sector.market_relative_score) ?? asFiniteNumber(sector.relative_score) ?? null,
+    average_change_pct: asFiniteNumber(sector.average_change_pct) ?? asFiniteNumber(sector.avg_change_pct) ?? null,
+    candidate_count: asFiniteNumber(sector.candidate_count) ?? asFiniteNumber(sector.stock_count) ?? null,
+    top_stocks: topStocks,
   };
 }
 
@@ -424,6 +447,7 @@ export function normalizePulseNavigatorResponse(
       fresh_long: normalizeHighlight(heroData.fresh_long ?? heroData.best_fresh),
       fresh_short: normalizeHighlight(heroData.fresh_short),
       strongest_sector: normalizeHighlight(heroData.strongest_sector),
+      leaders_overview: normalizeHighlight(heroData.leaders_overview ?? data.leaders_overview),
     },
     tabs: {
       discover: { buckets: discoverBuckets },

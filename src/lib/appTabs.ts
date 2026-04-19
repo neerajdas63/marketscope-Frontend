@@ -10,6 +10,7 @@ export const APP_TABS = [
   "sectorscope",
   "rfactor",
   "momentum-pulse",
+  "momentum-pulse-strategy",
   "pulse-navigator",
   "sequence-signals",
   "planner",
@@ -36,6 +37,7 @@ export const APP_TAB_LABELS: Record<AppTab, string> = {
   watchlist: "WATCHLIST",
   foradar: "F&O RADAR",
   "momentum-pulse": "MOMENTUM PULSE",
+  "momentum-pulse-strategy": "PULSE STRATEGY",
   "pulse-navigator": "PULSE NAVIGATOR",
   "sequence-signals": "SEQUENCE SIGNALS",
 };

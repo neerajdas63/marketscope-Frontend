@@ -489,7 +489,7 @@ function DesktopRow({ row, isOpen, onToggle }: { row: MomentumPulseRow; isOpen: 
       </TableRow>
       {isOpen ? (
         <tr className="border-b border-slate-800/80">
-          <td colSpan={14} className="p-3 bg-slate-950/60">
+          <td colSpan={15} className="p-3 bg-slate-950/60">
             <ExpandedPulseDetails row={row} />
           </td>
         </tr>
@@ -878,7 +878,8 @@ export function MomentumPulseTab() {
                     <TableHead className="text-[11px] uppercase tracking-wide">Range Exp</TableHead>
                     <TableHead className="text-[11px] uppercase tracking-wide">Rel Strength</TableHead>
                     <TableHead className="text-[11px] uppercase tracking-wide">Trend</TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wide">5m / 10m</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-wide">5m Delta</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-wide">10m Trend</TableHead>
                     <TableHead className="text-[11px] uppercase tracking-wide">VWAP Dist</TableHead>
                     <TableHead className="text-[11px] uppercase tracking-wide">State</TableHead>
                     <TableHead className="text-[11px] uppercase tracking-wide">Flags</TableHead>

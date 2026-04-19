@@ -16,6 +16,7 @@ import { BreadthTab } from "@/components/BreadthTab";
 import { FiftyTwoWeekTab } from "@/components/FiftyTwoWeekTab";
 import { FoRadarTab } from "@/components/FoRadarTab";
 import { MomentumPulseTab } from "@/components/MomentumPulseTab";
+import { MomentumPulseStrategyTab } from "@/components/MomentumPulseStrategyTab";
 import { PulseNavigatorTab } from "@/components/PulseNavigatorTab";
 import { SequenceSignalsTab } from "@/components/SequenceSignalsTab";
 import { APP_TAB_LABELS, APP_TABS, DEFAULT_APP_TAB, resolveAppTab, type AppTab } from "@/lib/appTabs";
@@ -132,6 +133,9 @@ const Index = () => {
         )}
         {activeTab === "momentum-pulse" && (
           <ErrorBoundary name="MomentumPulseTab"><MomentumPulseTab /></ErrorBoundary>
+        )}
+        {activeTab === "momentum-pulse-strategy" && (
+          <ErrorBoundary name="MomentumPulseStrategyTab"><MomentumPulseStrategyTab /></ErrorBoundary>
         )}
         {activeTab === "pulse-navigator" && (
           <ErrorBoundary name="PulseNavigatorTab"><PulseNavigatorTab /></ErrorBoundary>

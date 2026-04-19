@@ -8,11 +8,25 @@ export type MomentumPulseStrategyGradeFilter = "ALL" | MomentumPulseStrategyGrad
 
 export type MomentumPulseStrategyLimit = 20 | 40 | 60 | 100;
 
+export type MomentumPulseStrategyMode = "live" | "historical";
+
 export interface MomentumPulseStrategySummaryCommon {
   avg_score: number;
   avg_vwap_dist: number;
   avg_volume_ratio: number;
   avg_range_ratio: number;
+}
+
+export interface MomentumPulseStrategyPerformanceSummary {
+  trades: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+  target_1_hits: number;
+  target_2_hits: number;
+  stop_loss_hits: number;
+  avg_pnl_pct: number;
+  avg_rr: number;
 }
 
 export interface MomentumPulseStrategySummary {
@@ -56,6 +70,12 @@ export interface MomentumPulseStrategyRow {
   entry_notes: string[];
   stop_notes: string[];
   exit_notes: string[];
+  historical_outcome: string;
+  historical_exit_time: string;
+  historical_exit_price: number | null;
+  historical_pnl_pct: number | null;
+  historical_rr_realized: number | null;
+  historical_outcome_reason: string;
 }
 
 export interface MomentumPulseStrategyQuery {
@@ -63,11 +83,14 @@ export interface MomentumPulseStrategyQuery {
   direction: MomentumPulseStrategyDirectionFilter;
   grade: MomentumPulseStrategyGradeFilter;
   includeVeryWeak: boolean;
+  date?: string;
 }
 
 export interface MomentumPulseStrategyResponse {
   feature: string;
   feature_key: string;
+  mode: MomentumPulseStrategyMode | string;
+  requested_date: string;
   status: string;
   message: string;
   last_updated: string;
@@ -80,6 +103,8 @@ export interface MomentumPulseStrategyResponse {
   total_candidates: number;
   summary: MomentumPulseStrategySummary;
   overall_summary: MomentumPulseStrategySummary;
+  performance_summary: MomentumPulseStrategyPerformanceSummary | null;
+  overall_performance_summary: MomentumPulseStrategyPerformanceSummary | null;
   available_directions: MomentumPulseStrategyDirectionFilter[];
   available_grades: MomentumPulseStrategyGradeFilter[];
 }
@@ -117,6 +142,8 @@ export function createEmptyMomentumPulseStrategyResponse(
   return {
     feature: "Momentum Pulse Strategy",
     feature_key: "momentum_pulse_strategy",
+    mode: query.date ? "historical" : "live",
+    requested_date: query.date ?? "",
     status: "loading",
     message: "",
     last_updated: "",
@@ -129,6 +156,8 @@ export function createEmptyMomentumPulseStrategyResponse(
     total_candidates: 0,
     summary: createEmptyMomentumPulseStrategySummary(),
     overall_summary: createEmptyMomentumPulseStrategySummary(),
+    performance_summary: null,
+    overall_performance_summary: null,
     available_directions: ["ALL", "LONG", "SHORT"],
     available_grades: ["ALL", "A_PLUS", "A", "FAILED_OR_CHOP", "NO_TRADE"],
   };

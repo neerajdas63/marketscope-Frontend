@@ -1,9 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MomentumPulseStrategyTab } from "@/components/MomentumPulseStrategyTab";
 import {
   createEmptyMomentumPulseStrategyResponse,
+  type MomentumPulseStrategyPerformanceSummary,
   type MomentumPulseStrategyQuery,
   type MomentumPulseStrategyResponse,
 } from "@/data/momentumPulseStrategyData";
@@ -20,9 +22,22 @@ vi.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => false,
 }));
 
-function createResponse(query: MomentumPulseStrategyQuery): MomentumPulseStrategyResponse {
+const PERFORMANCE_SUMMARY: MomentumPulseStrategyPerformanceSummary = {
+  trades: 8,
+  wins: 5,
+  losses: 3,
+  win_rate: 62.5,
+  target_1_hits: 4,
+  target_2_hits: 2,
+  stop_loss_hits: 2,
+  avg_pnl_pct: 1.84,
+  avg_rr: 1.63,
+};
+
+function createLiveResponse(query: MomentumPulseStrategyQuery): MomentumPulseStrategyResponse {
   const response = createEmptyMomentumPulseStrategyResponse(query);
 
+  response.mode = "live";
   response.status = "ready";
   response.last_updated = "2026-04-19 10:05 IST";
   response.market_data_last_updated = "2026-04-19 10:04 IST";
@@ -104,10 +119,52 @@ function createResponse(query: MomentumPulseStrategyQuery): MomentumPulseStrateg
       entry_notes: ["Direct entry: breakout candle close above OR high"],
       stop_notes: ["Primary stop: OR high retest zone ke neeche"],
       exit_notes: ["Partial after first sharp expansion"],
+      historical_outcome: "",
+      historical_exit_time: "",
+      historical_exit_price: null,
+      historical_pnl_pct: null,
+      historical_rr_realized: null,
+      historical_outcome_reason: "",
     },
   ];
 
   return response;
+}
+
+function createHistoricalResponse(query: MomentumPulseStrategyQuery, date: string): MomentumPulseStrategyResponse {
+  const response = createLiveResponse({ ...query, date });
+
+  response.mode = "historical";
+  response.requested_date = date;
+  response.performance_summary = PERFORMANCE_SUMMARY;
+  response.overall_performance_summary = {
+    ...PERFORMANCE_SUMMARY,
+    trades: 24,
+    wins: 14,
+    losses: 10,
+  };
+  response.rows = [
+    {
+      ...response.rows[0],
+      trade_date: date,
+      historical_outcome: "TARGET_1_HIT",
+      historical_exit_time: "10:22",
+      historical_exit_price: 2860.15,
+      historical_pnl_pct: 0.98,
+      historical_rr_realized: 1.21,
+      historical_outcome_reason: "Booked after first expansion and lost follow-through into lunch.",
+    },
+  ];
+
+  return response;
+}
+
+function renderStrategy(initialEntry = "/?tab=momentum-pulse-strategy") {
+  return render(
+    <MemoryRouter initialEntries={[initialEntry]}>
+      <MomentumPulseStrategyTab />
+    </MemoryRouter>,
+  );
 }
 
 describe("MomentumPulseStrategyTab", () => {
@@ -115,25 +172,23 @@ describe("MomentumPulseStrategyTab", () => {
     strategyApiState.fetchMomentumPulseStrategyData.mockReset();
   });
 
-  it("renders the backend-driven strategy screen and expands trade plan details", async () => {
-    const query: MomentumPulseStrategyQuery = {
-      limit: 40,
-      direction: "ALL",
-      grade: "ALL",
-      includeVeryWeak: true,
-    };
+  it("renders the live strategy screen and expands trade plan details", async () => {
+    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(async (query: MomentumPulseStrategyQuery) => createLiveResponse(query));
 
-    strategyApiState.fetchMomentumPulseStrategyData.mockResolvedValue(createResponse(query));
-
-    render(<MomentumPulseStrategyTab />);
+    renderStrategy();
 
     await waitFor(() => {
       expect(screen.getByText("Momentum Pulse Strategy")).toBeInTheDocument();
       expect(screen.getByText("RELIANCE")).toBeInTheDocument();
     });
 
-    expect(screen.getAllByText("A+").length).toBeGreaterThan(0);
-    expect(screen.getByText("Candidates")).toBeInTheDocument();
+    expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(1);
+    expect(strategyApiState.fetchMomentumPulseStrategyData.mock.calls[0]?.[0]).toMatchObject({
+      limit: 40,
+      direction: "ALL",
+      grade: "ALL",
+      includeVeryWeak: true,
+    });
 
     fireEvent.click(screen.getByText("RELIANCE"));
 
@@ -141,6 +196,64 @@ describe("MomentumPulseStrategyTab", () => {
       expect(screen.getByText("Trade Plan")).toBeInTheDocument();
       expect(screen.getByText("Entry Notes")).toBeInTheDocument();
       expect(screen.getAllByText("Opening range breakout").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("keeps historical mode manual and only loads replay after clicking Load History", async () => {
+    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(async (query: MomentumPulseStrategyQuery) => (
+      query.date ? createHistoricalResponse(query, query.date) : createLiveResponse(query)
+    ));
+
+    renderStrategy();
+
+    await waitFor(() => {
+      expect(screen.getByText("RELIANCE")).toBeInTheDocument();
+    });
+
+    expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Historical" }));
+    fireEvent.change(screen.getByDisplayValue(""), { target: { value: "2026-04-17" } });
+
+    await waitFor(() => {
+      expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Load History" }));
+
+    await waitFor(() => {
+      expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(2);
+      expect(screen.getByText("Replay Performance")).toBeInTheDocument();
+      expect(screen.getByText("Historical: 2026-04-17")).toBeInTheDocument();
+    });
+
+    expect(strategyApiState.fetchMomentumPulseStrategyData.mock.calls[1]?.[0]).toMatchObject({
+      date: "2026-04-17",
+      limit: 40,
+      direction: "ALL",
+      grade: "ALL",
+      includeVeryWeak: true,
+    });
+  });
+
+  it("initializes historical mode from the URL date param and fetches once", async () => {
+    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(async (query: MomentumPulseStrategyQuery) => createHistoricalResponse(query, query.date ?? "2026-04-17"));
+
+    renderStrategy("/?tab=momentum-pulse-strategy&mode=historical&date=2026-04-17");
+
+    await waitFor(() => {
+      expect(screen.getByText("Historical: 2026-04-17")).toBeInTheDocument();
+      expect(screen.getByText("Replay Performance")).toBeInTheDocument();
+      expect(screen.getAllByText("Trades").length).toBeGreaterThan(0);
+    });
+
+    expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(1);
+    expect(strategyApiState.fetchMomentumPulseStrategyData.mock.calls[0]?.[0]).toMatchObject({
+      date: "2026-04-17",
+      limit: 40,
+      direction: "ALL",
+      grade: "ALL",
+      includeVeryWeak: true,
     });
   });
 });

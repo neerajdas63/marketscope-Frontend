@@ -16,6 +16,8 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
       {
         feature: "Momentum Pulse Strategy",
         feature_key: "momentum_pulse_strategy",
+        mode: "historical",
+        requested_date: "2026-04-17",
         status: "ready",
         message: "Backend snapshot ready",
         last_updated: "2026-04-19 10:05 IST",
@@ -102,21 +104,55 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
             entry_notes: ["Direct entry: breakout candle close above OR high"],
             stop_notes: ["Primary stop: OR high retest zone ke neeche"],
             exit_notes: ["Partial after first sharp expansion"],
+            historical_outcome: "TARGET_1_HIT",
+            historical_exit_time: "10:22",
+            historical_exit_price: 2860.15,
+            historical_pnl_pct: 0.98,
+            historical_rr_realized: 1.21,
+            historical_outcome_reason: "Booked after first expansion and lost follow-through into lunch.",
           },
         ],
+        performance_summary: {
+          trades: 8,
+          wins: 5,
+          losses: 3,
+          win_rate: 62.5,
+          target_1_hits: 4,
+          target_2_hits: 2,
+          stop_loss_hits: 2,
+          avg_pnl_pct: 1.84,
+          avg_rr: 1.63,
+        },
+        overall_performance_summary: {
+          trades: 24,
+          wins: 14,
+          losses: 10,
+          win_rate: 58.33,
+          target_1_hits: 12,
+          target_2_hits: 5,
+          stop_loss_hits: 6,
+          avg_pnl_pct: 1.27,
+          avg_rr: 1.41,
+        },
       },
       query,
     );
 
     expect(response.feature_key).toBe("momentum_pulse_strategy");
+    expect(response.mode).toBe("historical");
+    expect(response.requested_date).toBe("2026-04-17");
     expect(response.status).toBe("ready");
     expect(response.total_candidates).toBe(12);
     expect(response.summary.a_plus_count).toBe(1);
     expect(response.overall_summary.long_count).toBe(7);
+    expect(response.performance_summary?.wins).toBe(5);
+    expect(response.overall_performance_summary?.trades).toBe(24);
     expect(response.rows[0]?.symbol).toBe("RELIANCE");
     expect(response.rows[0]?.trade_side).toBe("LONG");
     expect(response.rows[0]?.grade).toBe("A_PLUS");
     expect(response.rows[0]?.entry_price).toBe(2845.45);
+    expect(response.rows[0]?.historical_outcome).toBe("TARGET_1_HIT");
+    expect(response.rows[0]?.historical_pnl_pct).toBe(0.98);
     expect(response.rows[0]?.reasons).toContain("Opening range breakout");
     expect(response.available_grades).toContain("FAILED_OR_CHOP");
   });

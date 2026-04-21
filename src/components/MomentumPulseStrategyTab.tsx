@@ -1415,7 +1415,7 @@ export function MomentumPulseStrategyTab() {
               <SummaryCard
                 label="Avg Execution Rank"
                 value={formatNumber(summary.avg_execution_rank, 1)}
-                detail="Lower rank is stronger"
+                detail="Higher rank is stronger"
                 tone="neutral"
               />
             </div>

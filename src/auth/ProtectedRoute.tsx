@@ -8,7 +8,12 @@ export function PublicOnlyRoute() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <AuthLoadingScreen title="Loading MarketScope" description="Resolving your session and preparing the workspace." />;
+    return (
+      <AuthLoadingScreen
+        title="Loading MarketScope"
+        description="Resolving your session and preparing the workspace."
+      />
+    );
   }
 
   if (isAuthenticated) {
@@ -22,7 +27,12 @@ export function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <AuthLoadingScreen title="Checking session" description="Resolving your authenticated workspace." />;
+    return (
+      <AuthLoadingScreen
+        title="Checking session"
+        description="Resolving your authenticated workspace."
+      />
+    );
   }
 
   if (!isAuthenticated) {

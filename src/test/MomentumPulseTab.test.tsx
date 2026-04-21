@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MomentumPulseTab } from "@/components/MomentumPulseTab";
@@ -21,7 +27,10 @@ vi.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => false,
 }));
 
-function createRow(symbol: string, direction: MomentumPulseRow["direction"]): MomentumPulseRow {
+function createRow(
+  symbol: string,
+  direction: MomentumPulseRow["direction"],
+): MomentumPulseRow {
   return {
     symbol,
     ltp: direction === "LONG" ? 2845.4 : 3721.8,
@@ -49,7 +58,10 @@ function createRow(symbol: string, direction: MomentumPulseRow["direction"]): Mo
     intraday_range_pct: 2.4,
     avg_20d_range_same_time_abs: 42.7,
     avg_20d_range_pct_same_time: 1.6,
-    score_history: direction === "LONG" ? [52, 56, 60, 66, 72, 78] : [74, 72, 69, 67, 64, 61],
+    score_history:
+      direction === "LONG"
+        ? [52, 56, 60, 66, 72, 78]
+        : [74, 72, 69, 67, 64, 61],
     score_change_5m: direction === "LONG" ? 3.1 : -2.2,
     score_change_10m: direction === "LONG" ? 5.4 : -4.1,
     score_change_15m: direction === "LONG" ? 7.3 : -5.5,
@@ -79,10 +91,7 @@ function createResponse(query: MomentumPulseQuery): MomentumPulseResponse {
   response.total = 2;
   response.last_updated = "2026-04-19 10:15 IST";
   response.benchmark_change_pct = 0.82;
-  response.stocks = [
-    createRow("RELIANCE", "LONG"),
-    createRow("TCS", "SHORT"),
-  ];
+  response.stocks = [createRow("RELIANCE", "LONG"), createRow("TCS", "SHORT")];
 
   return response;
 }
@@ -93,8 +102,14 @@ describe("MomentumPulseTab", () => {
   });
 
   it("keeps the desktop table headers aligned with row cells and expanded details", async () => {
-    const query: MomentumPulseQuery = { limit: 40, direction: "ALL", includeVeryWeak: false };
-    momentumPulseApiState.fetchMomentumPulseData.mockResolvedValue(createResponse(query));
+    const query: MomentumPulseQuery = {
+      limit: 40,
+      direction: "ALL",
+      includeVeryWeak: false,
+    };
+    momentumPulseApiState.fetchMomentumPulseData.mockResolvedValue(
+      createResponse(query),
+    );
 
     render(<MomentumPulseTab />);
 

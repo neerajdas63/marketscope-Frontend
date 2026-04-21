@@ -15,7 +15,11 @@ export function getSupabaseUrlValidationError(url?: string) {
     const hostname = parsedUrl.hostname.toLowerCase();
     const pathname = parsedUrl.pathname.toLowerCase();
 
-    if (hostname === "supabase.com" || pathname.includes("/dashboard/") || pathname.includes("/project/")) {
+    if (
+      hostname === "supabase.com" ||
+      pathname.includes("/dashboard/") ||
+      pathname.includes("/project/")
+    ) {
       return "VITE_SUPABASE_URL must be the project auth domain like https://<project-ref>.supabase.co, not a Supabase dashboard URL.";
     }
 
@@ -29,7 +33,10 @@ export function getSupabaseUrlValidationError(url?: string) {
   }
 }
 
-export function getSupabaseConfigurationError(url = supabaseUrl, anonKey = supabaseAnonKey) {
+export function getSupabaseConfigurationError(
+  url = supabaseUrl,
+  anonKey = supabaseAnonKey,
+) {
   if (!anonKey) {
     return "Supabase auth is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to continue with Google sign-in.";
   }

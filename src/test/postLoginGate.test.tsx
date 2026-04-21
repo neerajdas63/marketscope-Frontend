@@ -20,7 +20,9 @@ vi.mock("@/auth/AuthProvider", () => ({
 }));
 
 vi.mock("@/auth/accessPolicy", async () => {
-  const actual = await vi.importActual<typeof import("@/auth/accessPolicy")>("@/auth/accessPolicy");
+  const actual = await vi.importActual<typeof import("@/auth/accessPolicy")>(
+    "@/auth/accessPolicy",
+  );
 
   return {
     ...actual,

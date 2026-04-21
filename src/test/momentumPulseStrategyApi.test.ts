@@ -163,7 +163,9 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
     expect(response.rows[0]?.grade_stability_score).toBe(86.4);
     expect(response.rows[0]?.retest_ok).toBe(true);
     expect(response.rows[0]?.major_risks).toContain("momentum_decay_watch");
-    expect(response.rows[0]?.warning_flags).toContain("low_volume_confirmation_watch");
+    expect(response.rows[0]?.warning_flags).toContain(
+      "low_volume_confirmation_watch",
+    );
     expect(response.available_grades).toContain("FAILED_OR_CHOP");
   });
 });

@@ -18,7 +18,10 @@ import {
   type PulseNavigatorQuery,
   type PulseNavigatorResponse,
 } from "@/data/pulseNavigatorData";
-import { fetchPulseNavigatorData, fetchPulseNavigatorTabData } from "@/lib/pulseNavigatorApi";
+import {
+  fetchPulseNavigatorData,
+  fetchPulseNavigatorTabData,
+} from "@/lib/pulseNavigatorApi";
 
 const DEFAULT_QUERY: PulseNavigatorQuery = {
   limit: 12,
@@ -33,7 +36,10 @@ const PRESET_OPTIONS: Array<{ label: string; value: PulseNavigatorPreset }> = [
   { label: "F&O Focus", value: "fo_focus" },
 ];
 
-const DIRECTION_OPTIONS: Array<{ label: string; value: PulseNavigatorQuery["direction"] }> = [
+const DIRECTION_OPTIONS: Array<{
+  label: string;
+  value: PulseNavigatorQuery["direction"];
+}> = [
   { label: "All", value: "ALL" },
   { label: "Long", value: "LONG" },
   { label: "Short", value: "SHORT" },
@@ -87,14 +93,45 @@ function HeroCard({
         padding: "14px",
       }}
     >
-      <div style={{ color: "#64748B", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em" }}>{label}</div>
-      <div style={{ color: "#F8FAFC", fontSize: "18px", fontWeight: 800, marginTop: "8px" }}>{resolved.primary}</div>
-      <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "6px", minHeight: "18px" }}>{resolved.secondary || " "}</div>
+      <div
+        style={{
+          color: "#64748B",
+          fontSize: "10px",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          color: "#F8FAFC",
+          fontSize: "18px",
+          fontWeight: 800,
+          marginTop: "8px",
+        }}
+      >
+        {resolved.primary}
+      </div>
+      <div
+        style={{
+          color: "#94A3B8",
+          fontSize: "12px",
+          marginTop: "6px",
+          minHeight: "18px",
+        }}
+      >
+        {resolved.secondary || " "}
+      </div>
     </div>
   );
 }
 
-function HeroOverviewCard({ value }: { value: PulseNavigatorHeroHighlight | null }) {
+function HeroOverviewCard({
+  value,
+}: {
+  value: PulseNavigatorHeroHighlight | null;
+}) {
   const resolved = value ?? formatHighlightFallback("Leaders Overview");
 
   return (
@@ -106,9 +143,36 @@ function HeroOverviewCard({ value }: { value: PulseNavigatorHeroHighlight | null
         padding: "14px",
       }}
     >
-      <div style={{ color: "#64748B", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em" }}>Leaders Overview</div>
-      <div style={{ color: "#F8FAFC", fontSize: "16px", fontWeight: 800, marginTop: "8px" }}>{resolved.primary}</div>
-      <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "6px", lineHeight: 1.55 }}>{resolved.secondary || "Snapshot summary unavailable."}</div>
+      <div
+        style={{
+          color: "#64748B",
+          fontSize: "10px",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+        }}
+      >
+        Leaders Overview
+      </div>
+      <div
+        style={{
+          color: "#F8FAFC",
+          fontSize: "16px",
+          fontWeight: 800,
+          marginTop: "8px",
+        }}
+      >
+        {resolved.primary}
+      </div>
+      <div
+        style={{
+          color: "#94A3B8",
+          fontSize: "12px",
+          marginTop: "6px",
+          lineHeight: 1.55,
+        }}
+      >
+        {resolved.secondary || "Snapshot summary unavailable."}
+      </div>
     </div>
   );
 }
@@ -118,8 +182,12 @@ function WarmingState({ status }: { status: string }) {
 
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/60 px-6 py-16 text-center">
-      <div style={{ color: "#7DD3FC", fontSize: "18px", fontWeight: 700 }}>{content.title}</div>
-      <div style={{ color: "#94A3B8", fontSize: "13px", maxWidth: "560px" }}>{content.body}</div>
+      <div style={{ color: "#7DD3FC", fontSize: "18px", fontWeight: 700 }}>
+        {content.title}
+      </div>
+      <div style={{ color: "#94A3B8", fontSize: "13px", maxWidth: "560px" }}>
+        {content.body}
+      </div>
     </div>
   );
 }
@@ -127,8 +195,12 @@ function WarmingState({ status }: { status: string }) {
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/60 px-6 py-16 text-center">
-      <div style={{ color: "#E2E8F0", fontSize: "18px", fontWeight: 700 }}>{title}</div>
-      <div style={{ color: "#94A3B8", fontSize: "13px", maxWidth: "560px" }}>{body}</div>
+      <div style={{ color: "#E2E8F0", fontSize: "18px", fontWeight: 700 }}>
+        {title}
+      </div>
+      <div style={{ color: "#94A3B8", fontSize: "13px", maxWidth: "560px" }}>
+        {body}
+      </div>
     </div>
   );
 }
@@ -157,8 +229,19 @@ function StockSection({
     >
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <div style={{ color: "#F8FAFC", fontSize: "18px", fontWeight: 800 }}>{title}</div>
-          <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "4px", maxWidth: "540px" }}>{subtitle}</div>
+          <div style={{ color: "#F8FAFC", fontSize: "18px", fontWeight: 800 }}>
+            {title}
+          </div>
+          <div
+            style={{
+              color: "#94A3B8",
+              fontSize: "12px",
+              marginTop: "4px",
+              maxWidth: "540px",
+            }}
+          >
+            {subtitle}
+          </div>
         </div>
         <span
           style={{
@@ -168,7 +251,10 @@ function StockSection({
             padding: "5px 10px",
             borderRadius: "9999px",
             border: `1px solid ${emphasis === "leader" ? "rgba(245, 158, 11, 0.24)" : "rgba(56, 189, 248, 0.24)"}`,
-            backgroundColor: emphasis === "leader" ? "rgba(120, 53, 15, 0.16)" : "rgba(8, 47, 73, 0.18)",
+            backgroundColor:
+              emphasis === "leader"
+                ? "rgba(120, 53, 15, 0.16)"
+                : "rgba(8, 47, 73, 0.18)",
           }}
         >
           {stocks.length} name{stocks.length === 1 ? "" : "s"}
@@ -178,11 +264,17 @@ function StockSection({
       {stocks.length > 0 ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-4">
           {stocks.map((stock) => (
-            <PulseNavigatorStockCard key={`${emphasis}-${title}-${stock.symbol}`} stock={stock} emphasis={emphasis} />
+            <PulseNavigatorStockCard
+              key={`${emphasis}-${title}-${stock.symbol}`}
+              stock={stock}
+              emphasis={emphasis}
+            />
           ))}
         </div>
       ) : (
-        <div style={{ color: "#94A3B8", fontSize: "13px", marginTop: "16px" }}>{emptyCopy}</div>
+        <div style={{ color: "#94A3B8", fontSize: "13px", marginTop: "16px" }}>
+          {emptyCopy}
+        </div>
       )}
     </section>
   );
@@ -190,21 +282,35 @@ function StockSection({
 
 export function PulseNavigatorTab() {
   const [query, setQuery] = useState<PulseNavigatorQuery>(DEFAULT_QUERY);
-  const [activeTab, setActiveTab] = useState<PulseNavigatorInnerTab>("discover");
-  const [data, setData] = useState<PulseNavigatorResponse>(createEmptyPulseNavigatorResponse(DEFAULT_QUERY));
+  const [activeTab, setActiveTab] =
+    useState<PulseNavigatorInnerTab>("discover");
+  const [data, setData] = useState<PulseNavigatorResponse>(
+    createEmptyPulseNavigatorResponse(DEFAULT_QUERY),
+  );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [refreshTick, setRefreshTick] = useState(0);
-  const [tabRefreshing, setTabRefreshing] = useState<Exclude<PulseNavigatorInnerTab, "discover"> | null>(null);
-  const [tabRequestKeys, setTabRequestKeys] = useState<Record<Exclude<PulseNavigatorInnerTab, "discover">, string>>({
+  const [tabRefreshing, setTabRefreshing] = useState<Exclude<
+    PulseNavigatorInnerTab,
+    "discover"
+  > | null>(null);
+  const [tabRequestKeys, setTabRequestKeys] = useState<
+    Record<Exclude<PulseNavigatorInnerTab, "discover">, string>
+  >({
     leaders: "",
     fresh: "",
     sectors: "",
   });
 
-  const queryKey = useMemo(() => `${query.limit}:${query.preset}:${query.direction}:${refreshTick}`, [query, refreshTick]);
-  const hasVisibleData = useMemo(() => hasPulseNavigatorUsableData(data), [data]);
+  const queryKey = useMemo(
+    () => `${query.limit}:${query.preset}:${query.direction}:${refreshTick}`,
+    [query, refreshTick],
+  );
+  const hasVisibleData = useMemo(
+    () => hasPulseNavigatorUsableData(data),
+    [data],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -227,7 +333,11 @@ export function PulseNavigatorTab() {
           return;
         }
 
-        setError(fetchError instanceof Error ? fetchError.message : "Unable to load Pulse Navigator");
+        setError(
+          fetchError instanceof Error
+            ? fetchError.message
+            : "Unable to load Pulse Navigator",
+        );
 
         if (!hasVisibleData) {
           setData(createEmptyPulseNavigatorResponse(query));
@@ -274,28 +384,37 @@ export function PulseNavigatorTab() {
       })
       .catch(() => {
         if (!controller.signal.aborted) {
-          setTabRequestKeys((current) => ({ ...current, [activeTab]: queryKey }));
+          setTabRequestKeys((current) => ({
+            ...current,
+            [activeTab]: queryKey,
+          }));
         }
       })
       .finally(() => {
         if (!controller.signal.aborted) {
-          setTabRefreshing((current) => (current === activeTab ? null : current));
+          setTabRefreshing((current) =>
+            current === activeTab ? null : current,
+          );
         }
       });
 
     return () => controller.abort();
   }, [activeTab, query, queryKey, tabRequestKeys]);
 
-  const benchmarkToneColor = data.benchmark.tone === "positive"
-    ? "#86EFAC"
-    : data.benchmark.tone === "negative"
-      ? "#FCA5A5"
-      : "#CBD5E1";
+  const benchmarkToneColor =
+    data.benchmark.tone === "positive"
+      ? "#86EFAC"
+      : data.benchmark.tone === "negative"
+        ? "#FCA5A5"
+        : "#CBD5E1";
   const discoverHasData = hasPulseNavigatorDiscoverData(data.tabs.discover);
   const leadersHasData = hasPulseNavigatorLeadersData(data.tabs.leaders);
   const freshHasData = hasPulseNavigatorFreshData(data.tabs.fresh);
   const sectorsHasData = hasPulseNavigatorSectorsData(data.tabs.sectors);
-  const visibleSectors = useMemo(() => data.tabs.sectors.sectors.slice(0, 5), [data.tabs.sectors.sectors]);
+  const visibleSectors = useMemo(
+    () => data.tabs.sectors.sectors.slice(0, 5),
+    [data.tabs.sectors.sectors],
+  );
   const isWarmingUp = data.status === "warming" || data.status === "warming_up";
   const isStaleRefreshing = data.status === "stale_refreshing";
   const showWaitingState = isWarmingUp && !hasVisibleData;
@@ -309,7 +428,12 @@ export function PulseNavigatorTab() {
   }
 
   return (
-    <div style={{ background: "linear-gradient(180deg, #07111f 0%, #0b1220 100%)", minHeight: "100vh" }}>
+    <div
+      style={{
+        background: "linear-gradient(180deg, #07111f 0%, #0b1220 100%)",
+        minHeight: "100vh",
+      }}
+    >
       {refreshing ? (
         <div className="flex items-center justify-center gap-2 py-2 text-cyan-200 text-xs bg-[#0a1a2d] border-b border-cyan-950/60">
           Refreshing Pulse Navigator...
@@ -333,12 +457,37 @@ export function PulseNavigatorTab() {
         >
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <div style={{ color: "#7DD3FC", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              <div
+                style={{
+                  color: "#7DD3FC",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                }}
+              >
                 Curated Discovery Layer
               </div>
-              <div style={{ color: "#F8FAFC", fontSize: "22px", fontWeight: 800, marginTop: "4px" }}>Pulse Navigator</div>
-              <div style={{ color: "#94A3B8", fontSize: "12px", marginTop: "2px", maxWidth: "720px" }}>
-                Discovery-first momentum curation tuned for earlier session reads, aligned stock leadership, and sector opportunity ranking instead of simple percent gain tables.
+              <div
+                style={{
+                  color: "#F8FAFC",
+                  fontSize: "22px",
+                  fontWeight: 800,
+                  marginTop: "4px",
+                }}
+              >
+                Pulse Navigator
+              </div>
+              <div
+                style={{
+                  color: "#94A3B8",
+                  fontSize: "12px",
+                  marginTop: "2px",
+                  maxWidth: "720px",
+                }}
+              >
+                Discovery-first momentum curation tuned for earlier session
+                reads, aligned stock leadership, and sector opportunity ranking
+                instead of simple percent gain tables.
               </div>
             </div>
 
@@ -366,12 +515,20 @@ export function PulseNavigatorTab() {
               <button
                 key={preset.value}
                 type="button"
-                onClick={() => setQuery((current) => ({ ...current, preset: preset.value }))}
+                onClick={() =>
+                  setQuery((current) => ({ ...current, preset: preset.value }))
+                }
                 style={{
                   padding: "8px 12px",
                   borderRadius: "9999px",
-                  border: query.preset === preset.value ? "1px solid rgba(56, 189, 248, 0.5)" : "1px solid rgba(51, 65, 85, 0.85)",
-                  backgroundColor: query.preset === preset.value ? "rgba(8, 47, 73, 0.58)" : "rgba(15, 23, 42, 0.82)",
+                  border:
+                    query.preset === preset.value
+                      ? "1px solid rgba(56, 189, 248, 0.5)"
+                      : "1px solid rgba(51, 65, 85, 0.85)",
+                  backgroundColor:
+                    query.preset === preset.value
+                      ? "rgba(8, 47, 73, 0.58)"
+                      : "rgba(15, 23, 42, 0.82)",
                   color: query.preset === preset.value ? "#CFFAFE" : "#CBD5E1",
                   fontSize: "12px",
                   fontWeight: 700,
@@ -387,13 +544,25 @@ export function PulseNavigatorTab() {
               <button
                 key={direction.value}
                 type="button"
-                onClick={() => setQuery((current) => ({ ...current, direction: direction.value }))}
+                onClick={() =>
+                  setQuery((current) => ({
+                    ...current,
+                    direction: direction.value,
+                  }))
+                }
                 style={{
                   padding: "8px 12px",
                   borderRadius: "10px",
-                  border: query.direction === direction.value ? "1px solid rgba(74, 222, 128, 0.4)" : "1px solid rgba(51, 65, 85, 0.85)",
-                  backgroundColor: query.direction === direction.value ? "rgba(20, 83, 45, 0.45)" : "rgba(15, 23, 42, 0.82)",
-                  color: query.direction === direction.value ? "#DCFCE7" : "#CBD5E1",
+                  border:
+                    query.direction === direction.value
+                      ? "1px solid rgba(74, 222, 128, 0.4)"
+                      : "1px solid rgba(51, 65, 85, 0.85)",
+                  backgroundColor:
+                    query.direction === direction.value
+                      ? "rgba(20, 83, 45, 0.45)"
+                      : "rgba(15, 23, 42, 0.82)",
+                  color:
+                    query.direction === direction.value ? "#DCFCE7" : "#CBD5E1",
                   fontSize: "12px",
                   fontWeight: 700,
                 }}
@@ -418,8 +587,11 @@ export function PulseNavigatorTab() {
               </span>
             ) : null}
 
-            <span style={{ color: "#64748B", fontSize: "11px", marginLeft: "auto" }}>
-              Updated: {data.last_updated || "Waiting for first navigator snapshot..."}
+            <span
+              style={{ color: "#64748B", fontSize: "11px", marginLeft: "auto" }}
+            >
+              Updated:{" "}
+              {data.last_updated || "Waiting for first navigator snapshot..."}
             </span>
           </div>
 
@@ -434,46 +606,107 @@ export function PulseNavigatorTab() {
           >
             <div className="flex items-center gap-2">
               <Compass size={16} color="#7DD3FC" />
-              <span style={{ color: "#CBD5E1", fontSize: "12px", fontWeight: 700 }}>{data.benchmark.label}</span>
-              <span style={{ color: benchmarkToneColor, fontSize: "12px", fontWeight: 800 }}>{data.benchmark.value}</span>
+              <span
+                style={{ color: "#CBD5E1", fontSize: "12px", fontWeight: 700 }}
+              >
+                {data.benchmark.label}
+              </span>
+              <span
+                style={{
+                  color: benchmarkToneColor,
+                  fontSize: "12px",
+                  fontWeight: 800,
+                }}
+              >
+                {data.benchmark.value}
+              </span>
             </div>
-            <div style={{ color: "#94A3B8", fontSize: "12px" }}>{data.benchmark.detail}</div>
+            <div style={{ color: "#94A3B8", fontSize: "12px" }}>
+              {data.benchmark.detail}
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3 mt-4">
-          <HeroCard label="Market Mode" value={data.hero.market_mode} accent="rgba(56, 189, 248, 0.28)" />
-          <HeroCard label="Leader Long" value={data.hero.leader_long} accent="rgba(74, 222, 128, 0.28)" />
-          <HeroCard label="Leader Short" value={data.hero.leader_short} accent="rgba(248, 113, 113, 0.28)" />
-          <HeroCard label="Fresh Long" value={data.hero.fresh_long} accent="rgba(125, 211, 252, 0.28)" />
-          <HeroCard label="Fresh Short" value={data.hero.fresh_short} accent="rgba(251, 146, 60, 0.28)" />
-          <HeroCard label="Top Sector Opportunities" value={data.hero.strongest_sector} accent="rgba(192, 132, 252, 0.28)" />
+          <HeroCard
+            label="Market Mode"
+            value={data.hero.market_mode}
+            accent="rgba(56, 189, 248, 0.28)"
+          />
+          <HeroCard
+            label="Leader Long"
+            value={data.hero.leader_long}
+            accent="rgba(74, 222, 128, 0.28)"
+          />
+          <HeroCard
+            label="Leader Short"
+            value={data.hero.leader_short}
+            accent="rgba(248, 113, 113, 0.28)"
+          />
+          <HeroCard
+            label="Fresh Long"
+            value={data.hero.fresh_long}
+            accent="rgba(125, 211, 252, 0.28)"
+          />
+          <HeroCard
+            label="Fresh Short"
+            value={data.hero.fresh_short}
+            accent="rgba(251, 146, 60, 0.28)"
+          />
+          <HeroCard
+            label="Top Sector Opportunities"
+            value={data.hero.strongest_sector}
+            accent="rgba(192, 132, 252, 0.28)"
+          />
         </div>
 
-        {data.hero.leaders_overview ? <div className="mt-3"><HeroOverviewCard value={data.hero.leaders_overview} /></div> : null}
+        {data.hero.leaders_overview ? (
+          <div className="mt-3">
+            <HeroOverviewCard value={data.hero.leaders_overview} />
+          </div>
+        ) : null}
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PulseNavigatorInnerTab)}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) =>
+            setActiveTab(value as PulseNavigatorInnerTab)
+          }
+        >
           <TabsList className="h-auto flex flex-wrap justify-start rounded-xl bg-slate-950/70 border border-slate-800 p-1 mt-4">
-            <TabsTrigger value="discover" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
+            <TabsTrigger
+              value="discover"
+              className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg"
+            >
               <Sparkles size={14} />
               Discover
             </TabsTrigger>
-            <TabsTrigger value="leaders" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
+            <TabsTrigger
+              value="leaders"
+              className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg"
+            >
               <Target size={14} />
               Leaders
             </TabsTrigger>
-            <TabsTrigger value="fresh" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
+            <TabsTrigger
+              value="fresh"
+              className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg"
+            >
               <TrendingUp size={14} />
               Fresh Movers
             </TabsTrigger>
-            <TabsTrigger value="sectors" className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg">
+            <TabsTrigger
+              value="sectors"
+              className="data-[state=active]:bg-slate-900 data-[state=active]:text-slate-50 rounded-lg"
+            >
               <Compass size={14} />
               Sectors
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="discover">
-            {showWaitingState && !discoverHasData ? <WarmingState status={data.status} /> : null}
+            {showWaitingState && !discoverHasData ? (
+              <WarmingState status={data.status} />
+            ) : null}
             {discoverHasData ? (
               <div className="grid grid-cols-1 gap-4 mt-4">
                 {data.tabs.discover.buckets.map((bucket) => (
@@ -488,20 +721,48 @@ export function PulseNavigatorTab() {
                   >
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div>
-                        <div style={{ color: "#F8FAFC", fontSize: "18px", fontWeight: 800 }}>{bucket.title}</div>
-                        <div style={{ color: "#64748B", fontSize: "12px", marginTop: "4px" }}>
-                          {bucket.stocks.length > 0 ? `${bucket.stocks.length} curated names` : "No names in this bucket yet"}
+                        <div
+                          style={{
+                            color: "#F8FAFC",
+                            fontSize: "18px",
+                            fontWeight: 800,
+                          }}
+                        >
+                          {bucket.title}
+                        </div>
+                        <div
+                          style={{
+                            color: "#64748B",
+                            fontSize: "12px",
+                            marginTop: "4px",
+                          }}
+                        >
+                          {bucket.stocks.length > 0
+                            ? `${bucket.stocks.length} curated names`
+                            : "No names in this bucket yet"}
                         </div>
                       </div>
                     </div>
                     {bucket.stocks.length > 0 ? (
                       <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-4">
                         {bucket.stocks.map((stock) => (
-                          <PulseNavigatorStockCard key={`${bucket.key}-${stock.symbol}`} stock={stock} />
+                          <PulseNavigatorStockCard
+                            key={`${bucket.key}-${stock.symbol}`}
+                            stock={stock}
+                          />
                         ))}
                       </div>
                     ) : (
-                      <div style={{ color: "#94A3B8", fontSize: "13px", marginTop: "16px" }}>The backend did not return any symbols for this curated bucket.</div>
+                      <div
+                        style={{
+                          color: "#94A3B8",
+                          fontSize: "13px",
+                          marginTop: "16px",
+                        }}
+                      >
+                        The backend did not return any symbols for this curated
+                        bucket.
+                      </div>
                     )}
                   </section>
                 ))}
@@ -517,9 +778,19 @@ export function PulseNavigatorTab() {
 
           <TabsContent value="leaders">
             {tabRefreshing === "leaders" ? (
-              <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Leaders...</div>
+              <div
+                style={{
+                  color: "#7DD3FC",
+                  fontSize: "12px",
+                  marginTop: "12px",
+                }}
+              >
+                Refreshing Leaders...
+              </div>
             ) : null}
-            {showWaitingState && !leadersHasData ? <WarmingState status={data.status} /> : null}
+            {showWaitingState && !leadersHasData ? (
+              <WarmingState status={data.status} />
+            ) : null}
             {leadersHasData ? (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
                 <StockSection
@@ -548,9 +819,19 @@ export function PulseNavigatorTab() {
 
           <TabsContent value="fresh">
             {tabRefreshing === "fresh" ? (
-              <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Fresh Movers...</div>
+              <div
+                style={{
+                  color: "#7DD3FC",
+                  fontSize: "12px",
+                  marginTop: "12px",
+                }}
+              >
+                Refreshing Fresh Movers...
+              </div>
             ) : null}
-            {showWaitingState && !freshHasData ? <WarmingState status={data.status} /> : null}
+            {showWaitingState && !freshHasData ? (
+              <WarmingState status={data.status} />
+            ) : null}
             {freshHasData ? (
               <div className="grid grid-cols-1 gap-4 mt-4">
                 <StockSection
@@ -579,13 +860,26 @@ export function PulseNavigatorTab() {
 
           <TabsContent value="sectors">
             {tabRefreshing === "sectors" ? (
-              <div style={{ color: "#7DD3FC", fontSize: "12px", marginTop: "12px" }}>Refreshing Top Sector Opportunities...</div>
+              <div
+                style={{
+                  color: "#7DD3FC",
+                  fontSize: "12px",
+                  marginTop: "12px",
+                }}
+              >
+                Refreshing Top Sector Opportunities...
+              </div>
             ) : null}
-            {showWaitingState && !sectorsHasData ? <WarmingState status={data.status} /> : null}
+            {showWaitingState && !sectorsHasData ? (
+              <WarmingState status={data.status} />
+            ) : null}
             {visibleSectors.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 mt-4">
                 {visibleSectors.map((sector) => (
-                  <PulseNavigatorSectorCard key={sector.sector} sector={sector} />
+                  <PulseNavigatorSectorCard
+                    key={sector.sector}
+                    sector={sector}
+                  />
                 ))}
               </div>
             ) : null}

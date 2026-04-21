@@ -1,7 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { PulseNavigatorQuery, PulseNavigatorResponse, PulseNavigatorSectorEntry, PulseNavigatorStock } from "@/data/pulseNavigatorData";
+import type {
+  PulseNavigatorQuery,
+  PulseNavigatorResponse,
+  PulseNavigatorSectorEntry,
+  PulseNavigatorStock,
+} from "@/data/pulseNavigatorData";
 import { createEmptyPulseNavigatorResponse } from "@/data/pulseNavigatorData";
 import { PulseNavigatorTab } from "@/components/PulseNavigatorTab";
 import { normalizePulseNavigatorResponse } from "@/lib/pulseNavigatorApi";
@@ -12,16 +17,23 @@ const pulseNavigatorApiState = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/pulseNavigatorApi", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/pulseNavigatorApi")>("@/lib/pulseNavigatorApi");
+  const actual = await vi.importActual<
+    typeof import("@/lib/pulseNavigatorApi")
+  >("@/lib/pulseNavigatorApi");
 
   return {
     ...actual,
     fetchPulseNavigatorData: pulseNavigatorApiState.fetchPulseNavigatorData,
-    fetchPulseNavigatorTabData: pulseNavigatorApiState.fetchPulseNavigatorTabData,
+    fetchPulseNavigatorTabData:
+      pulseNavigatorApiState.fetchPulseNavigatorTabData,
   };
 });
 
-function createStock(symbol: string, direction: "LONG" | "SHORT", sector: string): PulseNavigatorStock {
+function createStock(
+  symbol: string,
+  direction: "LONG" | "SHORT",
+  sector: string,
+): PulseNavigatorStock {
   return {
     symbol,
     sector,
@@ -45,8 +57,16 @@ function createStock(symbol: string, direction: "LONG" | "SHORT", sector: string
   };
 }
 
-function createSector(sectorName: string, direction: "LONG" | "SHORT", index: number): PulseNavigatorSectorEntry {
-  const bestStock = createStock(`${sectorName.toUpperCase()}${index}`, direction, sectorName);
+function createSector(
+  sectorName: string,
+  direction: "LONG" | "SHORT",
+  index: number,
+): PulseNavigatorSectorEntry {
+  const bestStock = createStock(
+    `${sectorName.toUpperCase()}${index}`,
+    direction,
+    sectorName,
+  );
   const supportDirection = direction === "LONG" ? "LONG" : "SHORT";
 
   return {
@@ -54,16 +74,33 @@ function createSector(sectorName: string, direction: "LONG" | "SHORT", index: nu
     sector_direction: direction,
     best_stock: bestStock,
     leader: bestStock,
-    challenger: createStock(`${sectorName.toUpperCase()}C${index}`, supportDirection, sectorName),
-    laggard: createStock(`${sectorName.toUpperCase()}L${index}`, direction === "LONG" ? "SHORT" : "LONG", sectorName),
+    challenger: createStock(
+      `${sectorName.toUpperCase()}C${index}`,
+      supportDirection,
+      sectorName,
+    ),
+    laggard: createStock(
+      `${sectorName.toUpperCase()}L${index}`,
+      direction === "LONG" ? "SHORT" : "LONG",
+      sectorName,
+    ),
     sector_score: 80 - index,
     market_relative_score: 4.5 - index * 0.2,
-    average_change_pct: direction === "LONG" ? 1.2 + index * 0.1 : -1.1 - index * 0.1,
+    average_change_pct:
+      direction === "LONG" ? 1.2 + index * 0.1 : -1.1 - index * 0.1,
     candidate_count: 6 - (index % 2),
     top_stocks: [
       bestStock,
-      createStock(`${sectorName.toUpperCase()}T${index}`, supportDirection, sectorName),
-      createStock(`${sectorName.toUpperCase()}X${index}`, supportDirection, sectorName),
+      createStock(
+        `${sectorName.toUpperCase()}T${index}`,
+        supportDirection,
+        sectorName,
+      ),
+      createStock(
+        `${sectorName.toUpperCase()}X${index}`,
+        supportDirection,
+        sectorName,
+      ),
     ],
   };
 }
@@ -103,11 +140,17 @@ describe("PulseNavigatorTab", () => {
   });
 
   it("renders only the top five sectors and preserves LONG/SHORT separation in the sectors tab", async () => {
-    const query: PulseNavigatorQuery = { limit: 12, preset: "balanced", direction: "ALL" };
+    const query: PulseNavigatorQuery = {
+      limit: 12,
+      preset: "balanced",
+      direction: "ALL",
+    };
     const response = createResponse(query);
 
     pulseNavigatorApiState.fetchPulseNavigatorData.mockResolvedValue(response);
-    pulseNavigatorApiState.fetchPulseNavigatorTabData.mockResolvedValue(response);
+    pulseNavigatorApiState.fetchPulseNavigatorTabData.mockResolvedValue(
+      response,
+    );
 
     render(<PulseNavigatorTab />);
 
@@ -135,7 +178,11 @@ describe("PulseNavigatorTab", () => {
   });
 
   it("does not show the sectors empty state when strongest-sector hero data and normalized sector cards are available", async () => {
-    const query: PulseNavigatorQuery = { limit: 12, preset: "balanced", direction: "ALL" };
+    const query: PulseNavigatorQuery = {
+      limit: 12,
+      preset: "balanced",
+      direction: "ALL",
+    };
     const response = normalizePulseNavigatorResponse(
       {
         status: "ready",
@@ -145,10 +192,18 @@ describe("PulseNavigatorTab", () => {
         sectors: [
           {
             sector: "Banks",
-            best_stock: { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
+            best_stock: {
+              symbol: "SBIN",
+              direction: "LONG",
+              momentum_pulse_score: 71.9,
+            },
             top_stocks: [
               { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
-              { symbol: "ICICIBANK", direction: "LONG", momentum_pulse_score: 66.1 },
+              {
+                symbol: "ICICIBANK",
+                direction: "LONG",
+                momentum_pulse_score: 66.1,
+              },
             ],
           },
         ],
@@ -157,7 +212,9 @@ describe("PulseNavigatorTab", () => {
     );
 
     pulseNavigatorApiState.fetchPulseNavigatorData.mockResolvedValue(response);
-    pulseNavigatorApiState.fetchPulseNavigatorTabData.mockResolvedValue(response);
+    pulseNavigatorApiState.fetchPulseNavigatorTabData.mockResolvedValue(
+      response,
+    );
 
     render(<PulseNavigatorTab />);
 
@@ -175,7 +232,9 @@ describe("PulseNavigatorTab", () => {
       expect(screen.getAllByText("Best Stock in Sector")).toHaveLength(1);
     });
 
-    expect(screen.queryByText("No Top Sector Opportunities available")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("No Top Sector Opportunities available"),
+    ).not.toBeInTheDocument();
     expect(screen.queryAllByText("Banks").length).toBeGreaterThan(0);
   });
 });

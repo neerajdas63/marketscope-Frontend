@@ -2,9 +2,15 @@ export type MomentumPulseStrategyDirectionFilter = "ALL" | "LONG" | "SHORT";
 
 export type MomentumPulseStrategyTradeSide = "LONG" | "SHORT" | "NO_TRADE";
 
-export type MomentumPulseStrategyGrade = "A_PLUS" | "A" | "FAILED_OR_CHOP" | "NO_TRADE";
+export type MomentumPulseStrategyGrade =
+  | "A_PLUS"
+  | "A"
+  | "FAILED_OR_CHOP"
+  | "NO_TRADE";
 
-export type MomentumPulseStrategyGradeFilter = "ALL" | MomentumPulseStrategyGrade;
+export type MomentumPulseStrategyGradeFilter =
+  | "ALL"
+  | MomentumPulseStrategyGrade;
 
 export type MomentumPulseStrategyLimit = 20 | 40 | 60 | 100;
 

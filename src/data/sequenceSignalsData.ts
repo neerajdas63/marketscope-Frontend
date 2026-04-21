@@ -91,7 +91,10 @@ export function createEmptySequenceSignalsResponse(
     market_data_last_updated: "",
     last_updated: "",
     filters: {
-      timeframe: query.timeframe === "ALL" ? "ALL" : query.timeframe.toUpperCase() as SequenceSignalFilterTimeframe,
+      timeframe:
+        query.timeframe === "ALL"
+          ? "ALL"
+          : (query.timeframe.toUpperCase() as SequenceSignalFilterTimeframe),
       side: query.side,
       signal_type: query.signal_type,
       limit: query.limit,

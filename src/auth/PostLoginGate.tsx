@@ -34,11 +34,22 @@ export function PostLoginGate() {
   }
 
   if (!decision) {
-    return <AuthLoadingScreen title="Preparing workspace" description="Checking your account access and syncing your trading workspace." />;
+    return (
+      <AuthLoadingScreen
+        title="Preparing workspace"
+        description="Checking your account access and syncing your trading workspace."
+      />
+    );
   }
 
   if (decision.status === "blocked") {
-    return <Navigate to={LANDING_ROUTE} replace state={{ accessError: decision.reason }} />;
+    return (
+      <Navigate
+        to={LANDING_ROUTE}
+        replace
+        state={{ accessError: decision.reason }}
+      />
+    );
   }
 
   return <Outlet />;

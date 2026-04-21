@@ -1,7 +1,19 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Session, User } from "@supabase/supabase-js";
 
-import { getSupabaseConfigurationError, getSupabaseGoogleRedirectUrl, isSupabaseConfigured, supabase } from "@/lib/supabase";
+import {
+  getSupabaseConfigurationError,
+  getSupabaseGoogleRedirectUrl,
+  isSupabaseConfigured,
+  supabase,
+} from "@/lib/supabase";
 
 interface AuthContextValue {
   session: Session | null;
@@ -92,18 +104,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSignOutPending(false);
   };
 
-  const value = useMemo<AuthContextValue>(() => ({
-    session,
-    user: session?.user ?? null,
-    isAuthenticated: Boolean(session),
-    isConfigured: isSupabaseConfigured,
-    isLoading,
-    configError: getSupabaseConfigurationError(),
-    signInPending,
-    signOutPending,
-    signInWithGoogle,
-    signOut,
-  }), [session, isLoading, signInPending, signOutPending]);
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      session,
+      user: session?.user ?? null,
+      isAuthenticated: Boolean(session),
+      isConfigured: isSupabaseConfigured,
+      isLoading,
+      configError: getSupabaseConfigurationError(),
+      signInPending,
+      signOutPending,
+      signInWithGoogle,
+      signOut,
+    }),
+    [session, isLoading, signInPending, signOutPending],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

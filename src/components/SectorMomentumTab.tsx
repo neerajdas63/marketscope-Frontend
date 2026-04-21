@@ -65,8 +65,18 @@ function getCellStyle(val: number | null | undefined): React.CSSProperties {
   return { backgroundColor: bg, color: "#ffffff" };
 }
 
-const ALL_SLOTS = ["9:15", "9:20", "9:25", "9:30", "9:35",
-                   "9:40", "9:45", "9:50", "9:55", "10:00"];
+const ALL_SLOTS = [
+  "9:15",
+  "9:20",
+  "9:25",
+  "9:30",
+  "9:35",
+  "9:40",
+  "9:45",
+  "9:50",
+  "9:55",
+  "10:00",
+];
 
 function isMarketHours(): boolean {
   const now = new Date();
@@ -79,7 +89,9 @@ function isMarketHours(): boolean {
 /** Returns true after the opening session (after 10:00 AM IST) */
 function isAfterOpeningSession(): boolean {
   const now = new Date();
-  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const ist = new Date(
+    now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+  );
   return ist.getHours() * 60 + ist.getMinutes() > 10 * 60;
 }
 
@@ -111,31 +123,48 @@ function SummaryCard({
         padding: "14px 16px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginBottom: "10px" }}>
-        <div style={{ color: borderColor, fontWeight: "bold", fontSize: "13px" }}>{title}</div>
-        {subtitle && <span style={{ color: "#555", fontSize: "10px" }}>{subtitle}</span>}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: "8px",
+          marginBottom: "10px",
+        }}
+      >
+        <div
+          style={{ color: borderColor, fontWeight: "bold", fontSize: "13px" }}
+        >
+          {title}
+        </div>
+        {subtitle && (
+          <span style={{ color: "#555", fontSize: "10px" }}>{subtitle}</span>
+        )}
       </div>
 
       {/* Final snapshot pills (shown after 10 AM when live items are empty) */}
       {items.length === 0 && pillSectors && pillSectors.length > 0 ? (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-          {[...pillSectors].sort((a, b) => Math.abs(b.value) - Math.abs(a.value)).map((s) => (
-            <span
-              key={s.name}
-              style={{
-                backgroundColor: borderColor === "#00C853" ? "#00C85322" : "#FF174422",
-                color: borderColor,
-                border: `1px solid ${borderColor}44`,
-                fontSize: "11px",
-                fontWeight: 700,
-                padding: "3px 10px",
-                borderRadius: "20px",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {s.name} {s.value >= 0 ? "+" : ""}{s.value.toFixed(2)}%
-            </span>
-          ))}
+          {[...pillSectors]
+            .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+            .map((s) => (
+              <span
+                key={s.name}
+                style={{
+                  backgroundColor:
+                    borderColor === "#00C853" ? "#00C85322" : "#FF174422",
+                  color: borderColor,
+                  border: `1px solid ${borderColor}44`,
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: "20px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {s.name} {s.value >= 0 ? "+" : ""}
+                {s.value.toFixed(2)}%
+              </span>
+            ))}
         </div>
       ) : items.length === 0 ? (
         <div style={{ color: "#555", fontSize: "12px" }}>No data yet</div>
@@ -156,11 +185,29 @@ function SummaryCard({
                 gap: "8px",
               }}
             >
-              <span style={{ color: "#dddddd", fontWeight: 600, whiteSpace: "nowrap" }}>
+              <span
+                style={{
+                  color: "#dddddd",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {s.name}
               </span>
-              <span style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-                <span style={{ color: pos ? "#00C853" : "#F44336", fontWeight: 600 }}>
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  style={{
+                    color: pos ? "#00C853" : "#F44336",
+                    fontWeight: 600,
+                  }}
+                >
                   {pos ? "+" : ""}
                   {safe(s.change_pct, 2)}%
                 </span>
@@ -307,10 +354,15 @@ function MomentumTable({
                 {ALL_SLOTS.map((t, idx) => {
                   // EOD mode: show value only in the first column
                   const val: number | null | undefined = isEod
-                    ? (idx === 0 ? eodVal : null)
+                    ? idx === 0
+                      ? eodVal
+                      : null
                     : (sector.snapshots?.[t] ?? null);
-                  const isEmpty = val === null || val === undefined || isNaN(val as number);
-                  const cellStyle = getCellStyle(isEmpty ? null : (val as number));
+                  const isEmpty =
+                    val === null || val === undefined || isNaN(val as number);
+                  const cellStyle = getCellStyle(
+                    isEmpty ? null : (val as number),
+                  );
                   return (
                     <td
                       key={t}
@@ -328,7 +380,13 @@ function MomentumTable({
                         <>
                           <div>{fmtPct(val as number)}</div>
                           {isEod && idx === 0 && (
-                            <div style={{ fontSize: "9px", color: "#aaa", marginTop: "1px" }}>
+                            <div
+                              style={{
+                                fontSize: "9px",
+                                color: "#aaa",
+                                marginTop: "1px",
+                              }}
+                            >
                               (EOD)
                             </div>
                           )}
@@ -392,14 +450,17 @@ function ResultBanner({
   const longNames = new Set(topLong.map((s) => s.name));
   const shortNames = new Set(topShort.map((s) => s.name));
   const neutral = allSectors.filter(
-    (s) => !longNames.has(s.name) && !shortNames.has(s.name)
+    (s) => !longNames.has(s.name) && !shortNames.has(s.name),
   );
 
-  const hasContent = topLong.length > 0 || topShort.length > 0 || neutral.length > 0;
+  const hasContent =
+    topLong.length > 0 || topShort.length > 0 || neutral.length > 0;
   if (!hasContent) return null;
 
   const sectorMap: Record<string, SectorRow> = {};
-  allSectors.forEach((s) => { sectorMap[s.name] = s; });
+  allSectors.forEach((s) => {
+    sectorMap[s.name] = s;
+  });
 
   const fmtLong = (s: TopSector) => {
     const result = s.result ?? sectorMap[s.name]?.result;
@@ -486,12 +547,17 @@ export function SectorMomentumTab() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedDate, setSelectedDate] = useState<"today" | "yesterday" | "custom">("today");
+  const [selectedDate, setSelectedDate] = useState<
+    "today" | "yesterday" | "custom"
+  >("today");
   const [customDate, setCustomDate] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isLiveRef = useRef(false);
 
-  function buildUrl(mode: "today" | "yesterday" | "custom", custom: string): string | null {
+  function buildUrl(
+    mode: "today" | "yesterday" | "custom",
+    custom: string,
+  ): string | null {
     if (mode === "today") return apiUrl("/sector-momentum");
     const dateStr = mode === "yesterday" ? getYesterday() : custom;
     if (!isValidDate(dateStr)) {
@@ -501,7 +567,10 @@ export function SectorMomentumTab() {
     return apiUrl(`/sector-momentum/history?date=${dateStr}`);
   }
 
-  function doFetch(mode: "today" | "yesterday" | "custom" = selectedDate, custom = customDate) {
+  function doFetch(
+    mode: "today" | "yesterday" | "custom" = selectedDate,
+    custom = customDate,
+  ) {
     const isHistorical = mode !== "today";
     const url = buildUrl(mode, custom);
     if (!url) return;
@@ -517,7 +586,10 @@ export function SectorMomentumTab() {
 
         if (isHistorical) {
           // No auto-refresh for historical
-          if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
           return;
         }
 
@@ -526,11 +598,16 @@ export function SectorMomentumTab() {
         if (nowLive !== isLiveRef.current) {
           isLiveRef.current = nowLive;
           if (intervalRef.current) clearInterval(intervalRef.current);
-          intervalRef.current = setInterval(() => doFetch("today", ""), nowLive ? 10_000 : 30_000);
+          intervalRef.current = setInterval(
+            () => doFetch("today", ""),
+            nowLive ? 10_000 : 30_000,
+          );
         }
       })
       .catch((err: Error) => {
-        setError(`Backend error: ${err.message}. Make sure the server is running.`);
+        setError(
+          `Backend error: ${err.message}. Make sure the server is running.`,
+        );
         setLoading(false);
       });
   }
@@ -541,14 +618,20 @@ export function SectorMomentumTab() {
     setLoading(true);
     setData(null);
     setError("");
-    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     isLiveRef.current = false;
     doFetch(selectedDate, customDate);
     if (selectedDate === "today") {
       intervalRef.current = setInterval(() => doFetch("today", ""), 30_000);
     }
     return () => {
-      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, customDate]);
@@ -593,20 +676,26 @@ export function SectorMomentumTab() {
   const isHistorical = selectedDate !== "today";
   const isEod = !isHistorical && slots.length === 1 && slots[0] === "EOD";
   const historicalDateStr =
-    selectedDate === "yesterday" ? getYesterday() :
-    selectedDate === "custom" ? customDate : "";
+    selectedDate === "yesterday"
+      ? getYesterday()
+      : selectedDate === "custom"
+        ? customDate
+        : "";
 
-  const sectorList: SectorRow[] = Object.keys(sectorsObj).map(
-    (name) => ({ name, ...sectorsObj[name] })
-  );
+  const sectorList: SectorRow[] = Object.keys(sectorsObj).map((name) => ({
+    name,
+    ...sectorsObj[name],
+  }));
 
   const topLong: TopSector[] = data?.top_long || [];
   const topShort: TopSector[] = data?.top_short || [];
   const lastUpdated = data?.last_updated || "";
-  const hasData = (data?.has_data !== false) && sectorList.length > 0;
+  const hasData = data?.has_data !== false && sectorList.length > 0;
 
   const sectorMap: Record<string, SectorRow> = {};
-  sectorList.forEach((s) => { sectorMap[s.name] = s; });
+  sectorList.forEach((s) => {
+    sectorMap[s.name] = s;
+  });
 
   const inMarket = isMarketHours();
 
@@ -629,7 +718,6 @@ export function SectorMomentumTab() {
 
   return (
     <div style={{ backgroundColor: "#0d0d0d", minHeight: "100vh" }}>
-
       {/* ── Header bar ─────────────────────────────────────────────────── */}
       <div
         style={{
@@ -643,10 +731,19 @@ export function SectorMomentumTab() {
           gap: "8px",
         }}
       >
-        <span style={{ color: "#cccccc", fontSize: "13px", fontWeight: "bold" }}>
+        <span
+          style={{ color: "#cccccc", fontSize: "13px", fontWeight: "bold" }}
+        >
           📊 Sector Momentum — 5-Min Tracker
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            flexWrap: "wrap",
+          }}
+        >
           {!isHistorical && isLive ? (
             <>
               <style>{`@keyframes livepulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
@@ -679,7 +776,9 @@ export function SectorMomentumTab() {
             </span>
           ) : null}
           {lastUpdated && (
-            <span style={{ color: "#444", fontSize: "11px" }}>Updated {lastUpdated}</span>
+            <span style={{ color: "#444", fontSize: "11px" }}>
+              Updated {lastUpdated}
+            </span>
           )}
         </div>
       </div>
@@ -699,13 +798,17 @@ export function SectorMomentumTab() {
       >
         <button
           style={selectedDate === "today" ? btnActive : btnBase}
-          onClick={() => { setSelectedDate("today"); }}
+          onClick={() => {
+            setSelectedDate("today");
+          }}
         >
           TODAY
         </button>
         <button
           style={selectedDate === "yesterday" ? btnActive : btnBase}
-          onClick={() => { setSelectedDate("yesterday"); }}
+          onClick={() => {
+            setSelectedDate("yesterday");
+          }}
         >
           YESTERDAY
         </button>
@@ -785,7 +888,9 @@ export function SectorMomentumTab() {
             gap: "12px",
           }}
         >
-          <span style={{ color: "#888888", fontSize: "15px", textAlign: "center" }}>
+          <span
+            style={{ color: "#888888", fontSize: "15px", textAlign: "center" }}
+          >
             No sector data available yet.
             <br />
             <span style={{ fontSize: "13px", color: "#555" }}>
@@ -813,8 +918,16 @@ export function SectorMomentumTab() {
             const finalLongPills: { name: string; value: number }[] =
               isFinal && topLong.length === 0
                 ? sectorList
-                    .map((s) => ({ name: s.name, value: (s.snapshots?.["10:00"] ?? s.current ?? null) as number | null }))
-                    .filter((s): s is { name: string; value: number } => s.value !== null && s.value > 0)
+                    .map((s) => ({
+                      name: s.name,
+                      value: (s.snapshots?.["10:00"] ?? s.current ?? null) as
+                        | number
+                        | null,
+                    }))
+                    .filter(
+                      (s): s is { name: string; value: number } =>
+                        s.value !== null && s.value > 0,
+                    )
                     .sort((a, b) => b.value - a.value)
                     .slice(0, 5)
                 : [];
@@ -822,8 +935,16 @@ export function SectorMomentumTab() {
             const finalShortPills: { name: string; value: number }[] =
               isFinal && topShort.length === 0
                 ? sectorList
-                    .map((s) => ({ name: s.name, value: (s.snapshots?.["10:00"] ?? s.current ?? null) as number | null }))
-                    .filter((s): s is { name: string; value: number } => s.value !== null && s.value < 0)
+                    .map((s) => ({
+                      name: s.name,
+                      value: (s.snapshots?.["10:00"] ?? s.current ?? null) as
+                        | number
+                        | null,
+                    }))
+                    .filter(
+                      (s): s is { name: string; value: number } =>
+                        s.value !== null && s.value < 0,
+                    )
                     .sort((a, b) => a.value - b.value)
                     .slice(0, 5)
                 : [];
@@ -851,10 +972,7 @@ export function SectorMomentumTab() {
           })()}
 
           {/* Momentum table */}
-          <MomentumTable
-            sectors={sectorList}
-            isEod={isEod}
-          />
+          <MomentumTable sectors={sectorList} isEod={isEod} />
 
           {/* Result banner */}
           <ResultBanner

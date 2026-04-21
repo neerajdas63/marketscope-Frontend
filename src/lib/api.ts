@@ -1,4 +1,9 @@
-import type { BreakoutLevel, InferredDirection, InsightValue, SetupStage } from "@/data/mockData";
+import type {
+  BreakoutLevel,
+  InferredDirection,
+  InsightValue,
+  SetupStage,
+} from "@/data/mockData";
 import type { RFactorData, RFactorStock } from "@/data/rfactorMockData";
 
 import { getSupabaseConfigurationError, supabase } from "@/lib/supabase";
@@ -19,7 +24,10 @@ function getCurrentOrigin() {
   return window.location.origin;
 }
 
-export function getApiBaseUrlValidationError(baseUrl = readApiBaseUrl(), currentOrigin = getCurrentOrigin()) {
+export function getApiBaseUrlValidationError(
+  baseUrl = readApiBaseUrl(),
+  currentOrigin = getCurrentOrigin(),
+) {
   if (!baseUrl) {
     return "VITE_API_BASE_URL is missing. Set it to https://marketscope-backend1.onrender.com.";
   }
@@ -57,7 +65,9 @@ export function getApiBaseUrl() {
   return trimTrailingSlash(configuredBaseUrl!);
 }
 
-export const API_BASE_URL = readApiBaseUrl() ? trimTrailingSlash(readApiBaseUrl() as string) : "";
+export const API_BASE_URL = readApiBaseUrl()
+  ? trimTrailingSlash(readApiBaseUrl() as string)
+  : "";
 
 export function buildApiUrl(baseUrl: string, path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -70,14 +80,18 @@ export function apiUrl(path: string) {
 
 async function getAccessToken() {
   if (!supabase) {
-    throw new Error(getSupabaseConfigurationError() ?? "Supabase session is not available.");
+    throw new Error(
+      getSupabaseConfigurationError() ?? "Supabase session is not available.",
+    );
   }
 
   const { data } = await supabase.auth.getSession();
   const accessToken = data.session?.access_token;
 
   if (!accessToken) {
-    throw new Error("Supabase session is not ready. Retry after session restoration completes.");
+    throw new Error(
+      "Supabase session is not ready. Retry after session restoration completes.",
+    );
   }
 
   return accessToken;
@@ -94,7 +108,9 @@ export async function getAuthorizedHeaders(headers?: HeadersInit) {
 }
 
 export async function apiFetch(pathOrUrl: string, init: RequestInit = {}) {
-  const target = /^https?:\/\//i.test(pathOrUrl) ? pathOrUrl : apiUrl(pathOrUrl);
+  const target = /^https?:\/\//i.test(pathOrUrl)
+    ? pathOrUrl
+    : apiUrl(pathOrUrl);
   const headers = await getAuthorizedHeaders(init.headers);
 
   return fetch(target, {
@@ -103,9 +119,22 @@ export async function apiFetch(pathOrUrl: string, init: RequestInit = {}) {
   });
 }
 
-export type RFactorSortBy = "rfactor" | "opportunity" | "trend" | "pre_score" | "trigger_score" | "direction_conf";
+export type RFactorSortBy =
+  | "rfactor"
+  | "opportunity"
+  | "trend"
+  | "pre_score"
+  | "trigger_score"
+  | "direction_conf";
 
-const VALID_SETUP_STAGES: SetupStage[] = ["WARMING", "PRE_SIGNAL", "BREAKING", "CONFIRMED", "EXTENDED", "NEUTRAL"];
+const VALID_SETUP_STAGES: SetupStage[] = [
+  "WARMING",
+  "PRE_SIGNAL",
+  "BREAKING",
+  "CONFIRMED",
+  "EXTENDED",
+  "NEUTRAL",
+];
 
 const LEGACY_STAGE_ALIASES: Record<string, SetupStage> = {
   Building: "WARMING",
@@ -165,7 +194,8 @@ function asSetupStage(value: unknown): SetupStage | undefined {
 }
 
 function asOptionalDirection(value: unknown): InferredDirection | undefined {
-  return typeof value === "string" && VALID_DIRECTIONS.includes(value as InferredDirection)
+  return typeof value === "string" &&
+    VALID_DIRECTIONS.includes(value as InferredDirection)
     ? (value as InferredDirection)
     : undefined;
 }
@@ -263,14 +293,22 @@ function normalizeRFactorStock(value: unknown): RFactorStock | null {
     tier: asOptionalString(stock.tier),
     opportunity_score: asOptionalNumber(stock.opportunity_score),
     rfactor_trend_15m: asOptionalNumber(stock.rfactor_trend_15m),
-    rfactor_trend_acceleration: asOptionalNumber(stock.rfactor_trend_acceleration),
+    rfactor_trend_acceleration: asOptionalNumber(
+      stock.rfactor_trend_acceleration,
+    ),
     rfactor_trend_points: asTrendPoints(stock.rfactor_trend_points),
     setup_stage: asSetupStage(stock.setup_stage),
-    pre_score: asOptionalNumber(stock.pre_score) ?? asOptionalNumber(stock.prescore),
+    pre_score:
+      asOptionalNumber(stock.pre_score) ?? asOptionalNumber(stock.prescore),
     prescore: asOptionalNumber(stock.prescore),
-    trigger_score: asOptionalNumber(stock.trigger_score) ?? asOptionalNumber(stock.triggerscore),
+    trigger_score:
+      asOptionalNumber(stock.trigger_score) ??
+      asOptionalNumber(stock.triggerscore),
     triggerscore: asOptionalNumber(stock.triggerscore),
-    alert_stage: asOptionalString(stock.alert_stage) ?? asOptionalString(stock.alertstage) ?? asOptionalString(stock.setup_stage),
+    alert_stage:
+      asOptionalString(stock.alert_stage) ??
+      asOptionalString(stock.alertstage) ??
+      asOptionalString(stock.setup_stage),
     alertstage: asOptionalString(stock.alertstage),
     inferred_direction: asOptionalDirection(stock.inferred_direction),
     direction_conf: asOptionalNumber(stock.direction_conf),
@@ -284,9 +322,12 @@ function normalizeRFactorStock(value: unknown): RFactorStock | null {
     breakout_levels: asBreakoutLevels(stock.breakout_levels),
     breakout_quality: asOptionalInsightValue(stock.breakout_quality),
     vwap_acceptance: asOptionalInsightValue(stock.vwap_acceptance),
-    is_chase: asOptionalBoolean(stock.is_chase) ?? asOptionalBoolean(stock.ischase),
+    is_chase:
+      asOptionalBoolean(stock.is_chase) ?? asOptionalBoolean(stock.ischase),
     ischase: asOptionalBoolean(stock.ischase),
-    chase_reason: asOptionalString(stock.chase_reason) ?? asOptionalString(stock.chasereason),
+    chase_reason:
+      asOptionalString(stock.chase_reason) ??
+      asOptionalString(stock.chasereason),
     chasereason: asOptionalString(stock.chasereason),
   };
 }
@@ -303,17 +344,26 @@ function getRFactorStocksEnvelope(payload: unknown) {
   const data = payload as Record<string, unknown>;
 
   if (Array.isArray(data.stocks)) {
-    return { stocks: data.stocks, lastUpdated: asOptionalString(data.last_updated) };
+    return {
+      stocks: data.stocks,
+      lastUpdated: asOptionalString(data.last_updated),
+    };
   }
 
   if (Array.isArray(data.data)) {
-    return { stocks: data.data, lastUpdated: asOptionalString(data.last_updated) };
+    return {
+      stocks: data.data,
+      lastUpdated: asOptionalString(data.last_updated),
+    };
   }
 
   return { stocks: [], lastUpdated: asOptionalString(data.last_updated) };
 }
 
-export async function fetchRFactorData(sortBy: RFactorSortBy, signal?: AbortSignal): Promise<RFactorData | null> {
+export async function fetchRFactorData(
+  sortBy: RFactorSortBy,
+  signal?: AbortSignal,
+): Promise<RFactorData | null> {
   const response = await apiFetch(`/rfactor?sort_by=${sortBy}`, { signal });
 
   if (!response.ok) {

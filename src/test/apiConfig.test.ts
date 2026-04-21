@@ -4,7 +4,9 @@ import { buildApiUrl, getApiBaseUrlValidationError } from "@/lib/api";
 
 describe("api configuration", () => {
   it("accepts a valid absolute backend URL", () => {
-    const result = getApiBaseUrlValidationError("https://marketscope-backend1.onrender.com");
+    const result = getApiBaseUrlValidationError(
+      "https://marketscope-backend1.onrender.com",
+    );
 
     expect(result).toBeNull();
   });
@@ -16,7 +18,10 @@ describe("api configuration", () => {
   });
 
   it("rejects an API base URL pointing at the frontend origin", () => {
-    const result = getApiBaseUrlValidationError("https://marketscope-frontend.vercel.app", "https://marketscope-frontend.vercel.app");
+    const result = getApiBaseUrlValidationError(
+      "https://marketscope-frontend.vercel.app",
+      "https://marketscope-frontend.vercel.app",
+    );
 
     expect(result).toContain("current frontend origin");
   });
@@ -28,8 +33,8 @@ describe("api configuration", () => {
   });
 
   it("builds absolute backend URLs", () => {
-    expect(buildApiUrl("https://marketscope-backend1.onrender.com", "/heatmap")).toBe(
-      "https://marketscope-backend1.onrender.com/heatmap",
-    );
+    expect(
+      buildApiUrl("https://marketscope-backend1.onrender.com", "/heatmap"),
+    ).toBe("https://marketscope-backend1.onrender.com/heatmap");
   });
 });

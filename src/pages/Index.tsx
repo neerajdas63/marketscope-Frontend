@@ -19,7 +19,13 @@ import { MomentumPulseTab } from "@/components/MomentumPulseTab";
 import { MomentumPulseStrategyTab } from "@/components/MomentumPulseStrategyTab";
 import { PulseNavigatorTab } from "@/components/PulseNavigatorTab";
 import { SequenceSignalsTab } from "@/components/SequenceSignalsTab";
-import { APP_TAB_LABELS, APP_TABS, DEFAULT_APP_TAB, resolveAppTab, type AppTab } from "@/lib/appTabs";
+import {
+  APP_TAB_LABELS,
+  APP_TABS,
+  DEFAULT_APP_TAB,
+  resolveAppTab,
+  type AppTab,
+} from "@/lib/appTabs";
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode; name: string },
@@ -35,7 +41,16 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: "12px" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "60vh",
+            gap: "12px",
+          }}
+        >
           <span style={{ color: "#F44336", fontSize: "16px" }}>
             ❌ {this.props.name} crashed: {this.state.error}
           </span>
@@ -50,7 +65,10 @@ const Index = () => {
   const { signOut, signOutPending, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [refreshTrigger] = useState<number>(0);
-  const activeTab = useMemo(() => resolveAppTab(searchParams.get("tab")), [searchParams]);
+  const activeTab = useMemo(
+    () => resolveAppTab(searchParams.get("tab")),
+    [searchParams],
+  );
 
   useEffect(() => {
     const rawTab = searchParams.get("tab");
@@ -80,7 +98,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar userEmail={user?.email} onSignOut={signOut} signingOut={signOutPending} />
+      <Navbar
+        userEmail={user?.email}
+        onSignOut={signOut}
+        signingOut={signOutPending}
+      />
 
       {/* Tab Buttons */}
       <div className="flex flex-wrap gap-1 px-4 pt-3 pb-1 bg-background">
@@ -102,55 +124,89 @@ const Index = () => {
       {/* Content */}
       <div className="transition-opacity duration-200">
         {activeTab === "heatmap" && (
-          <ErrorBoundary name="HeatmapTab"><HeatmapTab /></ErrorBoundary>
+          <ErrorBoundary name="HeatmapTab">
+            <HeatmapTab />
+          </ErrorBoundary>
         )}
         {activeTab === "scanner" && (
-          <ErrorBoundary name="ScannerTab"><ScannerTab /></ErrorBoundary>
+          <ErrorBoundary name="ScannerTab">
+            <ScannerTab />
+          </ErrorBoundary>
         )}
         {activeTab === "boost" && (
-          <ErrorBoundary name="BoostTab"><BoostTab /></ErrorBoundary>
+          <ErrorBoundary name="BoostTab">
+            <BoostTab />
+          </ErrorBoundary>
         )}
         {activeTab === "breakout" && (
-          <ErrorBoundary name="BreakoutTab"><BreakoutTab refreshTrigger={refreshTrigger} /></ErrorBoundary>
+          <ErrorBoundary name="BreakoutTab">
+            <BreakoutTab refreshTrigger={refreshTrigger} />
+          </ErrorBoundary>
         )}
         {activeTab === "52w" && (
-          <ErrorBoundary name="FiftyTwoWeekTab"><FiftyTwoWeekTab /></ErrorBoundary>
+          <ErrorBoundary name="FiftyTwoWeekTab">
+            <FiftyTwoWeekTab />
+          </ErrorBoundary>
         )}
         {activeTab === "oi" && (
-          <ErrorBoundary name="OiTab"><OiTab /></ErrorBoundary>
+          <ErrorBoundary name="OiTab">
+            <OiTab />
+          </ErrorBoundary>
         )}
         {activeTab === "breadth" && (
-          <ErrorBoundary name="BreadthTab"><BreadthTab /></ErrorBoundary>
+          <ErrorBoundary name="BreadthTab">
+            <BreadthTab />
+          </ErrorBoundary>
         )}
         {activeTab === "opening" && (
-          <ErrorBoundary name="SectorMomentumTab"><SectorMomentumTab /></ErrorBoundary>
+          <ErrorBoundary name="SectorMomentumTab">
+            <SectorMomentumTab />
+          </ErrorBoundary>
         )}
         {activeTab === "sectorscope" && (
-          <ErrorBoundary name="SectorScopeTab"><SectorScopeTab /></ErrorBoundary>
+          <ErrorBoundary name="SectorScopeTab">
+            <SectorScopeTab />
+          </ErrorBoundary>
         )}
         {activeTab === "rfactor" && (
-          <ErrorBoundary name="RFactorTab"><RFactorTab /></ErrorBoundary>
+          <ErrorBoundary name="RFactorTab">
+            <RFactorTab />
+          </ErrorBoundary>
         )}
         {activeTab === "momentum-pulse" && (
-          <ErrorBoundary name="MomentumPulseTab"><MomentumPulseTab /></ErrorBoundary>
+          <ErrorBoundary name="MomentumPulseTab">
+            <MomentumPulseTab />
+          </ErrorBoundary>
         )}
         {activeTab === "momentum-pulse-strategy" && (
-          <ErrorBoundary name="MomentumPulseStrategyTab"><MomentumPulseStrategyTab /></ErrorBoundary>
+          <ErrorBoundary name="MomentumPulseStrategyTab">
+            <MomentumPulseStrategyTab />
+          </ErrorBoundary>
         )}
         {activeTab === "pulse-navigator" && (
-          <ErrorBoundary name="PulseNavigatorTab"><PulseNavigatorTab /></ErrorBoundary>
+          <ErrorBoundary name="PulseNavigatorTab">
+            <PulseNavigatorTab />
+          </ErrorBoundary>
         )}
         {activeTab === "sequence-signals" && (
-          <ErrorBoundary name="SequenceSignalsTab"><SequenceSignalsTab /></ErrorBoundary>
+          <ErrorBoundary name="SequenceSignalsTab">
+            <SequenceSignalsTab />
+          </ErrorBoundary>
         )}
         {activeTab === "planner" && (
-          <ErrorBoundary name="TradeGuardianTab"><TradeGuardianTab /></ErrorBoundary>
+          <ErrorBoundary name="TradeGuardianTab">
+            <TradeGuardianTab />
+          </ErrorBoundary>
         )}
         {activeTab === "foradar" && (
-          <ErrorBoundary name="FoRadarTab"><FoRadarTab /></ErrorBoundary>
+          <ErrorBoundary name="FoRadarTab">
+            <FoRadarTab />
+          </ErrorBoundary>
         )}
         {activeTab === "watchlist" && (
-          <ErrorBoundary name="MorningWatchlist"><MorningWatchlist /></ErrorBoundary>
+          <ErrorBoundary name="MorningWatchlist">
+            <MorningWatchlist />
+          </ErrorBoundary>
         )}
       </div>
     </div>

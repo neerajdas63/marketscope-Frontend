@@ -9,7 +9,7 @@ interface SectorBlockProps {
 
 export function SectorBlock({ sector, colorRange }: SectorBlockProps) {
   const sortedStocks = [...sector.stocks].sort(
-    (a, b) => Math.abs(b.change_pct) - Math.abs(a.change_pct)
+    (a, b) => Math.abs(b.change_pct) - Math.abs(a.change_pct),
   );
   const arrow = sector.change_pct >= 0 ? "▲" : "▼";
   const colorClass = getChangeTextColor(sector.change_pct);

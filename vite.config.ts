@@ -12,23 +12,29 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
     proxy: {
-      '/morning-watchlist': {
-        target: 'http://localhost:8000',
+      "/morning-watchlist": {
+        target: "http://localhost:8000",
         changeOrigin: true,
         configure: (proxy) => {
-          proxy.on('error', () => { /* backend offline — frontend uses mock fallback */ });
+          proxy.on("error", () => {
+            /* backend offline — frontend uses mock fallback */
+          });
         },
       },
-      '/api': {
-        target: 'http://localhost:8000',
+      "/api": {
+        target: "http://localhost:8000",
         changeOrigin: true,
         configure: (proxy) => {
-          proxy.on('error', () => { /* backend offline — frontend uses mock fallback */ });
+          proxy.on("error", () => {
+            /* backend offline — frontend uses mock fallback */
+          });
         },
       },
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), mode === "development" && componentTagger()].filter(
+    Boolean,
+  ),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -13,14 +13,17 @@ const strategyApiState = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/momentumPulseStrategyApi", () => ({
-  fetchMomentumPulseStrategyData: strategyApiState.fetchMomentumPulseStrategyData,
+  fetchMomentumPulseStrategyData:
+    strategyApiState.fetchMomentumPulseStrategyData,
 }));
 
 vi.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => false,
 }));
 
-function createLiveResponse(query: MomentumPulseStrategyQuery): MomentumPulseStrategyResponse {
+function createLiveResponse(
+  query: MomentumPulseStrategyQuery,
+): MomentumPulseStrategyResponse {
   const response = createEmptyMomentumPulseStrategyResponse(query);
 
   response.mode = "live";
@@ -190,7 +193,9 @@ describe("MomentumPulseStrategyTab", () => {
   });
 
   it("renders the live strategy screen with best stock buckets and expandable details", async () => {
-    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(async (query: MomentumPulseStrategyQuery) => createLiveResponse(query));
+    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(
+      async (query: MomentumPulseStrategyQuery) => createLiveResponse(query),
+    );
 
     render(<MomentumPulseStrategyTab />);
 
@@ -199,15 +204,23 @@ describe("MomentumPulseStrategyTab", () => {
       expect(screen.getAllByText("RELIANCE").length).toBeGreaterThan(0);
     });
 
-    expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(1);
-    expect(strategyApiState.fetchMomentumPulseStrategyData.mock.calls[0]?.[0]).toMatchObject({
+    expect(
+      strategyApiState.fetchMomentumPulseStrategyData,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      strategyApiState.fetchMomentumPulseStrategyData.mock.calls[0]?.[0],
+    ).toMatchObject({
       limit: 40,
       direction: "ALL",
       grade: "ALL",
     });
 
-    expect(screen.queryByRole("button", { name: "Historical" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Load History" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Historical" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Load History" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Overall Best")).toBeInTheDocument();
     expect(screen.getByText("Best Longs")).toBeInTheDocument();
     expect(screen.getByText("Avoid List")).toBeInTheDocument();
@@ -226,21 +239,31 @@ describe("MomentumPulseStrategyTab", () => {
   });
 
   it("refetches with updated live filters and refresh button", async () => {
-    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(async (query: MomentumPulseStrategyQuery) => createLiveResponse(query));
+    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(
+      async (query: MomentumPulseStrategyQuery) => createLiveResponse(query),
+    );
 
     render(<MomentumPulseStrategyTab />);
 
     await waitFor(() => {
-      expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(1);
+      expect(
+        strategyApiState.fetchMomentumPulseStrategyData,
+      ).toHaveBeenCalledTimes(1);
     });
 
-    fireEvent.change(screen.getByDisplayValue("Direction: ALL"), { target: { value: "LONG" } });
+    fireEvent.change(screen.getByDisplayValue("Direction: ALL"), {
+      target: { value: "LONG" },
+    });
 
     await waitFor(() => {
-      expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(2);
+      expect(
+        strategyApiState.fetchMomentumPulseStrategyData,
+      ).toHaveBeenCalledTimes(2);
     });
 
-    expect(strategyApiState.fetchMomentumPulseStrategyData.mock.calls[1]?.[0]).toMatchObject({
+    expect(
+      strategyApiState.fetchMomentumPulseStrategyData.mock.calls[1]?.[0],
+    ).toMatchObject({
       limit: 40,
       direction: "LONG",
       grade: "ALL",
@@ -249,22 +272,28 @@ describe("MomentumPulseStrategyTab", () => {
     fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
 
     await waitFor(() => {
-      expect(strategyApiState.fetchMomentumPulseStrategyData).toHaveBeenCalledTimes(3);
+      expect(
+        strategyApiState.fetchMomentumPulseStrategyData,
+      ).toHaveBeenCalledTimes(3);
     });
   });
 
   it("shows a passive message when backend does not return a live payload", async () => {
-    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(async (query: MomentumPulseStrategyQuery) => {
-      const response = createLiveResponse(query);
-      response.mode = "historical";
-      response.status = "disabled";
-      return response;
-    });
+    strategyApiState.fetchMomentumPulseStrategyData.mockImplementation(
+      async (query: MomentumPulseStrategyQuery) => {
+        const response = createLiveResponse(query);
+        response.mode = "historical";
+        response.status = "disabled";
+        return response;
+      },
+    );
 
     render(<MomentumPulseStrategyTab />);
 
     await waitFor(() => {
-      expect(screen.getByText("Live strategy view is unavailable right now")).toBeInTheDocument();
+      expect(
+        screen.getByText("Live strategy view is unavailable right now"),
+      ).toBeInTheDocument();
     });
 
     expect(screen.queryByText("Overall Best")).not.toBeInTheDocument();

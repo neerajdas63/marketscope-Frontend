@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { createEmptyPulseNavigatorResponse, mergePulseNavigatorResponse } from "@/data/pulseNavigatorData";
+import {
+  createEmptyPulseNavigatorResponse,
+  mergePulseNavigatorResponse,
+} from "@/data/pulseNavigatorData";
 import { normalizePulseNavigatorResponse } from "@/lib/pulseNavigatorApi";
 
 describe("normalizePulseNavigatorResponse", () => {
@@ -17,7 +20,10 @@ describe("normalizePulseNavigatorResponse", () => {
           fresh_long: { symbol: "SBIN", direction: "LONG", score: 71.9 },
           fresh_short: { symbol: "AXISBANK", direction: "SHORT", score: 68.2 },
           strongest_sector: { sector: "Banks", score: 83.2 },
-          leaders_overview: { primary: "Leadership is broadening", secondary: "Longs still lead, but shorts remain actionable." },
+          leaders_overview: {
+            primary: "Leadership is broadening",
+            secondary: "Longs still lead, but shorts remain actionable.",
+          },
         },
         tabs: {
           discover: {
@@ -31,8 +37,13 @@ describe("normalizePulseNavigatorResponse", () => {
                   session_leader_score: 91.6,
                   direction_confidence: 79,
                   actionability_label: "clean_setup",
-                  leader_reason: "Held leadership from the open and stayed above VWAP.",
-                  reasons: ["Relative strength improving", "Trend aligned", "No extension warnings"],
+                  leader_reason:
+                    "Held leadership from the open and stayed above VWAP.",
+                  reasons: [
+                    "Relative strength improving",
+                    "Trend aligned",
+                    "No extension warnings",
+                  ],
                   ui_tags: ["VWAP", "F&O"],
                   change_pct: 2.9,
                   distance_from_vwap_pct: 1.1,
@@ -53,7 +64,8 @@ describe("normalizePulseNavigatorResponse", () => {
                 direction: "LONG",
                 momentum_pulse_score: 88.4,
                 session_leader_score: 91.6,
-                leader_reason: "Held leadership from the open and stayed above VWAP.",
+                leader_reason:
+                  "Held leadership from the open and stayed above VWAP.",
                 change_pct: 2.9,
                 distance_from_vwap_pct: 1.1,
                 pulse_trend_label: "Rising",
@@ -66,7 +78,8 @@ describe("normalizePulseNavigatorResponse", () => {
                 direction: "SHORT",
                 momentum_pulse_score: 75.1,
                 session_leader_score: 78.4,
-                leader_reason: "Persistent intraday weakness with failed VWAP reclaim.",
+                leader_reason:
+                  "Persistent intraday weakness with failed VWAP reclaim.",
                 change_pct: -1.9,
                 distance_from_vwap_pct: -0.8,
                 pulse_trend_label: "Falling",
@@ -122,19 +135,46 @@ describe("normalizePulseNavigatorResponse", () => {
                   momentum_pulse_score: 71.9,
                   direction_confidence: 72,
                   actionability_label: "clean_setup",
-                  reasons: ["Aligned with sector trend", "Persistent relative strength"],
+                  reasons: [
+                    "Aligned with sector trend",
+                    "Persistent relative strength",
+                  ],
                   change_pct: 1.8,
                   relative_strength: 1.4,
                   pulse_trend_label: "Rising",
                   pulse_trend_strength: 6.8,
                 },
-                leader: { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
-                challenger: { symbol: "ICICIBANK", direction: "LONG", momentum_pulse_score: 66.1 },
-                laggard: { symbol: "AUBANK", direction: "SHORT", momentum_pulse_score: 41.5 },
+                leader: {
+                  symbol: "SBIN",
+                  direction: "LONG",
+                  momentum_pulse_score: 71.9,
+                },
+                challenger: {
+                  symbol: "ICICIBANK",
+                  direction: "LONG",
+                  momentum_pulse_score: 66.1,
+                },
+                laggard: {
+                  symbol: "AUBANK",
+                  direction: "SHORT",
+                  momentum_pulse_score: 41.5,
+                },
                 top_stocks: [
-                  { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
-                  { symbol: "ICICIBANK", direction: "LONG", momentum_pulse_score: 66.1 },
-                  { symbol: "BANKBARODA", direction: "LONG", momentum_pulse_score: 61.4 },
+                  {
+                    symbol: "SBIN",
+                    direction: "LONG",
+                    momentum_pulse_score: 71.9,
+                  },
+                  {
+                    symbol: "ICICIBANK",
+                    direction: "LONG",
+                    momentum_pulse_score: 66.1,
+                  },
+                  {
+                    symbol: "BANKBARODA",
+                    direction: "LONG",
+                    momentum_pulse_score: 61.4,
+                  },
                 ],
               },
             ],
@@ -148,9 +188,15 @@ describe("normalizePulseNavigatorResponse", () => {
     expect(response.benchmark.value).toBe("+0.82%");
     expect(response.hero.leader_long?.primary).toBe("RELIANCE");
     expect(response.hero.fresh_short?.primary).toBe("AXISBANK");
-    expect(response.hero.leaders_overview?.primary).toBe("Leadership is broadening");
-    expect(response.tabs.discover.buckets[0]?.stocks[0]?.actionability_label).toBe("clean_setup");
-    expect(response.tabs.leaders.longs[0]?.leader_reason).toContain("above VWAP");
+    expect(response.hero.leaders_overview?.primary).toBe(
+      "Leadership is broadening",
+    );
+    expect(
+      response.tabs.discover.buckets[0]?.stocks[0]?.actionability_label,
+    ).toBe("clean_setup");
+    expect(response.tabs.leaders.longs[0]?.leader_reason).toContain(
+      "above VWAP",
+    );
     expect(response.tabs.fresh.longs[0]?.warning_count).toBe(1);
     expect(response.tabs.fresh.shorts[0]?.symbol).toBe("AXISBANK");
     expect(response.tabs.sectors.sectors[0]?.best_stock?.symbol).toBe("SBIN");
@@ -172,15 +218,33 @@ describe("normalizePulseNavigatorResponse", () => {
           discover: {
             buckets: {
               curated_now: [
-                { symbol: "TCS", direction: "LONG", momentum_pulse_score: 64.5 },
-                { symbol: "INFY", direction: "SHORT", momentum_pulse_score: 61.3 },
+                {
+                  symbol: "TCS",
+                  direction: "LONG",
+                  momentum_pulse_score: 64.5,
+                },
+                {
+                  symbol: "INFY",
+                  direction: "SHORT",
+                  momentum_pulse_score: 61.3,
+                },
               ],
             },
           },
           fresh: {
             stocks: [
-              { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 58.4, score_change_10m: 4.2 },
-              { symbol: "AXISBANK", direction: "SHORT", momentum_pulse_score: 55.1, score_change_10m: 3.8 },
+              {
+                symbol: "SBIN",
+                direction: "LONG",
+                momentum_pulse_score: 58.4,
+                score_change_10m: 4.2,
+              },
+              {
+                symbol: "AXISBANK",
+                direction: "SHORT",
+                momentum_pulse_score: 55.1,
+                score_change_10m: 3.8,
+              },
             ],
           },
         },
@@ -206,10 +270,18 @@ describe("normalizePulseNavigatorResponse", () => {
         sectors: [
           {
             sector: "Auto",
-            best_stock: { symbol: "M&M", direction: "LONG", momentum_pulse_score: 68.2 },
+            best_stock: {
+              symbol: "M&M",
+              direction: "LONG",
+              momentum_pulse_score: 68.2,
+            },
             top_stocks: [
               { symbol: "M&M", direction: "LONG", momentum_pulse_score: 68.2 },
-              { symbol: "TATAMOTORS", direction: "LONG", momentum_pulse_score: 62.4 },
+              {
+                symbol: "TATAMOTORS",
+                direction: "LONG",
+                momentum_pulse_score: 62.4,
+              },
             ],
           },
         ],
@@ -223,7 +295,9 @@ describe("normalizePulseNavigatorResponse", () => {
     expect(response.tabs.sectors.sectors[0]?.best_stock?.symbol).toBe("M&M");
     expect(response.tabs.sectors.sectors[0]?.sector_direction).toBe("LONG");
     expect(response.tabs.sectors.sectors[0]?.sector_score).toBe(68.2);
-    expect(response.tabs.sectors.sectors[0]?.top_stocks.map((stock) => stock.symbol)).toEqual(["M&M", "TATAMOTORS"]);
+    expect(
+      response.tabs.sectors.sectors[0]?.top_stocks.map((stock) => stock.symbol),
+    ).toEqual(["M&M", "TATAMOTORS"]);
   });
 
   it("normalizes sectors from a full response root path when tabs.sectors is absent", () => {
@@ -236,10 +310,18 @@ describe("normalizePulseNavigatorResponse", () => {
         sectors: [
           {
             sector: "Banks",
-            best_stock: { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
+            best_stock: {
+              symbol: "SBIN",
+              direction: "LONG",
+              momentum_pulse_score: 71.9,
+            },
             top_stocks: [
               { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
-              { symbol: "ICICIBANK", direction: "LONG", momentum_pulse_score: 66.1 },
+              {
+                symbol: "ICICIBANK",
+                direction: "LONG",
+                momentum_pulse_score: 66.1,
+              },
             ],
           },
         ],
@@ -258,9 +340,21 @@ describe("normalizePulseNavigatorResponse", () => {
       {
         sectors: {
           Auto: {
-            leader: { symbol: "M&M", direction: "LONG", momentum_pulse_score: 68.2 },
-            challenger: { symbol: "TATAMOTORS", direction: "LONG", momentum_pulse_score: 62.4 },
-            laggard: { symbol: "ASHOKLEY", direction: "SHORT", momentum_pulse_score: 37.5 },
+            leader: {
+              symbol: "M&M",
+              direction: "LONG",
+              momentum_pulse_score: 68.2,
+            },
+            challenger: {
+              symbol: "TATAMOTORS",
+              direction: "LONG",
+              momentum_pulse_score: 62.4,
+            },
+            laggard: {
+              symbol: "ASHOKLEY",
+              direction: "SHORT",
+              momentum_pulse_score: 37.5,
+            },
           },
         },
       },
@@ -272,7 +366,9 @@ describe("normalizePulseNavigatorResponse", () => {
     expect(response.tabs.sectors.sectors[0]?.best_stock?.symbol).toBe("M&M");
     expect(response.tabs.sectors.sectors[0]?.sector_direction).toBe("LONG");
     expect(response.tabs.sectors.sectors[0]?.sector_score).toBe(68.2);
-    expect(response.tabs.sectors.sectors[0]?.top_stocks.map((stock) => stock.symbol)).toEqual(["M&M", "TATAMOTORS", "ASHOKLEY"]);
+    expect(
+      response.tabs.sectors.sectors[0]?.top_stocks.map((stock) => stock.symbol),
+    ).toEqual(["M&M", "TATAMOTORS", "ASHOKLEY"]);
   });
 
   it("preserves prior curated data during stale_refreshing when sections come back empty", () => {
@@ -291,26 +387,59 @@ describe("normalizePulseNavigatorResponse", () => {
         tabs: {
           discover: {
             buckets: {
-              curated_now: [{ symbol: "RELIANCE", direction: "LONG", momentum_pulse_score: 88.4 }],
+              curated_now: [
+                {
+                  symbol: "RELIANCE",
+                  direction: "LONG",
+                  momentum_pulse_score: 88.4,
+                },
+              ],
             },
           },
           leaders: {
-            longs: [{ symbol: "RELIANCE", direction: "LONG", momentum_pulse_score: 88.4 }],
-            shorts: [{ symbol: "HDFCBANK", direction: "SHORT", momentum_pulse_score: 75.1 }],
+            longs: [
+              {
+                symbol: "RELIANCE",
+                direction: "LONG",
+                momentum_pulse_score: 88.4,
+              },
+            ],
+            shorts: [
+              {
+                symbol: "HDFCBANK",
+                direction: "SHORT",
+                momentum_pulse_score: 75.1,
+              },
+            ],
           },
           fresh: {
-            longs: [{ symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 }],
+            longs: [
+              { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 },
+            ],
             shorts: [],
           },
           sectors: {
-            sectors: [{ sector: "Banks", leader: { symbol: "SBIN", direction: "LONG", momentum_pulse_score: 71.9 } }],
+            sectors: [
+              {
+                sector: "Banks",
+                leader: {
+                  symbol: "SBIN",
+                  direction: "LONG",
+                  momentum_pulse_score: 71.9,
+                },
+              },
+            ],
           },
         },
       },
       { limit: 12, preset: "balanced", direction: "ALL" },
     );
 
-    const incoming = createEmptyPulseNavigatorResponse({ limit: 12, preset: "balanced", direction: "ALL" });
+    const incoming = createEmptyPulseNavigatorResponse({
+      limit: 12,
+      preset: "balanced",
+      direction: "ALL",
+    });
     incoming.status = "stale_refreshing";
 
     const merged = mergePulseNavigatorResponse(current, incoming);
@@ -320,13 +449,20 @@ describe("normalizePulseNavigatorResponse", () => {
     expect(merged.tabs.discover.buckets[0]?.stocks[0]?.symbol).toBe("RELIANCE");
     expect(merged.tabs.leaders.longs[0]?.symbol).toBe("RELIANCE");
     expect(merged.tabs.fresh.longs[0]?.symbol).toBe("SBIN");
-    expect(merged.tabs.sectors.sectors[0]?.best_stock?.symbol ?? merged.tabs.sectors.sectors[0]?.leader?.symbol).toBe("SBIN");
+    expect(
+      merged.tabs.sectors.sectors[0]?.best_stock?.symbol ??
+        merged.tabs.sectors.sectors[0]?.leader?.symbol,
+    ).toBe("SBIN");
     expect(merged.benchmark.value).toBe("+0.82%");
     expect(merged.last_updated).toBe("10:45 IST");
   });
 
   it("does not invent unavailable hero data when stale_refreshing includes a real highlight", () => {
-    const current = createEmptyPulseNavigatorResponse({ limit: 12, preset: "balanced", direction: "ALL" });
+    const current = createEmptyPulseNavigatorResponse({
+      limit: 12,
+      preset: "balanced",
+      direction: "ALL",
+    });
     const incoming = normalizePulseNavigatorResponse(
       {
         status: "stale_refreshing",

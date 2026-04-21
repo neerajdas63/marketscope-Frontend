@@ -1,4 +1,8 @@
-import { type BoostComponents, type BoostDirection, BoostStock } from "@/data/boostMockData";
+import {
+  type BoostComponents,
+  type BoostDirection,
+  BoostStock,
+} from "@/data/boostMockData";
 
 interface BoostCardProps {
   stock: BoostStock;
@@ -21,10 +25,16 @@ function getBoostColor(score: number): string {
   return "#F44336";
 }
 
-function getBoostLabel(score: number): { text: string; bg: string; color: string } {
-  if (score >= 3.5) return { text: "STRONG",   bg: "rgba(0,200,83,0.2)",   color: "#00C853" };
-  if (score >= 2.5) return { text: "MODERATE", bg: "rgba(255,214,0,0.2)",  color: "#FFD600" };
-  return              { text: "WEAK",     bg: "rgba(102,102,102,0.3)", color: "#888888" };
+function getBoostLabel(score: number): {
+  text: string;
+  bg: string;
+  color: string;
+} {
+  if (score >= 3.5)
+    return { text: "STRONG", bg: "rgba(0,200,83,0.2)", color: "#00C853" };
+  if (score >= 2.5)
+    return { text: "MODERATE", bg: "rgba(255,214,0,0.2)", color: "#FFD600" };
+  return { text: "WEAK", bg: "rgba(102,102,102,0.3)", color: "#888888" };
 }
 
 function getVwapColor(pct: number): string {
@@ -71,14 +81,29 @@ function formatCompactQuantity(value?: number) {
 
 function getDirectionBadgeStyle(direction: BoostDirection) {
   if (direction === "up") {
-    return { label: "UP", bg: "rgba(34, 197, 94, 0.14)", border: "rgba(34, 197, 94, 0.28)", color: "#4ADE80" };
+    return {
+      label: "UP",
+      bg: "rgba(34, 197, 94, 0.14)",
+      border: "rgba(34, 197, 94, 0.28)",
+      color: "#4ADE80",
+    };
   }
 
   if (direction === "down") {
-    return { label: "DOWN", bg: "rgba(239, 68, 68, 0.14)", border: "rgba(239, 68, 68, 0.28)", color: "#F87171" };
+    return {
+      label: "DOWN",
+      bg: "rgba(239, 68, 68, 0.14)",
+      border: "rgba(239, 68, 68, 0.28)",
+      color: "#F87171",
+    };
   }
 
-  return { label: "FLAT", bg: "rgba(148, 163, 184, 0.12)", border: "rgba(148, 163, 184, 0.24)", color: "#CBD5E1" };
+  return {
+    label: "FLAT",
+    bg: "rgba(148, 163, 184, 0.12)",
+    border: "rgba(148, 163, 184, 0.24)",
+    color: "#CBD5E1",
+  };
 }
 
 function formatComponentValue(value: unknown) {
@@ -114,7 +139,10 @@ function buildComponentsTooltip(components?: BoostComponents) {
     ["Rel Vol Burst", formatComponentValue(components.relative_volume_burst)],
     ["Price Velocity", formatComponentValue(components.price_velocity_burst)],
     ["Range Quality", formatComponentValue(components.range_expansion_quality)],
-    ["Directional Efficiency", formatComponentValue(components.directional_efficiency)],
+    [
+      "Directional Efficiency",
+      formatComponentValue(components.directional_efficiency),
+    ],
     ["Institutional Hint", formatComponentValue(components.institutional_hint)],
     ["Confidence", formatComponentValue(components.confidence)],
     ["Data Mode", formatComponentValue(components.data_mode)],
@@ -131,13 +159,16 @@ export function BoostCard({ stock }: BoostCardProps) {
   const boostColor = getBoostColor(safeNum(stock.boost_score));
   const badge = getBoostLabel(safeNum(stock.boost_score));
   const isPositive = safeNum(stock.change_pct) >= 0;
-  const directionBadge = getDirectionBadgeStyle(stock.boost_direction ?? "flat");
+  const directionBadge = getDirectionBadgeStyle(
+    stock.boost_direction ?? "flat",
+  );
   const institutionalHint = safeNum(stock.institutional_hint_score, Number.NaN);
   const hasInstitutionalHint = Number.isFinite(institutionalHint);
   const componentsTooltip = buildComponentsTooltip(stock.boost_components);
-  const vwapDeltaPct = stock.vwap && stock.vwap !== 0
-    ? ((safeNum(stock.ltp) - stock.vwap) / stock.vwap) * 100
-    : undefined;
+  const vwapDeltaPct =
+    stock.vwap && stock.vwap !== 0
+      ? ((safeNum(stock.ltp) - stock.vwap) / stock.vwap) * 100
+      : undefined;
 
   return (
     <div
@@ -159,7 +190,9 @@ export function BoostCard({ stock }: BoostCardProps) {
     >
       {/* Row 1 — Symbol + Badges */}
       <div className="flex items-center justify-between gap-2">
-        <span style={{ color: "#ffffff", fontWeight: "bold", fontSize: "15px" }}>
+        <span
+          style={{ color: "#ffffff", fontWeight: "bold", fontSize: "15px" }}
+        >
           {stock.symbol}
         </span>
         <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
@@ -311,13 +344,23 @@ export function BoostCard({ stock }: BoostCardProps) {
       {/* Row 6 — Stats Grid 2x2 */}
       <div className="grid grid-cols-2 gap-y-2 gap-x-4">
         <div>
-          <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+          <div
+            style={{
+              color: "#555555",
+              fontSize: "10px",
+              textTransform: "uppercase",
+            }}
+          >
             Vol Ratio
           </div>
           <div
             style={{
               color:
-                safeNum(stock.volume_ratio) > 2 ? "#FF6B00" : safeNum(stock.volume_ratio) > 1.5 ? "#FFD600" : "#ffffff",
+                safeNum(stock.volume_ratio) > 2
+                  ? "#FF6B00"
+                  : safeNum(stock.volume_ratio) > 1.5
+                    ? "#FFD600"
+                    : "#ffffff",
               fontSize: "13px",
               fontWeight: 600,
             }}
@@ -327,13 +370,23 @@ export function BoostCard({ stock }: BoostCardProps) {
         </div>
 
         <div>
-          <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+          <div
+            style={{
+              color: "#555555",
+              fontSize: "10px",
+              textTransform: "uppercase",
+            }}
+          >
             Delivery
           </div>
           <div
             style={{
               color:
-                safeNum(stock.delivery_pct) >= 60 ? "#00C853" : safeNum(stock.delivery_pct) >= 40 ? "#FFD600" : "#888888",
+                safeNum(stock.delivery_pct) >= 60
+                  ? "#00C853"
+                  : safeNum(stock.delivery_pct) >= 40
+                    ? "#FFD600"
+                    : "#888888",
               fontSize: "13px",
               fontWeight: 600,
             }}
@@ -343,7 +396,13 @@ export function BoostCard({ stock }: BoostCardProps) {
         </div>
 
         <div>
-          <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+          <div
+            style={{
+              color: "#555555",
+              fontSize: "10px",
+              textTransform: "uppercase",
+            }}
+          >
             Bid / Ask
           </div>
           <div style={{ fontSize: "13px", fontWeight: 600, color: "#E5E7EB" }}>
@@ -352,7 +411,13 @@ export function BoostCard({ stock }: BoostCardProps) {
         </div>
 
         <div>
-          <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+          <div
+            style={{
+              color: "#555555",
+              fontSize: "10px",
+              textTransform: "uppercase",
+            }}
+          >
             VWAP Delta
           </div>
           <div
@@ -367,9 +432,18 @@ export function BoostCard({ stock }: BoostCardProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-y-2 gap-x-4" style={{ marginTop: "10px" }}>
+      <div
+        className="grid grid-cols-2 gap-y-2 gap-x-4"
+        style={{ marginTop: "10px" }}
+      >
         <div>
-          <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+          <div
+            style={{
+              color: "#555555",
+              fontSize: "10px",
+              textTransform: "uppercase",
+            }}
+          >
             Bid Qty
           </div>
           <div style={{ color: "#CBD5E1", fontSize: "13px", fontWeight: 600 }}>
@@ -378,7 +452,13 @@ export function BoostCard({ stock }: BoostCardProps) {
         </div>
 
         <div>
-          <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+          <div
+            style={{
+              color: "#555555",
+              fontSize: "10px",
+              textTransform: "uppercase",
+            }}
+          >
             Ask Qty
           </div>
           <div style={{ color: "#CBD5E1", fontSize: "13px", fontWeight: 600 }}>

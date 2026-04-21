@@ -15,7 +15,12 @@ import {
 } from "@/data/sequenceSignalsData";
 
 const VALID_QUERY_TIMEFRAMES = ["ALL", "3m", "5m", "15m"] as const;
-const VALID_FILTER_TIMEFRAMES: SequenceSignalFilterTimeframe[] = ["ALL", "3M", "5M", "15M"];
+const VALID_FILTER_TIMEFRAMES: SequenceSignalFilterTimeframe[] = [
+  "ALL",
+  "3M",
+  "5M",
+  "15M",
+];
 const VALID_SIDES: SequenceSignalFilterSide[] = ["ALL", "BUY", "SELL"];
 const VALID_TYPES: SequenceSignalFilterType[] = ["ALL", "C2", "C3", "MTF"];
 const VALID_ROW_TIMEFRAMES: SequenceSignalRowTimeframe[] = ["3m", "5m", "15m"];
@@ -41,32 +46,50 @@ function asOptionalString(value: unknown) {
   return typeof value === "string" ? value : undefined;
 }
 
-function asFilterTimeframe(value: unknown, fallback: SequenceSignalFilterTimeframe): SequenceSignalFilterTimeframe {
-  return typeof value === "string" && VALID_FILTER_TIMEFRAMES.includes(value as SequenceSignalFilterTimeframe)
+function asFilterTimeframe(
+  value: unknown,
+  fallback: SequenceSignalFilterTimeframe,
+): SequenceSignalFilterTimeframe {
+  return typeof value === "string" &&
+    VALID_FILTER_TIMEFRAMES.includes(value as SequenceSignalFilterTimeframe)
     ? (value as SequenceSignalFilterTimeframe)
     : fallback;
 }
 
-function asFilterSide(value: unknown, fallback: SequenceSignalFilterSide): SequenceSignalFilterSide {
-  return typeof value === "string" && VALID_SIDES.includes(value as SequenceSignalFilterSide)
+function asFilterSide(
+  value: unknown,
+  fallback: SequenceSignalFilterSide,
+): SequenceSignalFilterSide {
+  return typeof value === "string" &&
+    VALID_SIDES.includes(value as SequenceSignalFilterSide)
     ? (value as SequenceSignalFilterSide)
     : fallback;
 }
 
-function asFilterType(value: unknown, fallback: SequenceSignalFilterType): SequenceSignalFilterType {
-  return typeof value === "string" && VALID_TYPES.includes(value as SequenceSignalFilterType)
+function asFilterType(
+  value: unknown,
+  fallback: SequenceSignalFilterType,
+): SequenceSignalFilterType {
+  return typeof value === "string" &&
+    VALID_TYPES.includes(value as SequenceSignalFilterType)
     ? (value as SequenceSignalFilterType)
     : fallback;
 }
 
-function normalizeFilters(value: unknown, query: SequenceSignalQuery): SequenceSignalsFilters {
+function normalizeFilters(
+  value: unknown,
+  query: SequenceSignalQuery,
+): SequenceSignalsFilters {
   if (!value || typeof value !== "object") {
     return createEmptySequenceSignalsResponse(query).filters;
   }
 
   const filters = value as Record<string, unknown>;
   return {
-    timeframe: asFilterTimeframe(filters.timeframe, createEmptySequenceSignalsResponse(query).filters.timeframe),
+    timeframe: asFilterTimeframe(
+      filters.timeframe,
+      createEmptySequenceSignalsResponse(query).filters.timeframe,
+    ),
     side: asFilterSide(filters.side, query.side),
     signal_type: asFilterType(filters.signal_type, query.signal_type),
     limit: asFiniteNumber(filters.limit) ?? query.limit,
@@ -86,15 +109,18 @@ function normalizeSummary(value: unknown): SequenceSignalsSummary {
   }
 
   const summary = value as Record<string, unknown>;
-  const timeframes = summary.timeframes && typeof summary.timeframes === "object"
-    ? summary.timeframes as Record<string, unknown>
-    : {};
-  const signalTypes = summary.signal_types && typeof summary.signal_types === "object"
-    ? summary.signal_types as Record<string, unknown>
-    : {};
-  const sides = summary.sides && typeof summary.sides === "object"
-    ? summary.sides as Record<string, unknown>
-    : {};
+  const timeframes =
+    summary.timeframes && typeof summary.timeframes === "object"
+      ? (summary.timeframes as Record<string, unknown>)
+      : {};
+  const signalTypes =
+    summary.signal_types && typeof summary.signal_types === "object"
+      ? (summary.signal_types as Record<string, unknown>)
+      : {};
+  const sides =
+    summary.sides && typeof summary.sides === "object"
+      ? (summary.sides as Record<string, unknown>)
+      : {};
 
   return {
     total: asFiniteNumber(summary.total) ?? 0,
@@ -115,7 +141,10 @@ function normalizeSummary(value: unknown): SequenceSignalsSummary {
   };
 }
 
-function normalizeSignalRow(value: unknown, fallbackRank: number): SequenceSignalRow | null {
+function normalizeSignalRow(
+  value: unknown,
+  fallbackRank: number,
+): SequenceSignalRow | null {
   if (!value || typeof value !== "object") {
     return null;
   }
@@ -166,7 +195,10 @@ function normalizeSignalRow(value: unknown, fallbackRank: number): SequenceSigna
   };
 }
 
-function normalizeSequenceSignalsResponse(payload: unknown, query: SequenceSignalQuery): SequenceSignalsResponse {
+function normalizeSequenceSignalsResponse(
+  payload: unknown,
+  query: SequenceSignalQuery,
+): SequenceSignalsResponse {
   if (!payload || typeof payload !== "object") {
     return createEmptySequenceSignalsResponse(query);
   }
@@ -181,8 +213,10 @@ function normalizeSequenceSignalsResponse(payload: unknown, query: SequenceSigna
     status: asOptionalString(data.status) === "error" ? "error" : "ready",
     message: asOptionalString(data.message) ?? "",
     source: asOptionalString(data.source) ?? "yfinance",
-    session_date: asOptionalString(data.session_date) ?? query.session_date ?? "",
-    market_data_last_updated: asOptionalString(data.market_data_last_updated) ?? "",
+    session_date:
+      asOptionalString(data.session_date) ?? query.session_date ?? "",
+    market_data_last_updated:
+      asOptionalString(data.market_data_last_updated) ?? "",
     last_updated: asOptionalString(data.last_updated) ?? "",
     filters: normalizeFilters(data.filters, query),
     summary: normalizeSummary(data.summary),
@@ -196,7 +230,9 @@ export async function fetchSequenceSignalsData(
 ): Promise<SequenceSignalsResponse> {
   const params = new URLSearchParams({
     limit: String(query.limit),
-    timeframe: VALID_QUERY_TIMEFRAMES.includes(query.timeframe) ? query.timeframe : "ALL",
+    timeframe: VALID_QUERY_TIMEFRAMES.includes(query.timeframe)
+      ? query.timeframe
+      : "ALL",
     side: query.side,
     signal_type: query.signal_type,
   });
@@ -205,7 +241,9 @@ export async function fetchSequenceSignalsData(
     params.set("session_date", query.session_date);
   }
 
-  const response = await apiFetch(`/sequence-signals?${params.toString()}`, { signal });
+  const response = await apiFetch(`/sequence-signals?${params.toString()}`, {
+    signal,
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to load /sequence-signals (${response.status})`);

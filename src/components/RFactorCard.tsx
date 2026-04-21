@@ -7,7 +7,12 @@ import {
   getTriggerScoreValue,
   type InferredDirection,
 } from "@/data/mockData";
-import { formatInsightNumber, InsightTooltip, StageBadge, TrendIndicator } from "./StockInsightWidgets";
+import {
+  formatInsightNumber,
+  InsightTooltip,
+  StageBadge,
+  TrendIndicator,
+} from "./StockInsightWidgets";
 
 interface RFactorCardProps {
   stock: RFactorStock;
@@ -28,14 +33,26 @@ function getRsiMfiColor(value: number): string {
 
 function getDirectionTone(direction?: InferredDirection) {
   if (direction === "LONG") {
-    return { color: "#4ADE80", background: "rgba(34, 197, 94, 0.14)", border: "rgba(34, 197, 94, 0.28)" };
+    return {
+      color: "#4ADE80",
+      background: "rgba(34, 197, 94, 0.14)",
+      border: "rgba(34, 197, 94, 0.28)",
+    };
   }
 
   if (direction === "SHORT") {
-    return { color: "#F87171", background: "rgba(248, 113, 113, 0.14)", border: "rgba(248, 113, 113, 0.28)" };
+    return {
+      color: "#F87171",
+      background: "rgba(248, 113, 113, 0.14)",
+      border: "rgba(248, 113, 113, 0.28)",
+    };
   }
 
-  return { color: "#CBD5E1", background: "rgba(148, 163, 184, 0.12)", border: "rgba(148, 163, 184, 0.25)" };
+  return {
+    color: "#CBD5E1",
+    background: "rgba(148, 163, 184, 0.12)",
+    border: "rgba(148, 163, 184, 0.25)",
+  };
 }
 
 function formatMetricValue(value?: number | string | boolean, digits = 1) {
@@ -55,7 +72,11 @@ function formatMetricValue(value?: number | string | boolean, digits = 1) {
 }
 
 function formatConfidence(confidence?: number) {
-  if (confidence === undefined || confidence === null || Number.isNaN(confidence)) {
+  if (
+    confidence === undefined ||
+    confidence === null ||
+    Number.isNaN(confidence)
+  ) {
     return "--";
   }
 
@@ -78,12 +99,16 @@ function formatLevel(value?: number | string) {
 function renderStat(label: string, value: string, color = "#ffffff") {
   return (
     <div>
-      <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+      <div
+        style={{
+          color: "#555555",
+          fontSize: "10px",
+          textTransform: "uppercase",
+        }}
+      >
         {label}
       </div>
-      <div style={{ color, fontSize: "13px", fontWeight: 600 }}>
-        {value}
-      </div>
+      <div style={{ color, fontSize: "13px", fontWeight: 600 }}>{value}</div>
     </div>
   );
 }
@@ -95,7 +120,12 @@ export function RFactorCard({ stock }: RFactorCardProps) {
   const chaseReason = getChaseReasonValue(stock);
   const alertStage = getAlertStageValue(stock);
   const inferredDirection =
-    stock.inferred_direction ?? (stock.change_pct > 0 ? "LONG" : stock.change_pct < 0 ? "SHORT" : "NEUTRAL");
+    stock.inferred_direction ??
+    (stock.change_pct > 0
+      ? "LONG"
+      : stock.change_pct < 0
+        ? "SHORT"
+        : "NEUTRAL");
   const borderColor = getBorderColor(stock.rfactor);
   const isPositive = stock.change_pct >= 0;
   const progressWidth = `${Math.max(0, Math.min(stock.rfactor, 100))}%`;
@@ -114,7 +144,9 @@ export function RFactorCard({ stock }: RFactorCardProps) {
         backgroundColor: "#111111",
         borderRadius: "8px",
         borderLeft: `4px solid ${borderColor}`,
-        boxShadow: chaseWarning ? "inset 0 0 0 1px rgba(249, 115, 22, 0.28)" : "none",
+        boxShadow: chaseWarning
+          ? "inset 0 0 0 1px rgba(249, 115, 22, 0.28)"
+          : "none",
         opacity: chaseWarning ? 0.88 : 1,
         filter: chaseWarning ? "saturate(0.9)" : "none",
         padding: "14px",
@@ -130,7 +162,9 @@ export function RFactorCard({ stock }: RFactorCardProps) {
     >
       {/* Row 1 — Symbol + Badges */}
       <div className="flex items-center justify-between gap-2">
-        <span style={{ color: "#ffffff", fontWeight: "bold", fontSize: "15px" }}>
+        <span
+          style={{ color: "#ffffff", fontWeight: "bold", fontSize: "15px" }}
+        >
           {stock.symbol}
         </span>
         <div className="flex items-center gap-1.5 flex-wrap justify-end flex-shrink-0">
@@ -205,7 +239,13 @@ export function RFactorCard({ stock }: RFactorCardProps) {
             padding: "3px 10px",
           }}
         >
-          <span style={{ color: directionTone.color, fontSize: "11px", fontWeight: 700 }}>
+          <span
+            style={{
+              color: directionTone.color,
+              fontSize: "11px",
+              fontWeight: 700,
+            }}
+          >
             {directionLabel}
           </span>
           <span style={{ color: "#cbd5e1", fontSize: "11px", fontWeight: 600 }}>
@@ -213,7 +253,14 @@ export function RFactorCard({ stock }: RFactorCardProps) {
           </span>
         </div>
         {stock.tier && (
-          <span style={{ color: "#64748b", fontSize: "11px", fontWeight: 600, textTransform: "uppercase" }}>
+          <span
+            style={{
+              color: "#64748b",
+              fontSize: "11px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+            }}
+          >
             Tier {stock.tier}
           </span>
         )}
@@ -285,7 +332,13 @@ export function RFactorCard({ stock }: RFactorCardProps) {
             label="Trend"
             description="Whether R-Factor is rising in recent candles"
           >
-            <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+            <div
+              style={{
+                color: "#555555",
+                fontSize: "10px",
+                textTransform: "uppercase",
+              }}
+            >
               Trend 15m
             </div>
           </InsightTooltip>
@@ -296,7 +349,14 @@ export function RFactorCard({ stock }: RFactorCardProps) {
               points={stock.rfactor_trend_points}
             />
           </div>
-          <div style={{ color: "#94A3B8", fontSize: "11px", fontWeight: 600, marginTop: "8px" }}>
+          <div
+            style={{
+              color: "#94A3B8",
+              fontSize: "11px",
+              fontWeight: 600,
+              marginTop: "8px",
+            }}
+          >
             {trendLabel}
           </div>
         </div>
@@ -313,7 +373,13 @@ export function RFactorCard({ stock }: RFactorCardProps) {
             label="Opportunity"
             description="Early-entry quality before overextension"
           >
-            <div style={{ color: "#555555", fontSize: "10px", textTransform: "uppercase" }}>
+            <div
+              style={{
+                color: "#555555",
+                fontSize: "10px",
+                textTransform: "uppercase",
+              }}
+            >
               Opportunity
             </div>
           </InsightTooltip>
@@ -328,7 +394,14 @@ export function RFactorCard({ stock }: RFactorCardProps) {
           >
             {formatInsightNumber(stock.opportunity_score, 1)}
           </div>
-          <div style={{ color: "#FCD9AE", fontSize: "11px", fontWeight: 600, marginTop: "8px" }}>
+          <div
+            style={{
+              color: "#FCD9AE",
+              fontSize: "11px",
+              fontWeight: 600,
+              marginTop: "8px",
+            }}
+          >
             {opportunityLabel}
           </div>
         </div>
@@ -358,8 +431,11 @@ export function RFactorCard({ stock }: RFactorCardProps) {
             >
               CHASE
             </span>
-            <span style={{ color: "#CBD5E1", fontSize: "11px", fontWeight: 500 }}>
-              {chaseReason ?? "Price is extended away from the ideal early-entry zone"}
+            <span
+              style={{ color: "#CBD5E1", fontSize: "11px", fontWeight: 500 }}
+            >
+              {chaseReason ??
+                "Price is extended away from the ideal early-entry zone"}
             </span>
           </div>
         </div>
@@ -371,24 +447,65 @@ export function RFactorCard({ stock }: RFactorCardProps) {
       <div className="grid grid-cols-2 gap-y-2 gap-x-4">
         {renderStat("RSI", stock.rsi.toFixed(1), getRsiMfiColor(stock.rsi))}
         {renderStat("MFI", stock.mfi.toFixed(1), getRsiMfiColor(stock.mfi))}
-        {renderStat("RS", `${stock.relative_strength >= 0 ? "+" : ""}${stock.relative_strength.toFixed(2)}%`, stock.relative_strength >= 0 ? "#00C853" : "#F44336")}
+        {renderStat(
+          "RS",
+          `${stock.relative_strength >= 0 ? "+" : ""}${stock.relative_strength.toFixed(2)}%`,
+          stock.relative_strength >= 0 ? "#00C853" : "#F44336",
+        )}
         {renderStat("Pre", formatMetricValue(resolvedPreScore), "#93C5FD")}
-        {renderStat("Trigger", formatMetricValue(resolvedTriggerScore), "#FBBF24")}
+        {renderStat(
+          "Trigger",
+          formatMetricValue(resolvedTriggerScore),
+          "#FBBF24",
+        )}
         {renderStat("Level", formatLevel(stock.nearest_level), "#E5E7EB")}
-        {renderStat("Dist %", stock.dist_pct === undefined ? "--" : `${formatInsightNumber(stock.dist_pct, 2)}%`, "#E2E8F0")}
-        {renderStat("VWAP Acc", formatMetricValue(stock.vwap_acceptance), "#A5F3FC")}
+        {renderStat(
+          "Dist %",
+          stock.dist_pct === undefined
+            ? "--"
+            : `${formatInsightNumber(stock.dist_pct, 2)}%`,
+          "#E2E8F0",
+        )}
+        {renderStat(
+          "VWAP Acc",
+          formatMetricValue(stock.vwap_acceptance),
+          "#A5F3FC",
+        )}
         {renderStat("Direction", directionLabel, directionTone.color)}
-        {renderStat("Breakout", formatMetricValue(stock.breakout_quality), "#FDBA74")}
-        {renderStat("Chase", chaseWarning ? "Risk" : "Clear", chaseWarning ? "#FB923C" : "#94A3B8")}
-        {renderStat("Compression", formatMetricValue(stock.compression), "#C4B5FD")}
+        {renderStat(
+          "Breakout",
+          formatMetricValue(stock.breakout_quality),
+          "#FDBA74",
+        )}
+        {renderStat(
+          "Chase",
+          chaseWarning ? "Risk" : "Clear",
+          chaseWarning ? "#FB923C" : "#94A3B8",
+        )}
+        {renderStat(
+          "Compression",
+          formatMetricValue(stock.compression),
+          "#C4B5FD",
+        )}
       </div>
 
-      {(stock.breakout_levels?.length || stock.proximity_score !== undefined) && (
-        <div className="flex items-center gap-2 flex-wrap" style={{ marginTop: "10px", color: "#64748B", fontSize: "11px", lineHeight: 1.5 }}>
+      {(stock.breakout_levels?.length ||
+        stock.proximity_score !== undefined) && (
+        <div
+          className="flex items-center gap-2 flex-wrap"
+          style={{
+            marginTop: "10px",
+            color: "#64748B",
+            fontSize: "11px",
+            lineHeight: 1.5,
+          }}
+        >
           {stock.breakout_levels?.length ? (
             <InsightTooltip
               label="Breakout Levels"
-              description={stock.breakout_levels.map((level) => formatLevel(level)).join(" / ")}
+              description={stock.breakout_levels
+                .map((level) => formatLevel(level))
+                .join(" / ")}
             >
               <span style={{ color: "#94A3B8", fontWeight: 600 }}>
                 Levels ({stock.breakout_levels.length})
@@ -397,7 +514,8 @@ export function RFactorCard({ stock }: RFactorCardProps) {
           ) : null}
           {stock.proximity_score !== undefined ? (
             <span>
-              {stock.breakout_levels?.length ? "| " : ""}Proximity {formatInsightNumber(stock.proximity_score, 1)}
+              {stock.breakout_levels?.length ? "| " : ""}Proximity{" "}
+              {formatInsightNumber(stock.proximity_score, 1)}
             </span>
           ) : null}
         </div>

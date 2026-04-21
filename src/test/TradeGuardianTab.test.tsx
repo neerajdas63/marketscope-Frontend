@@ -17,19 +17,25 @@ const tradeGuardianApiState = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/tradeGuardianApi", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/tradeGuardianApi")>("@/lib/tradeGuardianApi");
+  const actual = await vi.importActual<typeof import("@/lib/tradeGuardianApi")>(
+    "@/lib/tradeGuardianApi",
+  );
 
   return {
     ...actual,
     fetchTradeGuardianSummary: tradeGuardianApiState.fetchTradeGuardianSummary,
     fetchTradeGuardianTrades: tradeGuardianApiState.fetchTradeGuardianTrades,
-    fetchTradeGuardianTradeDetail: tradeGuardianApiState.fetchTradeGuardianTradeDetail,
+    fetchTradeGuardianTradeDetail:
+      tradeGuardianApiState.fetchTradeGuardianTradeDetail,
     fetchTradeGuardianAlerts: tradeGuardianApiState.fetchTradeGuardianAlerts,
     createTradeGuardianTrade: tradeGuardianApiState.createTradeGuardianTrade,
     closeTradeGuardianTrade: tradeGuardianApiState.closeTradeGuardianTrade,
-    acknowledgeTradeGuardianAlert: tradeGuardianApiState.acknowledgeTradeGuardianAlert,
-    triggerTradeGuardianMonitor: tradeGuardianApiState.triggerTradeGuardianMonitor,
-    sendTradeGuardianTestTelegram: tradeGuardianApiState.sendTradeGuardianTestTelegram,
+    acknowledgeTradeGuardianAlert:
+      tradeGuardianApiState.acknowledgeTradeGuardianAlert,
+    triggerTradeGuardianMonitor:
+      tradeGuardianApiState.triggerTradeGuardianMonitor,
+    sendTradeGuardianTestTelegram:
+      tradeGuardianApiState.sendTradeGuardianTestTelegram,
   };
 });
 
@@ -118,8 +124,12 @@ describe("TradeGuardianTab", () => {
         closed_at: "",
       },
     ]);
-    tradeGuardianApiState.fetchTradeGuardianAlerts.mockResolvedValue(createDetail().alerts);
-    tradeGuardianApiState.fetchTradeGuardianTradeDetail.mockResolvedValue(createDetail());
+    tradeGuardianApiState.fetchTradeGuardianAlerts.mockResolvedValue(
+      createDetail().alerts,
+    );
+    tradeGuardianApiState.fetchTradeGuardianTradeDetail.mockResolvedValue(
+      createDetail(),
+    );
   });
 
   it("renders active trades, repeated alerts, and the add trade form", async () => {
@@ -133,7 +143,9 @@ describe("TradeGuardianTab", () => {
     fireEvent.click(screen.getByRole("button", { name: /Alert Center/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Target 1 reminder still active")).toBeInTheDocument();
+      expect(
+        screen.getByText("Target 1 reminder still active"),
+      ).toBeInTheDocument();
       expect(screen.getByText(/Repeating every 60s/i)).toBeInTheDocument();
     });
 
@@ -142,7 +154,9 @@ describe("TradeGuardianTab", () => {
     await waitFor(() => {
       expect(screen.getByLabelText("Symbol")).toBeInTheDocument();
       expect(screen.getByLabelText("Stop Loss")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Create Trade" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Create Trade" }),
+      ).toBeInTheDocument();
     });
   });
 });

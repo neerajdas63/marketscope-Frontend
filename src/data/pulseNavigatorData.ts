@@ -1,10 +1,18 @@
-export type PulseNavigatorPreset = "balanced" | "safe" | "aggressive" | "fo_focus";
+export type PulseNavigatorPreset =
+  | "balanced"
+  | "safe"
+  | "aggressive"
+  | "fo_focus";
 
 export type PulseNavigatorDirection = "LONG" | "SHORT" | "NEUTRAL";
 
 export type PulseNavigatorDirectionFilter = "ALL" | "LONG" | "SHORT";
 
-export type PulseNavigatorInnerTab = "discover" | "leaders" | "fresh" | "sectors";
+export type PulseNavigatorInnerTab =
+  | "discover"
+  | "leaders"
+  | "fresh"
+  | "sectors";
 
 export type PulseNavigatorActionabilityLabel =
   | "clean_setup"
@@ -113,7 +121,9 @@ const DEFAULT_BENCHMARK_VALUE = "--";
 const DEFAULT_BENCHMARK_DETAIL = "Market mode unavailable";
 const DEFAULT_HIGHLIGHT_PRIMARY = "--";
 
-export function hasPulseNavigatorHighlightData(value: PulseNavigatorHeroHighlight | null) {
+export function hasPulseNavigatorHighlightData(
+  value: PulseNavigatorHeroHighlight | null,
+) {
   if (!value) {
     return false;
   }
@@ -121,47 +131,66 @@ export function hasPulseNavigatorHighlightData(value: PulseNavigatorHeroHighligh
   const primary = value.primary.trim();
   const secondary = value.secondary.trim();
 
-  return (primary.length > 0 && primary !== DEFAULT_HIGHLIGHT_PRIMARY) || secondary.length > 0;
+  return (
+    (primary.length > 0 && primary !== DEFAULT_HIGHLIGHT_PRIMARY) ||
+    secondary.length > 0
+  );
 }
 
-export function hasPulseNavigatorBenchmarkData(value: PulseNavigatorBenchmarkStrip) {
-  return value.label !== DEFAULT_BENCHMARK_LABEL
-    || value.value !== DEFAULT_BENCHMARK_VALUE
-    || value.detail !== DEFAULT_BENCHMARK_DETAIL;
+export function hasPulseNavigatorBenchmarkData(
+  value: PulseNavigatorBenchmarkStrip,
+) {
+  return (
+    value.label !== DEFAULT_BENCHMARK_LABEL ||
+    value.value !== DEFAULT_BENCHMARK_VALUE ||
+    value.detail !== DEFAULT_BENCHMARK_DETAIL
+  );
 }
 
 export function hasPulseNavigatorHeroData(value: PulseNavigatorHero) {
-  return hasPulseNavigatorHighlightData(value.market_mode)
-    || hasPulseNavigatorHighlightData(value.leader_long)
-    || hasPulseNavigatorHighlightData(value.leader_short)
-    || hasPulseNavigatorHighlightData(value.fresh_long)
-    || hasPulseNavigatorHighlightData(value.fresh_short)
-    || hasPulseNavigatorHighlightData(value.strongest_sector)
-    || hasPulseNavigatorHighlightData(value.leaders_overview);
+  return (
+    hasPulseNavigatorHighlightData(value.market_mode) ||
+    hasPulseNavigatorHighlightData(value.leader_long) ||
+    hasPulseNavigatorHighlightData(value.leader_short) ||
+    hasPulseNavigatorHighlightData(value.fresh_long) ||
+    hasPulseNavigatorHighlightData(value.fresh_short) ||
+    hasPulseNavigatorHighlightData(value.strongest_sector) ||
+    hasPulseNavigatorHighlightData(value.leaders_overview)
+  );
 }
 
-export function hasPulseNavigatorDiscoverData(value: PulseNavigatorResponse["tabs"]["discover"]) {
+export function hasPulseNavigatorDiscoverData(
+  value: PulseNavigatorResponse["tabs"]["discover"],
+) {
   return value.buckets.some((bucket) => bucket.stocks.length > 0);
 }
 
-export function hasPulseNavigatorLeadersData(value: PulseNavigatorResponse["tabs"]["leaders"]) {
+export function hasPulseNavigatorLeadersData(
+  value: PulseNavigatorResponse["tabs"]["leaders"],
+) {
   return value.longs.length > 0 || value.shorts.length > 0;
 }
 
-export function hasPulseNavigatorFreshData(value: PulseNavigatorResponse["tabs"]["fresh"]) {
+export function hasPulseNavigatorFreshData(
+  value: PulseNavigatorResponse["tabs"]["fresh"],
+) {
   return value.longs.length > 0 || value.shorts.length > 0;
 }
 
-export function hasPulseNavigatorSectorsData(value: PulseNavigatorResponse["tabs"]["sectors"]) {
+export function hasPulseNavigatorSectorsData(
+  value: PulseNavigatorResponse["tabs"]["sectors"],
+) {
   return value.sectors.length > 0;
 }
 
 export function hasPulseNavigatorUsableData(value: PulseNavigatorResponse) {
-  return hasPulseNavigatorHeroData(value.hero)
-    || hasPulseNavigatorDiscoverData(value.tabs.discover)
-    || hasPulseNavigatorLeadersData(value.tabs.leaders)
-    || hasPulseNavigatorFreshData(value.tabs.fresh)
-    || hasPulseNavigatorSectorsData(value.tabs.sectors);
+  return (
+    hasPulseNavigatorHeroData(value.hero) ||
+    hasPulseNavigatorDiscoverData(value.tabs.discover) ||
+    hasPulseNavigatorLeadersData(value.tabs.leaders) ||
+    hasPulseNavigatorFreshData(value.tabs.fresh) ||
+    hasPulseNavigatorSectorsData(value.tabs.sectors)
+  );
 }
 
 export function mergePulseNavigatorResponse(
@@ -175,25 +204,49 @@ export function mergePulseNavigatorResponse(
   return {
     ...incoming,
     last_updated: incoming.last_updated || current.last_updated,
-    benchmark: hasPulseNavigatorBenchmarkData(incoming.benchmark) ? incoming.benchmark : current.benchmark,
+    benchmark: hasPulseNavigatorBenchmarkData(incoming.benchmark)
+      ? incoming.benchmark
+      : current.benchmark,
     hero: {
-      market_mode: hasPulseNavigatorHighlightData(incoming.hero.market_mode) ? incoming.hero.market_mode : current.hero.market_mode,
-      leader_long: hasPulseNavigatorHighlightData(incoming.hero.leader_long) ? incoming.hero.leader_long : current.hero.leader_long,
-      leader_short: hasPulseNavigatorHighlightData(incoming.hero.leader_short) ? incoming.hero.leader_short : current.hero.leader_short,
-      fresh_long: hasPulseNavigatorHighlightData(incoming.hero.fresh_long) ? incoming.hero.fresh_long : current.hero.fresh_long,
-      fresh_short: hasPulseNavigatorHighlightData(incoming.hero.fresh_short) ? incoming.hero.fresh_short : current.hero.fresh_short,
-      strongest_sector: hasPulseNavigatorHighlightData(incoming.hero.strongest_sector)
+      market_mode: hasPulseNavigatorHighlightData(incoming.hero.market_mode)
+        ? incoming.hero.market_mode
+        : current.hero.market_mode,
+      leader_long: hasPulseNavigatorHighlightData(incoming.hero.leader_long)
+        ? incoming.hero.leader_long
+        : current.hero.leader_long,
+      leader_short: hasPulseNavigatorHighlightData(incoming.hero.leader_short)
+        ? incoming.hero.leader_short
+        : current.hero.leader_short,
+      fresh_long: hasPulseNavigatorHighlightData(incoming.hero.fresh_long)
+        ? incoming.hero.fresh_long
+        : current.hero.fresh_long,
+      fresh_short: hasPulseNavigatorHighlightData(incoming.hero.fresh_short)
+        ? incoming.hero.fresh_short
+        : current.hero.fresh_short,
+      strongest_sector: hasPulseNavigatorHighlightData(
+        incoming.hero.strongest_sector,
+      )
         ? incoming.hero.strongest_sector
         : current.hero.strongest_sector,
-      leaders_overview: hasPulseNavigatorHighlightData(incoming.hero.leaders_overview)
+      leaders_overview: hasPulseNavigatorHighlightData(
+        incoming.hero.leaders_overview,
+      )
         ? incoming.hero.leaders_overview
         : current.hero.leaders_overview,
     },
     tabs: {
-      discover: hasPulseNavigatorDiscoverData(incoming.tabs.discover) ? incoming.tabs.discover : current.tabs.discover,
-      leaders: hasPulseNavigatorLeadersData(incoming.tabs.leaders) ? incoming.tabs.leaders : current.tabs.leaders,
-      fresh: hasPulseNavigatorFreshData(incoming.tabs.fresh) ? incoming.tabs.fresh : current.tabs.fresh,
-      sectors: hasPulseNavigatorSectorsData(incoming.tabs.sectors) ? incoming.tabs.sectors : current.tabs.sectors,
+      discover: hasPulseNavigatorDiscoverData(incoming.tabs.discover)
+        ? incoming.tabs.discover
+        : current.tabs.discover,
+      leaders: hasPulseNavigatorLeadersData(incoming.tabs.leaders)
+        ? incoming.tabs.leaders
+        : current.tabs.leaders,
+      fresh: hasPulseNavigatorFreshData(incoming.tabs.fresh)
+        ? incoming.tabs.fresh
+        : current.tabs.fresh,
+      sectors: hasPulseNavigatorSectorsData(incoming.tabs.sectors)
+        ? incoming.tabs.sectors
+        : current.tabs.sectors,
     },
   };
 }

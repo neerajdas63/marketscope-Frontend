@@ -95,7 +95,13 @@ function BiasBadge({ bias }) {
 function ScoreBar({ score, max = 8 }) {
   const pct = Math.min(100, Math.max(0, ((score ?? 0) / max) * 100));
   const barColor =
-    pct >= 75 ? "#00C853" : pct >= 50 ? "#FFB300" : pct >= 25 ? "#FF6D00" : "#F44336";
+    pct >= 75
+      ? "#00C853"
+      : pct >= 50
+        ? "#FFB300"
+        : pct >= 25
+          ? "#FF6D00"
+          : "#F44336";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
       <div
@@ -155,7 +161,14 @@ function SectorCard({ sector, rank }) {
       <div style={{ color: "#aaa", fontSize: "10px", marginBottom: "4px" }}>
         TOP SECTOR
       </div>
-      <div style={{ color: "#ffffff", fontWeight: 700, fontSize: "14px", marginBottom: "6px" }}>
+      <div
+        style={{
+          color: "#ffffff",
+          fontWeight: 700,
+          fontSize: "14px",
+          marginBottom: "6px",
+        }}
+      >
         {sector.name}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -186,7 +199,10 @@ function SkeletonRow() {
   return (
     <tr>
       {[140, 80, 70, 70, 70, 80, 80, 70, 60, 80].map((w, i) => (
-        <td key={i} style={{ padding: "10px 8px", borderBottom: "1px solid #1e1e1e" }}>
+        <td
+          key={i}
+          style={{ padding: "10px 8px", borderBottom: "1px solid #1e1e1e" }}
+        >
           <div style={{ ...pulse, width: `${w}px`, height: "12px" }} />
         </td>
       ))}
@@ -206,11 +222,12 @@ export function MorningWatchlist() {
   const [generatedAt, setGeneratedAt] = useState("");
   const intervalRef = useRef(null);
 
-  const dateStr = selectedDate === "today"
-    ? getToday()
-    : selectedDate === "yesterday"
-    ? getYesterday()
-    : customDate;
+  const dateStr =
+    selectedDate === "today"
+      ? getToday()
+      : selectedDate === "yesterday"
+        ? getYesterday()
+        : customDate;
 
   function doFetch(date) {
     if (!date || !isValidDate(date)) return;
@@ -240,15 +257,18 @@ export function MorningWatchlist() {
       selectedDate === "today"
         ? getToday()
         : selectedDate === "yesterday"
-        ? getYesterday()
-        : customDate;
+          ? getYesterday()
+          : customDate;
 
     if (selectedDate === "custom" && !customDate) return;
 
     setLoading(true);
     setData(null);
     setError("");
-    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
 
     doFetch(date);
 
@@ -260,7 +280,10 @@ export function MorningWatchlist() {
     }
 
     return () => {
-      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, customDate]);
@@ -345,10 +368,19 @@ export function MorningWatchlist() {
           gap: "8px",
         }}
       >
-        <span style={{ color: "#cccccc", fontSize: "13px", fontWeight: "bold" }}>
+        <span
+          style={{ color: "#cccccc", fontSize: "13px", fontWeight: "bold" }}
+        >
           🌅 Morning Watchlist
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            flexWrap: "wrap",
+          }}
+        >
           {dateStr && (
             <span style={{ color: "#666", fontSize: "11px" }}>
               {fmtDisplayDate(dateStr)}
@@ -494,8 +526,14 @@ export function MorningWatchlist() {
       )}
 
       {/* ── Main content ─────────────────────────────────────────────────── */}
-      <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: "16px" }}>
-
+      <div
+        style={{
+          padding: "14px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+        }}
+      >
         {/* Top sectors cards */}
         {(loading || topSectors.length > 0) && (
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
@@ -513,14 +551,23 @@ export function MorningWatchlist() {
                     }}
                   />
                 ))
-              : topSectors.slice(0, 3).map((s, i) => (
-                  <SectorCard key={s.name ?? i} sector={s} rank={i} />
-                ))}
+              : topSectors
+                  .slice(0, 3)
+                  .map((s, i) => (
+                    <SectorCard key={s.name ?? i} sector={s} rank={i} />
+                  ))}
           </div>
         )}
 
         {/* Filter buttons */}
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           {["ALL", "LONG", "SHORT", "WAIT"].map((f) => (
             <button key={f} style={filterBtn(f)} onClick={() => setFilter(f)}>
               {f}
@@ -541,7 +588,13 @@ export function MorningWatchlist() {
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: "auto", border: "1px solid #222", borderRadius: "8px" }}>
+        <div
+          style={{
+            overflowX: "auto",
+            border: "1px solid #222",
+            borderRadius: "8px",
+          }}
+        >
           <table
             style={{
               borderCollapse: "collapse",
@@ -553,9 +606,16 @@ export function MorningWatchlist() {
             <thead>
               <tr>
                 {[
-                  "SYMBOL", "SECTOR", "BIAS",
-                  "ORB HIGH", "ORB LOW", "CURRENT",
-                  "PREV HIGH", "VOL RATIO", "SCORE", "ACTION",
+                  "SYMBOL",
+                  "SECTOR",
+                  "BIAS",
+                  "ORB HIGH",
+                  "ORB LOW",
+                  "CURRENT",
+                  "PREV HIGH",
+                  "VOL RATIO",
+                  "SCORE",
+                  "ACTION",
                 ].map((h, i) => (
                   <th
                     key={h}
@@ -573,195 +633,238 @@ export function MorningWatchlist() {
               </tr>
             </thead>
             <tbody>
-              {loading
-                ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
-                : filtered.length === 0
-                ? (
-                  <tr>
-                    <td
-                      colSpan={10}
-                      style={{
-                        textAlign: "center",
-                        padding: "32px",
-                        color: "#555",
-                        fontSize: "13px",
-                      }}
-                    >
-                      {rows.length === 0
-                        ? "No watchlist data available for this date."
-                        : `No ${filter} setups found.`}
-                    </td>
-                  </tr>
-                )
-                : filtered.map((row, ri) => {
-                    const rowBg = ri % 2 === 0 ? "#141414" : "#111111";
-                    const isAboveOrb =
-                      row.current_price != null &&
-                      row.orb_high != null &&
-                      row.current_price > row.orb_high;
-                    const isBelowOrb =
-                      row.current_price != null &&
-                      row.orb_low != null &&
-                      row.current_price < row.orb_low;
-                    return (
-                      <tr key={row.symbol ?? ri}>
-                        {/* Symbol — sticky */}
-                        <td
-                          style={{
-                            ...tdStyle,
-                            position: "sticky",
-                            left: 0,
-                            zIndex: 1,
-                            backgroundColor: rowBg,
-                            fontWeight: 700,
-                            color: "#ffffff",
-                          }}
-                        >
-                          {row.symbol ?? "--"}
-                        </td>
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={10}
+                    style={{
+                      textAlign: "center",
+                      padding: "32px",
+                      color: "#555",
+                      fontSize: "13px",
+                    }}
+                  >
+                    {rows.length === 0
+                      ? "No watchlist data available for this date."
+                      : `No ${filter} setups found.`}
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((row, ri) => {
+                  const rowBg = ri % 2 === 0 ? "#141414" : "#111111";
+                  const isAboveOrb =
+                    row.current_price != null &&
+                    row.orb_high != null &&
+                    row.current_price > row.orb_high;
+                  const isBelowOrb =
+                    row.current_price != null &&
+                    row.orb_low != null &&
+                    row.current_price < row.orb_low;
+                  return (
+                    <tr key={row.symbol ?? ri}>
+                      {/* Symbol — sticky */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          position: "sticky",
+                          left: 0,
+                          zIndex: 1,
+                          backgroundColor: rowBg,
+                          fontWeight: 700,
+                          color: "#ffffff",
+                        }}
+                      >
+                        {row.symbol ?? "--"}
+                      </td>
 
-                        {/* Sector */}
-                        <td style={{ ...tdStyle, backgroundColor: rowBg, color: "#aaa" }}>
-                          {row.sector ?? "--"}
-                        </td>
+                      {/* Sector */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          color: "#aaa",
+                        }}
+                      >
+                        {row.sector ?? "--"}
+                      </td>
 
-                        {/* Bias badge */}
-                        <td style={{ ...tdStyle, backgroundColor: rowBg, textAlign: "center" }}>
-                          <BiasBadge bias={row.bias} />
-                        </td>
+                      {/* Bias badge */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          textAlign: "center",
+                        }}
+                      >
+                        <BiasBadge bias={row.bias} />
+                      </td>
 
-                        {/* ORB High */}
-                        <td
-                          style={{
-                            ...tdStyle,
-                            backgroundColor: rowBg,
-                            textAlign: "center",
-                            color: "#FF9800",
-                          }}
-                        >
-                          {row.orb_high != null ? row.orb_high.toFixed(2) : "--"}
-                        </td>
+                      {/* ORB High */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          textAlign: "center",
+                          color: "#FF9800",
+                        }}
+                      >
+                        {row.orb_high != null ? row.orb_high.toFixed(2) : "--"}
+                      </td>
 
-                        {/* ORB Low */}
-                        <td
-                          style={{
-                            ...tdStyle,
-                            backgroundColor: rowBg,
-                            textAlign: "center",
-                            color: "#42A5F5",
-                          }}
-                        >
-                          {row.orb_low != null ? row.orb_low.toFixed(2) : "--"}
-                        </td>
+                      {/* ORB Low */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          textAlign: "center",
+                          color: "#42A5F5",
+                        }}
+                      >
+                        {row.orb_low != null ? row.orb_low.toFixed(2) : "--"}
+                      </td>
 
-                        {/* Current Price */}
-                        <td
-                          style={{
-                            ...tdStyle,
-                            backgroundColor: rowBg,
-                            textAlign: "center",
-                            fontWeight: 600,
-                            color: isAboveOrb
-                              ? "#00C853"
-                              : isBelowOrb
+                      {/* Current Price */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          textAlign: "center",
+                          fontWeight: 600,
+                          color: isAboveOrb
+                            ? "#00C853"
+                            : isBelowOrb
                               ? "#FF1744"
                               : "#cccccc",
-                          }}
-                        >
-                          {row.current_price != null ? row.current_price.toFixed(2) : "--"}
-                          {isAboveOrb && (
-                            <span style={{ fontSize: "9px", marginLeft: "3px", color: "#00C853" }}>
-                              ▲ORB
-                            </span>
-                          )}
-                          {isBelowOrb && (
-                            <span style={{ fontSize: "9px", marginLeft: "3px", color: "#FF1744" }}>
-                              ▼ORB
-                            </span>
-                          )}
-                        </td>
+                        }}
+                      >
+                        {row.current_price != null
+                          ? row.current_price.toFixed(2)
+                          : "--"}
+                        {isAboveOrb && (
+                          <span
+                            style={{
+                              fontSize: "9px",
+                              marginLeft: "3px",
+                              color: "#00C853",
+                            }}
+                          >
+                            ▲ORB
+                          </span>
+                        )}
+                        {isBelowOrb && (
+                          <span
+                            style={{
+                              fontSize: "9px",
+                              marginLeft: "3px",
+                              color: "#FF1744",
+                            }}
+                          >
+                            ▼ORB
+                          </span>
+                        )}
+                      </td>
 
-                        {/* Prev Day High */}
-                        <td
-                          style={{
-                            ...tdStyle,
-                            backgroundColor: rowBg,
-                            textAlign: "center",
-                            color: "#888",
-                          }}
-                        >
-                          {row.prev_day_high != null ? row.prev_day_high.toFixed(2) : "--"}
-                        </td>
+                      {/* Prev Day High */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          textAlign: "center",
+                          color: "#888",
+                        }}
+                      >
+                        {row.prev_day_high != null
+                          ? row.prev_day_high.toFixed(2)
+                          : "--"}
+                      </td>
 
-                        {/* Volume Ratio */}
-                        <td
-                          style={{
-                            ...tdStyle,
-                            backgroundColor: rowBg,
-                            textAlign: "center",
-                            color:
-                              row.volume_ratio >= 2
-                                ? "#00C853"
-                                : row.volume_ratio >= 1.5
+                      {/* Volume Ratio */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          textAlign: "center",
+                          color:
+                            row.volume_ratio >= 2
+                              ? "#00C853"
+                              : row.volume_ratio >= 1.5
                                 ? "#FFB300"
                                 : "#888",
-                          }}
-                        >
-                          {row.volume_ratio != null ? `${row.volume_ratio.toFixed(1)}x` : "--"}
-                        </td>
+                        }}
+                      >
+                        {row.volume_ratio != null
+                          ? `${row.volume_ratio.toFixed(1)}x`
+                          : "--"}
+                      </td>
 
-                        {/* Score bar */}
-                        <td style={{ ...tdStyle, backgroundColor: rowBg, textAlign: "center" }}>
-                          <div style={{ display: "inline-flex", alignItems: "center" }}>
-                            <ScoreBar score={row.score} />
-                          </div>
-                        </td>
-
-                        {/* Action */}
-                        <td
+                      {/* Score bar */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          textAlign: "center",
+                        }}
+                      >
+                        <div
                           style={{
-                            ...tdStyle,
-                            backgroundColor: rowBg,
-                            textAlign: "center",
+                            display: "inline-flex",
+                            alignItems: "center",
                           }}
                         >
-                          {row.action ? (
-                            <span
-                              style={{
-                                backgroundColor:
-                                  row.action === "BUY"
-                                    ? "#00C85322"
-                                    : row.action === "SELL"
+                          <ScoreBar score={row.score} />
+                        </div>
+                      </td>
+
+                      {/* Action */}
+                      <td
+                        style={{
+                          ...tdStyle,
+                          backgroundColor: rowBg,
+                          textAlign: "center",
+                        }}
+                      >
+                        {row.action ? (
+                          <span
+                            style={{
+                              backgroundColor:
+                                row.action === "BUY"
+                                  ? "#00C85322"
+                                  : row.action === "SELL"
                                     ? "#FF174422"
                                     : "#2a2a2a",
-                                color:
-                                  row.action === "BUY"
-                                    ? "#00C853"
-                                    : row.action === "SELL"
+                              color:
+                                row.action === "BUY"
+                                  ? "#00C853"
+                                  : row.action === "SELL"
                                     ? "#FF1744"
                                     : "#888",
-                                fontSize: "10px",
-                                fontWeight: 700,
-                                padding: "3px 8px",
-                                borderRadius: "4px",
-                                border: `1px solid ${
-                                  row.action === "BUY"
-                                    ? "#00C85344"
-                                    : row.action === "SELL"
+                              fontSize: "10px",
+                              fontWeight: 700,
+                              padding: "3px 8px",
+                              borderRadius: "4px",
+                              border: `1px solid ${
+                                row.action === "BUY"
+                                  ? "#00C85344"
+                                  : row.action === "SELL"
                                     ? "#FF174444"
                                     : "#333"
-                                }`,
-                              }}
-                            >
-                              {row.action}
-                            </span>
-                          ) : (
-                            <span style={{ color: "#444", fontSize: "11px" }}>—</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                              }`,
+                            }}
+                          >
+                            {row.action}
+                          </span>
+                        ) : (
+                          <span style={{ color: "#444", fontSize: "11px" }}>
+                            —
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

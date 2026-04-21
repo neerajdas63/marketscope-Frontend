@@ -48,7 +48,8 @@ function SectorRow({
   const stocks = entry.stocks || [];
   const avgChange =
     stocks.length > 0
-      ? stocks.reduce((sum, s) => sum + safeNum(s.change_pct), 0) / stocks.length
+      ? stocks.reduce((sum, s) => sum + safeNum(s.change_pct), 0) /
+        stocks.length
       : 0;
   const topStock = stocks[0];
   const isPositive = avgChange >= 0;
@@ -73,15 +74,19 @@ function SectorRow({
         }}
         onMouseEnter={(e) => {
           if (!isOpen)
-            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#141414";
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+              "#141414";
         }}
         onMouseLeave={(e) => {
           if (!isOpen)
-            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#0d0d0d";
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+              "#0d0d0d";
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ color: "#cccccc", fontWeight: "bold", fontSize: "13px" }}>
+          <span
+            style={{ color: "#cccccc", fontWeight: "bold", fontSize: "13px" }}
+          >
             {sectorName}
           </span>
           <span
@@ -97,15 +102,21 @@ function SectorRow({
           {topStock && (
             <span style={{ color: "#555555", fontSize: "11px" }}>
               ★ {topStock.symbol}{" "}
-              <span style={{ color: getScoreColor(safeNum(topStock.scope_score)) }}>
+              <span
+                style={{ color: getScoreColor(safeNum(topStock.scope_score)) }}
+              >
                 {safe(topStock.scope_score, 2)}
               </span>
             </span>
           )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ color: "#444444", fontSize: "11px" }}>{stocks.length} stocks</span>
-          <span style={{ color: "#555555", fontSize: "13px" }}>{isOpen ? "▲" : "▼"}</span>
+          <span style={{ color: "#444444", fontSize: "11px" }}>
+            {stocks.length} stocks
+          </span>
+          <span style={{ color: "#555555", fontSize: "13px" }}>
+            {isOpen ? "▲" : "▼"}
+          </span>
         </div>
       </button>
 
@@ -125,7 +136,11 @@ function SectorRow({
             {["#", "Symbol", "% Chg", "Vol", "Score"].map((h) => (
               <span
                 key={h}
-                style={{ color: "#444444", fontSize: "10px", textTransform: "uppercase" }}
+                style={{
+                  color: "#444444",
+                  fontSize: "10px",
+                  textTransform: "uppercase",
+                }}
               >
                 {h}
               </span>
@@ -146,10 +161,18 @@ function SectorRow({
                 }}
               >
                 {/* Rank */}
-                <span style={{ color: "#444444", fontSize: "11px" }}>{idx + 1}</span>
+                <span style={{ color: "#444444", fontSize: "11px" }}>
+                  {idx + 1}
+                </span>
 
                 {/* Symbol */}
-                <span style={{ color: "#cccccc", fontSize: "12px", fontWeight: 600 }}>
+                <span
+                  style={{
+                    color: "#cccccc",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                  }}
+                >
                   {stock.symbol}
                 </span>
 
@@ -172,8 +195,8 @@ function SectorRow({
                       safeNum(stock.volume_ratio) > 2
                         ? "#FF6B00"
                         : safeNum(stock.volume_ratio) > 1.5
-                        ? "#FFD600"
-                        : "#888888",
+                          ? "#FFD600"
+                          : "#888888",
                     fontSize: "12px",
                   }}
                 >
@@ -219,7 +242,9 @@ export function SectorScopeTab() {
           setLoading(false);
         })
         .catch((err) => {
-          setError(`Backend error: ${err.message}. Start server: python main.py`);
+          setError(
+            `Backend error: ${err.message}. Start server: python main.py`,
+          );
           setLoading(false);
         });
     };
@@ -233,10 +258,12 @@ export function SectorScopeTab() {
       const aStocks = a.stocks || [];
       const bStocks = b.stocks || [];
       const aAvg = aStocks.length
-        ? aStocks.reduce((s, x) => s + safeNum(x.change_pct), 0) / aStocks.length
+        ? aStocks.reduce((s, x) => s + safeNum(x.change_pct), 0) /
+          aStocks.length
         : 0;
       const bAvg = bStocks.length
-        ? bStocks.reduce((s, x) => s + safeNum(x.change_pct), 0) / bStocks.length
+        ? bStocks.reduce((s, x) => s + safeNum(x.change_pct), 0) /
+          bStocks.length
         : 0;
       return Math.abs(bAvg) - Math.abs(aAvg);
     });
@@ -253,14 +280,32 @@ export function SectorScopeTab() {
 
   if (loading)
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", color: "#2979FF", fontSize: "16px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          color: "#2979FF",
+          fontSize: "16px",
+        }}
+      >
         ⏳ Loading Sector Scope...
       </div>
     );
 
   if (error)
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", flexDirection: "column", gap: "12px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          flexDirection: "column",
+          gap: "12px",
+        }}
+      >
         <span style={{ color: "#F44336", fontSize: "16px" }}>❌ {error}</span>
       </div>
     );

@@ -2,7 +2,12 @@ import { useState, useMemo, useEffect } from "react";
 import { mockData, Stock } from "@/data/mockData";
 import { getChangeTextColor, formatCurrency, getSignal } from "@/lib/market";
 import { apiFetch } from "@/lib/api";
-import { formatInsightNumber, InsightTooltip, StageBadge, TrendIndicator } from "./StockInsightWidgets";
+import {
+  formatInsightNumber,
+  InsightTooltip,
+  StageBadge,
+  TrendIndicator,
+} from "./StockInsightWidgets";
 
 interface Filters {
   minMove: number;
@@ -36,7 +41,9 @@ export function ScannerTab() {
   const [sortCol, setSortCol] = useState<string>("change_pct");
   const [sortAsc, setSortAsc] = useState(false);
 
-  const [data, setData] = useState<{ stocks: (Stock & { sector: string })[] }>({ stocks: [] });
+  const [data, setData] = useState<{ stocks: (Stock & { sector: string })[] }>({
+    stocks: [],
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,14 +70,20 @@ export function ScannerTab() {
       if (Math.abs(s.change_pct) < filters.minMove) return false;
       if (filters.direction === "GAINERS" && s.change_pct <= 0) return false;
       if (filters.direction === "LOSERS" && s.change_pct >= 0) return false;
-      if (filters.sectors.length > 0 && !filters.sectors.includes(s.sector)) return false;
+      if (filters.sectors.length > 0 && !filters.sectors.includes(s.sector))
+        return false;
       if (filters.foOnly && !s.fo) return false;
-      if (filters.volumeSpike > 0 && s.volume_ratio < filters.volumeSpike) return false;
+      if (filters.volumeSpike > 0 && s.volume_ratio < filters.volumeSpike)
+        return false;
       return true;
     });
 
     result.sort((a, b) => {
-      if (sortCol === "rfactor" || sortCol === "rfactor_trend_15m" || sortCol === "opportunity_score") {
+      if (
+        sortCol === "rfactor" ||
+        sortCol === "rfactor_trend_15m" ||
+        sortCol === "opportunity_score"
+      ) {
         return compareOptionalNumbers(a[sortCol], b[sortCol], sortAsc);
       }
 
@@ -86,14 +99,18 @@ export function ScannerTab() {
 
   const handleSort = (col: string) => {
     if (sortCol === col) setSortAsc(!sortAsc);
-    else { setSortCol(col); setSortAsc(false); }
+    else {
+      setSortCol(col);
+      setSortAsc(false);
+    }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64 text-blue-400 text-lg">
-      ⏳ Loading scanner data...
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64 text-blue-400 text-lg">
+        ⏳ Loading scanner data...
+      </div>
+    );
 
   const toggleSector = (name: string) => {
     setFilters((f) => ({
@@ -108,7 +125,9 @@ export function ScannerTab() {
     <div className="flex flex-col md:flex-row gap-0 min-h-[calc(100vh-120px)]">
       {/* Filter Panel */}
       <div className="w-full md:w-[250px] shrink-0 bg-market-surface border-r border-border p-4 space-y-5">
-        <h3 className="text-sm font-bold text-primary tracking-wider">FILTERS</h3>
+        <h3 className="text-sm font-bold text-primary tracking-wider">
+          FILTERS
+        </h3>
 
         <div>
           <label className="text-xs text-muted-foreground">Min % Move</label>
@@ -118,14 +137,18 @@ export function ScannerTab() {
             max={5}
             step={0.5}
             value={filters.minMove}
-            onChange={(e) => setFilters((f) => ({ ...f, minMove: parseFloat(e.target.value) }))}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, minMove: parseFloat(e.target.value) }))
+            }
             className="w-full accent-primary mt-1"
           />
           <span className="text-xs text-foreground">{filters.minMove}%</span>
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Direction</label>
+          <label className="text-xs text-muted-foreground mb-1 block">
+            Direction
+          </label>
           <div className="flex gap-1">
             {(["ALL", "GAINERS", "LOSERS"] as const).map((d) => (
               <button
@@ -144,10 +167,15 @@ export function ScannerTab() {
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Sectors</label>
+          <label className="text-xs text-muted-foreground mb-1 block">
+            Sectors
+          </label>
           <div className="max-h-40 overflow-y-auto space-y-1">
             {allSectorNames.map((name) => (
-              <label key={name} className="flex items-center gap-2 cursor-pointer">
+              <label
+                key={name}
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   checked={filters.sectors.includes(name)}
@@ -177,10 +205,17 @@ export function ScannerTab() {
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Volume Spike</label>
+          <label className="text-xs text-muted-foreground mb-1 block">
+            Volume Spike
+          </label>
           <select
             value={filters.volumeSpike}
-            onChange={(e) => setFilters((f) => ({ ...f, volumeSpike: parseFloat(e.target.value) }))}
+            onChange={(e) =>
+              setFilters((f) => ({
+                ...f,
+                volumeSpike: parseFloat(e.target.value),
+              }))
+            }
             className="w-full bg-muted text-foreground text-xs rounded px-2 py-1.5 border border-border"
           >
             <option value={0}>Any</option>
@@ -192,7 +227,13 @@ export function ScannerTab() {
 
         <button
           onClick={() =>
-            setFilters({ minMove: 1, direction: "ALL", sectors: [], foOnly: false, volumeSpike: 0 })
+            setFilters({
+              minMove: 1,
+              direction: "ALL",
+              sectors: [],
+              foOnly: false,
+              volumeSpike: 0,
+            })
           }
           className="text-xs text-primary hover:underline"
         >
@@ -213,7 +254,11 @@ export function ScannerTab() {
                 { key: "change_pct", label: "% Change", sortable: true },
                 { key: "rfactor", label: "R-Factor", sortable: true },
                 { key: "rfactor_trend_15m", label: "Trend", sortable: true },
-                { key: "opportunity_score", label: "Opportunity", sortable: true },
+                {
+                  key: "opportunity_score",
+                  label: "Opportunity",
+                  sortable: true,
+                },
                 { key: "volume_ratio", label: "Vol Ratio", sortable: true },
                 { key: "signal", label: "Signal", sortable: false },
               ].map((col) => (
@@ -225,15 +270,24 @@ export function ScannerTab() {
                   onClick={() => col.sortable && handleSort(col.key)}
                 >
                   {col.key === "rfactor" ? (
-                    <InsightTooltip label="R-Factor" description="Current strength / confirmation">
+                    <InsightTooltip
+                      label="R-Factor"
+                      description="Current strength / confirmation"
+                    >
                       <span>{col.label}</span>
                     </InsightTooltip>
                   ) : col.key === "rfactor_trend_15m" ? (
-                    <InsightTooltip label="Trend" description="Whether R-Factor is rising in recent candles">
+                    <InsightTooltip
+                      label="Trend"
+                      description="Whether R-Factor is rising in recent candles"
+                    >
                       <span>{col.label}</span>
                     </InsightTooltip>
                   ) : col.key === "opportunity_score" ? (
-                    <InsightTooltip label="Opportunity" description="Early-entry quality before overextension">
+                    <InsightTooltip
+                      label="Opportunity"
+                      description="Early-entry quality before overextension"
+                    >
                       <span>{col.label}</span>
                     </InsightTooltip>
                   ) : (
@@ -250,7 +304,9 @@ export function ScannerTab() {
               return (
                 <tr
                   key={stock.symbol + stock.sector}
-                  className={i % 2 === 0 ? "bg-market-surface" : "bg-market-surface-alt"}
+                  className={
+                    i % 2 === 0 ? "bg-market-surface" : "bg-market-surface-alt"
+                  }
                 >
                   <td className="px-3 py-2 text-muted-foreground">{i + 1}</td>
                   <td className="px-3 py-2 font-bold text-foreground">
@@ -259,9 +315,15 @@ export function ScannerTab() {
                       <StageBadge stage={stock.setup_stage} className="w-fit" />
                     </div>
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground">{stock.sector}</td>
-                  <td className="px-3 py-2 text-foreground">{formatCurrency(stock.ltp)}</td>
-                  <td className={`px-3 py-2 font-bold ${getChangeTextColor(stock.change_pct)}`}>
+                  <td className="px-3 py-2 text-muted-foreground">
+                    {stock.sector}
+                  </td>
+                  <td className="px-3 py-2 text-foreground">
+                    {formatCurrency(stock.ltp)}
+                  </td>
+                  <td
+                    className={`px-3 py-2 font-bold ${getChangeTextColor(stock.change_pct)}`}
+                  >
                     {stock.change_pct > 0 ? "+" : ""}
                     {stock.change_pct.toFixed(1)}%
                   </td>
@@ -280,7 +342,8 @@ export function ScannerTab() {
                   </td>
                   <td className="px-3 py-2">
                     <span className="inline-flex items-center rounded-full border border-amber-200/15 bg-amber-300/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300 tabular-nums">
-                      Opportunity {formatInsightNumber(stock.opportunity_score, 1)}
+                      Opportunity{" "}
+                      {formatInsightNumber(stock.opportunity_score, 1)}
                     </span>
                   </td>
                   <td className="px-3 py-2">
@@ -289,47 +352,59 @@ export function ScannerTab() {
                         stock.volume_ratio >= 2
                           ? "bg-volume-hot/20 text-volume-hot"
                           : stock.volume_ratio >= 1.5
-                          ? "bg-volume-warm/20 text-volume-warm"
-                          : "text-muted-foreground"
+                            ? "bg-volume-warm/20 text-volume-warm"
+                            : "text-muted-foreground"
                       }`}
                     >
                       {stock.volume_ratio.toFixed(1)}x
                     </span>
                   </td>
                   <td className="px-3 py-2">
-                    {signal.label && (() => {
-                      let bg = "", color = "", border = "";
-                      if (signal.label.includes("MOMENTUM")) {
-                        bg = "#1B5E20"; color = "#00C853"; border = "#00C853";
-                      } else if (signal.label.includes("VOLUME SPIKE")) {
-                        bg = "rgba(230, 81, 0, 0.2)"; color = "#FF6D00"; border = "#FF6D00";
-                      } else {
-                        bg = "#1A237E"; color = "#2979FF"; border = "#2979FF";
-                      }
-                      return (
-                        <span
-                          style={{
-                            backgroundColor: bg,
-                            color,
-                            border: `1px solid ${border}`,
-                            padding: "2px 8px",
-                            borderRadius: "4px",
-                            fontSize: "10px",
-                            fontWeight: "bold",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {signal.label}
-                        </span>
-                      );
-                    })()}
+                    {signal.label &&
+                      (() => {
+                        let bg = "",
+                          color = "",
+                          border = "";
+                        if (signal.label.includes("MOMENTUM")) {
+                          bg = "#1B5E20";
+                          color = "#00C853";
+                          border = "#00C853";
+                        } else if (signal.label.includes("VOLUME SPIKE")) {
+                          bg = "rgba(230, 81, 0, 0.2)";
+                          color = "#FF6D00";
+                          border = "#FF6D00";
+                        } else {
+                          bg = "#1A237E";
+                          color = "#2979FF";
+                          border = "#2979FF";
+                        }
+                        return (
+                          <span
+                            style={{
+                              backgroundColor: bg,
+                              color,
+                              border: `1px solid ${border}`,
+                              padding: "2px 8px",
+                              borderRadius: "4px",
+                              fontSize: "10px",
+                              fontWeight: "bold",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {signal.label}
+                          </span>
+                        );
+                      })()}
                   </td>
                 </tr>
               );
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-3 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={10}
+                  className="px-3 py-8 text-center text-muted-foreground"
+                >
                   No stocks match the current filters.
                 </td>
               </tr>

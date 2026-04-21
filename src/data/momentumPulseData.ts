@@ -6,9 +6,17 @@ export type MomentumPulseTier = "strong" | "moderate" | "weak" | "veryweak";
 
 export type MomentumPulseTrendLabel = "Rising" | "Flat" | "Falling";
 
-export type MomentumPulseBehaviorState = "EARLY" | "ACTIVE" | "LATE" | "EXTENDED";
+export type MomentumPulseBehaviorState =
+  | "EARLY"
+  | "ACTIVE"
+  | "LATE"
+  | "EXTENDED";
 
-export type MomentumPulseTimeContextBucket = "DISCOVERY" | "TREND" | "LATE" | "--";
+export type MomentumPulseTimeContextBucket =
+  | "DISCOVERY"
+  | "TREND"
+  | "LATE"
+  | "--";
 
 export interface MomentumPulseRow {
   symbol: string;

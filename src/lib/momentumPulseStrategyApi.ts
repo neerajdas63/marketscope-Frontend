@@ -14,10 +14,29 @@ import {
   type MomentumPulseStrategyTradeSide,
 } from "@/data/momentumPulseStrategyData";
 
-const VALID_DIRECTION_FILTERS: MomentumPulseStrategyDirectionFilter[] = ["ALL", "LONG", "SHORT"];
-const VALID_GRADE_FILTERS: MomentumPulseStrategyGradeFilter[] = ["ALL", "A_PLUS", "A", "FAILED_OR_CHOP", "NO_TRADE"];
-const VALID_GRADES: MomentumPulseStrategyGrade[] = ["A_PLUS", "A", "FAILED_OR_CHOP", "NO_TRADE"];
-const VALID_TRADE_SIDES: MomentumPulseStrategyTradeSide[] = ["LONG", "SHORT", "NO_TRADE"];
+const VALID_DIRECTION_FILTERS: MomentumPulseStrategyDirectionFilter[] = [
+  "ALL",
+  "LONG",
+  "SHORT",
+];
+const VALID_GRADE_FILTERS: MomentumPulseStrategyGradeFilter[] = [
+  "ALL",
+  "A_PLUS",
+  "A",
+  "FAILED_OR_CHOP",
+  "NO_TRADE",
+];
+const VALID_GRADES: MomentumPulseStrategyGrade[] = [
+  "A_PLUS",
+  "A",
+  "FAILED_OR_CHOP",
+  "NO_TRADE",
+];
+const VALID_TRADE_SIDES: MomentumPulseStrategyTradeSide[] = [
+  "LONG",
+  "SHORT",
+  "NO_TRADE",
+];
 
 function asFiniteNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -87,13 +106,15 @@ function asStringArray(value: unknown) {
 }
 
 function asTradeSide(value: unknown): MomentumPulseStrategyTradeSide {
-  return typeof value === "string" && VALID_TRADE_SIDES.includes(value as MomentumPulseStrategyTradeSide)
+  return typeof value === "string" &&
+    VALID_TRADE_SIDES.includes(value as MomentumPulseStrategyTradeSide)
     ? (value as MomentumPulseStrategyTradeSide)
     : "NO_TRADE";
 }
 
 function asGrade(value: unknown): MomentumPulseStrategyGrade {
-  return typeof value === "string" && VALID_GRADES.includes(value as MomentumPulseStrategyGrade)
+  return typeof value === "string" &&
+    VALID_GRADES.includes(value as MomentumPulseStrategyGrade)
     ? (value as MomentumPulseStrategyGrade)
     : "NO_TRADE";
 }
@@ -102,7 +123,10 @@ function asDirectionFilter(
   value: unknown,
   fallback: MomentumPulseStrategyDirectionFilter,
 ): MomentumPulseStrategyDirectionFilter {
-  return typeof value === "string" && VALID_DIRECTION_FILTERS.includes(value as MomentumPulseStrategyDirectionFilter)
+  return typeof value === "string" &&
+    VALID_DIRECTION_FILTERS.includes(
+      value as MomentumPulseStrategyDirectionFilter,
+    )
     ? (value as MomentumPulseStrategyDirectionFilter)
     : fallback;
 }
@@ -111,13 +135,17 @@ function asGradeFilter(
   value: unknown,
   fallback: MomentumPulseStrategyGradeFilter,
 ): MomentumPulseStrategyGradeFilter {
-  return typeof value === "string" && VALID_GRADE_FILTERS.includes(value as MomentumPulseStrategyGradeFilter)
+  return typeof value === "string" &&
+    VALID_GRADE_FILTERS.includes(value as MomentumPulseStrategyGradeFilter)
     ? (value as MomentumPulseStrategyGradeFilter)
     : fallback;
 }
 
 function normalizeSummaryCommon(value: unknown) {
-  const data = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const data =
+    value && typeof value === "object"
+      ? (value as Record<string, unknown>)
+      : {};
 
   return {
     avg_score: asFiniteNumber(data.avg_score) ?? 0,
@@ -156,12 +184,19 @@ function normalizeSummary(value: unknown): MomentumPulseStrategySummary {
 
 function normalizeDirectionOptions(value: unknown) {
   if (!Array.isArray(value)) {
-    return ["ALL", "LONG", "SHORT"] satisfies MomentumPulseStrategyDirectionFilter[];
+    return [
+      "ALL",
+      "LONG",
+      "SHORT",
+    ] satisfies MomentumPulseStrategyDirectionFilter[];
   }
 
   const normalized = value.filter(
     (item): item is MomentumPulseStrategyDirectionFilter =>
-      typeof item === "string" && VALID_DIRECTION_FILTERS.includes(item as MomentumPulseStrategyDirectionFilter),
+      typeof item === "string" &&
+      VALID_DIRECTION_FILTERS.includes(
+        item as MomentumPulseStrategyDirectionFilter,
+      ),
   );
 
   return normalized.length > 0 ? normalized : ["ALL", "LONG", "SHORT"];
@@ -169,15 +204,24 @@ function normalizeDirectionOptions(value: unknown) {
 
 function normalizeGradeOptions(value: unknown) {
   if (!Array.isArray(value)) {
-    return ["ALL", "A_PLUS", "A", "FAILED_OR_CHOP", "NO_TRADE"] satisfies MomentumPulseStrategyGradeFilter[];
+    return [
+      "ALL",
+      "A_PLUS",
+      "A",
+      "FAILED_OR_CHOP",
+      "NO_TRADE",
+    ] satisfies MomentumPulseStrategyGradeFilter[];
   }
 
   const normalized = value.filter(
     (item): item is MomentumPulseStrategyGradeFilter =>
-      typeof item === "string" && VALID_GRADE_FILTERS.includes(item as MomentumPulseStrategyGradeFilter),
+      typeof item === "string" &&
+      VALID_GRADE_FILTERS.includes(item as MomentumPulseStrategyGradeFilter),
   );
 
-  return normalized.length > 0 ? normalized : ["ALL", "A_PLUS", "A", "FAILED_OR_CHOP", "NO_TRADE"];
+  return normalized.length > 0
+    ? normalized
+    : ["ALL", "A_PLUS", "A", "FAILED_OR_CHOP", "NO_TRADE"];
 }
 
 function normalizeStrategyRow(value: unknown): MomentumPulseStrategyRow | null {
@@ -278,12 +322,14 @@ export function normalizeMomentumPulseStrategyResponse(
 
   return {
     feature: asOptionalString(data.feature) ?? "Momentum Pulse Strategy",
-    feature_key: asOptionalString(data.feature_key) ?? "momentum_pulse_strategy",
+    feature_key:
+      asOptionalString(data.feature_key) ?? "momentum_pulse_strategy",
     mode: asOptionalString(data.mode) ?? "live",
     status: asOptionalString(data.status) ?? "ready",
     message: asOptionalString(data.message) ?? "",
     last_updated: asOptionalString(data.last_updated) ?? "",
-    market_data_last_updated: asOptionalString(data.market_data_last_updated) ?? "",
+    market_data_last_updated:
+      asOptionalString(data.market_data_last_updated) ?? "",
     benchmark_change_pct: asFiniteNumber(data.benchmark_change_pct) ?? 0,
     direction: asDirectionFilter(data.direction, query.direction),
     grade: asGradeFilter(data.grade, query.grade),
@@ -308,10 +354,15 @@ export async function fetchMomentumPulseStrategyData(
     grade: query.grade,
   });
 
-  const response = await apiFetch(`/momentum-pulse/strategy?${params.toString()}`, { signal });
+  const response = await apiFetch(
+    `/momentum-pulse/strategy?${params.toString()}`,
+    { signal },
+  );
 
   if (!response.ok) {
-    throw new Error(`Failed to load /momentum-pulse/strategy (${response.status})`);
+    throw new Error(
+      `Failed to load /momentum-pulse/strategy (${response.status})`,
+    );
   }
 
   const payload = await response.json();

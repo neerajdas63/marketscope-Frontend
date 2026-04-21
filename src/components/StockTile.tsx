@@ -1,7 +1,17 @@
 import { Stock } from "@/data/mockData";
-import { getChangeColor, getTileFlex, formatCurrency, getAdaptiveBgColor } from "@/lib/market";
+import {
+  getChangeColor,
+  getTileFlex,
+  formatCurrency,
+  getAdaptiveBgColor,
+} from "@/lib/market";
 import { useState } from "react";
-import { formatInsightNumber, InsightTooltip, StageBadge, TrendIndicator } from "./StockInsightWidgets";
+import {
+  formatInsightNumber,
+  InsightTooltip,
+  StageBadge,
+  TrendIndicator,
+} from "./StockInsightWidgets";
 
 interface StockTileProps {
   stock: Stock;
@@ -9,11 +19,11 @@ interface StockTileProps {
 }
 
 const VWAP_LABELS: Record<string, { label: string; color: string }> = {
-  ABOVE:           { label: "▲ ABOVE VWAP",     color: "#00C853" },
-  EXTENDED_ABOVE:  { label: "▲▲ EXTENDED ABOVE", color: "#69F0AE" },
-  AT_VWAP:         { label: "≈ AT VWAP",         color: "#FFD600" },
-  BELOW:           { label: "▼ BELOW VWAP",      color: "#FF1744" },
-  EXTENDED_BELOW:  { label: "▼▼ EXTENDED BELOW", color: "#FF5252" },
+  ABOVE: { label: "▲ ABOVE VWAP", color: "#00C853" },
+  EXTENDED_ABOVE: { label: "▲▲ EXTENDED ABOVE", color: "#69F0AE" },
+  AT_VWAP: { label: "≈ AT VWAP", color: "#FFD600" },
+  BELOW: { label: "▼ BELOW VWAP", color: "#FF1744" },
+  EXTENDED_BELOW: { label: "▼▼ EXTENDED BELOW", color: "#FF5252" },
 };
 
 export function StockTile({ stock, colorRange }: StockTileProps) {
@@ -38,11 +48,13 @@ export function StockTile({ stock, colorRange }: StockTileProps) {
     rs !== undefined && rs > 0.5
       ? { label: "▲ NF", color: "#69F0AE", bg: "#003300" }
       : rs !== undefined && rs < -0.5
-      ? { label: "▼ NF", color: "#FF5252", bg: "#330000" }
-      : null;
+        ? { label: "▼ NF", color: "#FF5252", bg: "#330000" }
+        : null;
 
   // 6b: vwap position
-  const vwapInfo = stock.vwap_position ? VWAP_LABELS[stock.vwap_position] : null;
+  const vwapInfo = stock.vwap_position
+    ? VWAP_LABELS[stock.vwap_position]
+    : null;
 
   return (
     <div
@@ -69,23 +81,41 @@ export function StockTile({ stock, colorRange }: StockTileProps) {
       {hasInsights && (
         <div className="mt-1 flex w-full flex-col gap-1">
           <div className="flex items-center justify-between gap-2">
-            <InsightTooltip label="R-Factor" description="Current strength / confirmation">
+            <InsightTooltip
+              label="R-Factor"
+              description="Current strength / confirmation"
+            >
               <div className="inline-flex items-center gap-1 text-[9px] text-primary-foreground/90">
-                <span className="text-primary-foreground/55 uppercase tracking-[0.16em]">RF</span>
-                <span className="font-semibold tabular-nums">{formatInsightNumber(stock.rfactor, 1)}</span>
+                <span className="text-primary-foreground/55 uppercase tracking-[0.16em]">
+                  RF
+                </span>
+                <span className="font-semibold tabular-nums">
+                  {formatInsightNumber(stock.rfactor, 1)}
+                </span>
               </div>
             </InsightTooltip>
-            <InsightTooltip label="Opportunity" description="Early-entry quality before overextension">
+            <InsightTooltip
+              label="Opportunity"
+              description="Early-entry quality before overextension"
+            >
               <div className="inline-flex items-center gap-1 rounded-full border border-amber-200/20 bg-amber-300/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-100 tabular-nums">
-                <span className="uppercase tracking-[0.14em] text-amber-100/80">Opp</span>
+                <span className="uppercase tracking-[0.14em] text-amber-100/80">
+                  Opp
+                </span>
                 <span>{formatInsightNumber(stock.opportunity_score, 1)}</span>
               </div>
             </InsightTooltip>
           </div>
-          {(stock.rfactor_trend_15m !== undefined || (stock.rfactor_trend_points?.length ?? 0) >= 3) && (
-            <InsightTooltip label="Trend" description="Whether R-Factor is rising in recent candles">
+          {(stock.rfactor_trend_15m !== undefined ||
+            (stock.rfactor_trend_points?.length ?? 0) >= 3) && (
+            <InsightTooltip
+              label="Trend"
+              description="Whether R-Factor is rising in recent candles"
+            >
               <div className="flex items-center justify-between gap-2 text-[9px] text-primary-foreground/90">
-                <span className="uppercase tracking-[0.16em] text-primary-foreground/55">Trend</span>
+                <span className="uppercase tracking-[0.16em] text-primary-foreground/55">
+                  Trend
+                </span>
                 <TrendIndicator
                   compact
                   trend={stock.rfactor_trend_15m}
@@ -123,31 +153,66 @@ export function StockTile({ stock, colorRange }: StockTileProps) {
       {hovered && (
         <div className="absolute z-50 bottom-full mb-1 left-1/2 -translate-x-1/2 bg-card border border-border rounded px-3 py-2 text-xs whitespace-nowrap shadow-lg pointer-events-none">
           <span className="text-foreground font-semibold">{stock.symbol}</span>
-          <span className="text-muted-foreground"> | LTP: {formatCurrency(stock.ltp)}</span>
-          <span className={stock.change_pct >= 0 ? "text-gain-medium" : "text-loss-medium"}>
-            {" "}| {stock.change_pct > 0 ? "+" : ""}{stock.change_pct.toFixed(1)}%
+          <span className="text-muted-foreground">
+            {" "}
+            | LTP: {formatCurrency(stock.ltp)}
+          </span>
+          <span
+            className={
+              stock.change_pct >= 0 ? "text-gain-medium" : "text-loss-medium"
+            }
+          >
+            {" "}
+            | {stock.change_pct > 0 ? "+" : ""}
+            {stock.change_pct.toFixed(1)}%
           </span>
           {vwapInfo && (
             <span style={{ color: vwapInfo.color }}> | {vwapInfo.label}</span>
           )}
           {rs !== undefined && (
-            <span style={{ color: rs > 0.5 ? "#69F0AE" : rs < -0.5 ? "#FF5252" : "#888" }}>
-              {" "}| RS: {rs > 0 ? "+" : ""}{rs.toFixed(2)}
+            <span
+              style={{
+                color: rs > 0.5 ? "#69F0AE" : rs < -0.5 ? "#FF5252" : "#888",
+              }}
+            >
+              {" "}
+              | RS: {rs > 0 ? "+" : ""}
+              {rs.toFixed(2)}
             </span>
           )}
           {stock.rfactor !== undefined && (
-            <span className="text-primary-foreground/80"> | RF: {formatInsightNumber(stock.rfactor, 1)}</span>
+            <span className="text-primary-foreground/80">
+              {" "}
+              | RF: {formatInsightNumber(stock.rfactor, 1)}
+            </span>
           )}
           {stock.rfactor_trend_15m !== undefined && (
-            <span style={{ color: stock.rfactor_trend_15m > 0 ? "#4ADE80" : stock.rfactor_trend_15m < 0 ? "#F87171" : "#CBD5E1" }}>
-              {" "}| Trend: {stock.rfactor_trend_15m > 0 ? "+" : ""}{stock.rfactor_trend_15m.toFixed(1)}
+            <span
+              style={{
+                color:
+                  stock.rfactor_trend_15m > 0
+                    ? "#4ADE80"
+                    : stock.rfactor_trend_15m < 0
+                      ? "#F87171"
+                      : "#CBD5E1",
+              }}
+            >
+              {" "}
+              | Trend: {stock.rfactor_trend_15m > 0 ? "+" : ""}
+              {stock.rfactor_trend_15m.toFixed(1)}
             </span>
           )}
           {stock.opportunity_score !== undefined && (
-            <span style={{ color: "#FDBA74" }}> | Opportunity: {formatInsightNumber(stock.opportunity_score, 1)}</span>
+            <span style={{ color: "#FDBA74" }}>
+              {" "}
+              | Opportunity: {formatInsightNumber(stock.opportunity_score, 1)}
+            </span>
           )}
           {stock.setup_stage && (
-            <span className="text-primary-foreground/80"> | Stage: {stock.setup_stage}</span>
+            <span className="text-primary-foreground/80">
+              {" "}
+              | Stage: {stock.setup_stage}
+            </span>
           )}
         </div>
       )}

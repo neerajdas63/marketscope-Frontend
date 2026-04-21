@@ -1,5 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
-import { type BoostComponents, type BoostDirection, BoostStock } from "@/data/boostMockData";
+import {
+  type BoostComponents,
+  type BoostDirection,
+  BoostStock,
+} from "@/data/boostMockData";
 import { BoostCard } from "./BoostCard";
 import { apiFetch } from "@/lib/api";
 
@@ -51,7 +55,8 @@ function asOptionalString(value: unknown) {
 }
 
 function asBoostDirection(value: unknown): BoostDirection | undefined {
-  return typeof value === "string" && VALID_BOOST_DIRECTIONS.includes(value as BoostDirection)
+  return typeof value === "string" &&
+    VALID_BOOST_DIRECTIONS.includes(value as BoostDirection)
     ? (value as BoostDirection)
     : undefined;
 }
@@ -71,12 +76,16 @@ function asBoostComponents(value: unknown): BoostComponents | undefined {
     institutional_hint: asFiniteNumber(components.institutional_hint),
     confidence: asFiniteNumber(components.confidence),
     data_mode: asOptionalString(components.data_mode),
-    details: typeof components.details === "string" || (components.details && typeof components.details === "object")
-      ? (components.details as string | Record<string, unknown>)
-      : undefined,
-    daily_context: typeof components.daily_context === "string" || (components.daily_context && typeof components.daily_context === "object")
-      ? (components.daily_context as string | Record<string, unknown>)
-      : undefined,
+    details:
+      typeof components.details === "string" ||
+      (components.details && typeof components.details === "object")
+        ? (components.details as string | Record<string, unknown>)
+        : undefined,
+    daily_context:
+      typeof components.daily_context === "string" ||
+      (components.daily_context && typeof components.daily_context === "object")
+        ? (components.daily_context as string | Record<string, unknown>)
+        : undefined,
   };
 }
 
@@ -116,7 +125,13 @@ function normalizeBoostStock(value: unknown): BoostStock | null {
 
 function normalizeBoostPayload(payload: unknown): BoostResponse {
   if (!payload || typeof payload !== "object") {
-    return { stocks: [], total: 0, lastUpdated: "", status: "ready", message: "" };
+    return {
+      stocks: [],
+      total: 0,
+      lastUpdated: "",
+      status: "ready",
+      message: "",
+    };
   }
 
   const data = payload as Record<string, unknown>;
@@ -128,13 +143,20 @@ function normalizeBoostPayload(payload: unknown): BoostResponse {
       .filter((stock): stock is BoostStock => stock !== null),
     total: asFiniteNumber(data.total) ?? rawStocks.length,
     lastUpdated: asOptionalString(data.last_updated) ?? "",
-    status: asOptionalString(data.status) === "warming_up" ? "warming_up" : "ready",
+    status:
+      asOptionalString(data.status) === "warming_up" ? "warming_up" : "ready",
     message: asOptionalString(data.message) ?? "",
   };
 }
 
 export function BoostTab() {
-  const [response, setResponse] = useState<BoostResponse>({ stocks: [], total: 0, lastUpdated: "", status: "ready", message: "" });
+  const [response, setResponse] = useState<BoostResponse>({
+    stocks: [],
+    total: 0,
+    lastUpdated: "",
+    status: "ready",
+    message: "",
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [limit] = useState<number>(50);
@@ -177,51 +199,94 @@ export function BoostTab() {
         (s) =>
           direction === "ALL" ||
           (direction === "GAINERS" && (s.change_pct ?? 0) > 0) ||
-          (direction === "LOSERS" && (s.change_pct ?? 0) < 0)
+          (direction === "LOSERS" && (s.change_pct ?? 0) < 0),
       )
       .sort((a, b) => {
         if (sortBy === "backend") return 0;
-        if (sortBy === "boost_score") return (b.boost_score ?? 0) - (a.boost_score ?? 0);
-        if (sortBy === "change_pct") return Math.abs(b.change_pct ?? 0) - Math.abs(a.change_pct ?? 0);
+        if (sortBy === "boost_score")
+          return (b.boost_score ?? 0) - (a.boost_score ?? 0);
+        if (sortBy === "change_pct")
+          return Math.abs(b.change_pct ?? 0) - Math.abs(a.change_pct ?? 0);
         return (b.volume_ratio ?? 0) - (a.volume_ratio ?? 0);
       });
   }, [response.stocks, direction, sortBy]);
 
-  const hasStocks = Array.isArray(response.stocks) && response.stocks.length > 0;
+  const hasStocks =
+    Array.isArray(response.stocks) && response.stocks.length > 0;
   const isWarmingUp = response.status === "warming_up";
 
   if (loading)
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", color: "#2979FF", fontSize: "16px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          color: "#2979FF",
+          fontSize: "16px",
+        }}
+      >
         ⏳ Loading Boost data...
       </div>
     );
 
   if (error)
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", flexDirection: "column", gap: "12px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          flexDirection: "column",
+          gap: "12px",
+        }}
+      >
         <span style={{ color: "#F44336", fontSize: "16px" }}>❌ {error}</span>
       </div>
     );
 
   if (isWarmingUp)
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", flexDirection: "column", gap: "10px", color: "#2979FF", fontSize: "16px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          flexDirection: "column",
+          gap: "10px",
+          color: "#2979FF",
+          fontSize: "16px",
+        }}
+      >
         <span>⏳ Intraday Boost is warming up...</span>
-        <span style={{ color: "#888888", fontSize: "13px" }}>{response.message || "Waiting for the backend to publish the first boost snapshot."}</span>
+        <span style={{ color: "#888888", fontSize: "13px" }}>
+          {response.message ||
+            "Waiting for the backend to publish the first boost snapshot."}
+        </span>
       </div>
     );
 
   if (!hasStocks)
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", color: "#555", fontSize: "16px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          color: "#555",
+          fontSize: "16px",
+        }}
+      >
         No boost data available
       </div>
     );
 
   return (
     <div style={{ backgroundColor: "#0d0d0d", minHeight: "100vh" }}>
-
       {/* Filter Bar */}
       <div
         style={{
@@ -272,7 +337,9 @@ export function BoostTab() {
           >
             <span style={{ color: "#888888", fontSize: "12px" }}>
               Min Score:{" "}
-              <strong style={{ color: "#cccccc" }}>{minScore.toFixed(1)}</strong>
+              <strong style={{ color: "#cccccc" }}>
+                {minScore.toFixed(1)}
+              </strong>
             </span>
             <input
               type="range"
@@ -281,7 +348,11 @@ export function BoostTab() {
               step={0.5}
               value={minScore}
               onChange={(e) => setMinScore(Number(e.target.value))}
-              style={{ accentColor: "#2979FF", cursor: "pointer", width: "100px" }}
+              style={{
+                accentColor: "#2979FF",
+                cursor: "pointer",
+                width: "100px",
+              }}
             />
           </div>
 
@@ -304,7 +375,11 @@ export function BoostTab() {
                   transition: "background-color 0.15s ease, color 0.15s ease",
                 }}
               >
-                {dir === "GAINERS" ? "GAINERS ▲" : dir === "LOSERS" ? "LOSERS ▼" : dir}
+                {dir === "GAINERS"
+                  ? "GAINERS ▲"
+                  : dir === "LOSERS"
+                    ? "LOSERS ▼"
+                    : dir}
               </button>
             ))}
           </div>
@@ -362,8 +437,12 @@ export function BoostTab() {
             color: "#555555",
           }}
         >
-          <span style={{ fontSize: "16px" }}>🔍 No stocks match current filters</span>
-          <span style={{ fontSize: "13px" }}>Try adjusting the filters above</span>
+          <span style={{ fontSize: "16px" }}>
+            🔍 No stocks match current filters
+          </span>
+          <span style={{ fontSize: "13px" }}>
+            Try adjusting the filters above
+          </span>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-4">

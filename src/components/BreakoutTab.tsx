@@ -36,19 +36,25 @@ type TypeFilter =
 
 function getTypeStyle(
   type: string | undefined,
-  direction: string | undefined
+  direction: string | undefined,
 ): { bg: string; color: string; label: string } {
   const t = (type || "").toUpperCase();
   const d = (direction || "LONG").toUpperCase();
   if (d === "SHORT") {
-    if (t === "STRONG_SHORT" || t === "STRONG") return { bg: "#B71C1C", color: "#ffffff", label: "🔴 SHORT" };
-    if (t === "MODERATE_SHORT" || t === "MODERATE") return { bg: "#E53935", color: "#ffffff", label: "🟠 SHORT" };
-    if (t === "WATCH_SHORT") return { bg: "#FF7043", color: "#ffffff", label: "👀 WATCH" };
+    if (t === "STRONG_SHORT" || t === "STRONG")
+      return { bg: "#B71C1C", color: "#ffffff", label: "🔴 SHORT" };
+    if (t === "MODERATE_SHORT" || t === "MODERATE")
+      return { bg: "#E53935", color: "#ffffff", label: "🟠 SHORT" };
+    if (t === "WATCH_SHORT")
+      return { bg: "#FF7043", color: "#ffffff", label: "👀 WATCH" };
     return { bg: "#B71C1C", color: "#ffffff", label: "SHORT" };
   }
-  if (t === "EXPLOSIVE") return { bg: "#FF6B00", color: "#ffffff", label: "EXPLOSIVE" };
-  if (t === "STRONG") return { bg: "#00C853", color: "#000000", label: "STRONG" };
-  if (t === "MODERATE") return { bg: "#FFD600", color: "#000000", label: "MODERATE" };
+  if (t === "EXPLOSIVE")
+    return { bg: "#FF6B00", color: "#ffffff", label: "EXPLOSIVE" };
+  if (t === "STRONG")
+    return { bg: "#00C853", color: "#000000", label: "STRONG" };
+  if (t === "MODERATE")
+    return { bg: "#FFD600", color: "#000000", label: "MODERATE" };
   return { bg: "#333333", color: "#cccccc", label: t || "LONG" };
 }
 
@@ -57,7 +63,13 @@ function BreakoutCard({ stock }: { stock: BreakoutStock }) {
   const isPositive = (stock.change_pct ?? 0) >= 0;
   const scorePct = Math.min(((stock.breakout_score ?? 0) / 15) * 100, 100);
   const typeStyle = getTypeStyle(stock.breakout_type, stock.direction);
-  const barColor = isShort ? "#F44336" : scorePct >= 66 ? "#00C853" : scorePct >= 40 ? "#FFD600" : "#FF6B00";
+  const barColor = isShort
+    ? "#F44336"
+    : scorePct >= 66
+      ? "#00C853"
+      : scorePct >= 40
+        ? "#FFD600"
+        : "#FF6B00";
   const chipBg = isShort ? "#4a1010" : "#0d2137";
   const chipText = isShort ? "#FF8A80" : "#82B1FF";
   const chipBorder = isShort ? "#6a2020" : "#1a3a5a";
@@ -76,8 +88,17 @@ function BreakoutCard({ stock }: { stock: BreakoutStock }) {
       }}
     >
       {/* Line 1: Symbol + type badge + FO badge */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-        <span style={{ color: "#ffffff", fontWeight: "bold", fontSize: "15px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexWrap: "wrap",
+        }}
+      >
+        <span
+          style={{ color: "#ffffff", fontWeight: "bold", fontSize: "15px" }}
+        >
           {stock.symbol}
         </span>
         {stock.breakout_type && (
@@ -112,9 +133,18 @@ function BreakoutCard({ stock }: { stock: BreakoutStock }) {
       </div>
 
       {/* Line 2: LTP | change | volume */}
-      <div style={{ display: "flex", gap: "14px", fontSize: "12px", color: "#aaaaaa" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "14px",
+          fontSize: "12px",
+          color: "#aaaaaa",
+        }}
+      >
         <span style={{ color: "#dddddd" }}>₹{safe(stock.ltp, 2)}</span>
-        <span style={{ color: isPositive ? "#00C853" : "#F44336", fontWeight: 600 }}>
+        <span
+          style={{ color: isPositive ? "#00C853" : "#F44336", fontWeight: 600 }}
+        >
           {isPositive ? "▲ +" : "▼ "}
           {safe(stock.change_pct, 2)}%
         </span>
@@ -179,16 +209,19 @@ function BreakoutCard({ stock }: { stock: BreakoutStock }) {
         }}
       >
         <span>
-          RSI:{" "}
-          <span style={{ color: "#cccccc" }}>{safe(stock.rsi, 1)}</span>
+          RSI: <span style={{ color: "#cccccc" }}>{safe(stock.rsi, 1)}</span>
         </span>
         <span>
           52W Proximity:{" "}
-          <span style={{ color: "#cccccc" }}>{safe(stock.ath_proximity, 1)}%</span>
+          <span style={{ color: "#cccccc" }}>
+            {safe(stock.ath_proximity, 1)}%
+          </span>
         </span>
         <span>
           Resist:{" "}
-          <span style={{ color: "#cccccc" }}>₹{safe(stock.resistance_level, 2)}</span>
+          <span style={{ color: "#cccccc" }}>
+            ₹{safe(stock.resistance_level, 2)}
+          </span>
         </span>
       </div>
     </div>
@@ -230,7 +263,9 @@ export function BreakoutTab({ refreshTrigger }: { refreshTrigger?: number }) {
           setInitialFetchDone(true);
           setTimeout(doFetch, 15000);
         } else {
-          setError(`Backend error: ${err.message}. Make sure the server is running.`);
+          setError(
+            `Backend error: ${err.message}. Make sure the server is running.`,
+          );
           setInitialFetchDone(true);
         }
       });
@@ -252,13 +287,16 @@ export function BreakoutTab({ refreshTrigger }: { refreshTrigger?: number }) {
   }, [isBackendLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helpers
-  const isLong = (s: BreakoutStock) => (s.direction || "LONG").toUpperCase() === "LONG";
-  const isShortStock = (s: BreakoutStock) => (s.direction || "LONG").toUpperCase() === "SHORT";
+  const isLong = (s: BreakoutStock) =>
+    (s.direction || "LONG").toUpperCase() === "LONG";
+  const isShortStock = (s: BreakoutStock) =>
+    (s.direction || "LONG").toUpperCase() === "SHORT";
   const matchesType = (s: BreakoutStock, t: TypeFilter) => {
     if (t === "ALL") return true;
     const bt = (s.breakout_type || "").toUpperCase();
     if (t === "STRONG_SHORT") return bt === "STRONG_SHORT" || bt === "STRONG";
-    if (t === "MODERATE_SHORT") return bt === "MODERATE_SHORT" || bt === "MODERATE";
+    if (t === "MODERATE_SHORT")
+      return bt === "MODERATE_SHORT" || bt === "MODERATE";
     return bt === t;
   };
 
@@ -272,23 +310,41 @@ export function BreakoutTab({ refreshTrigger }: { refreshTrigger?: number }) {
       .filter((s) => matchesType(s, typeFilter))
       .slice()
       .sort((a, b) => (b.breakout_score ?? 0) - (a.breakout_score ?? 0));
-  }, [breakouts, dirFilter, typeFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [breakouts, dirFilter, typeFilter]);  
 
-  const longs = useMemo(() => breakouts.filter(isLong), [breakouts]); // eslint-disable-line react-hooks/exhaustive-deps
-  const shorts = useMemo(() => breakouts.filter(isShortStock), [breakouts]); // eslint-disable-line react-hooks/exhaustive-deps
+  const longs = useMemo(() => breakouts.filter(isLong), [breakouts]);  
+  const shorts = useMemo(() => breakouts.filter(isShortStock), [breakouts]);  
 
-  const pool = dirFilter === "LONG" ? longs : dirFilter === "SHORT" ? shorts : breakouts;
+  const pool =
+    dirFilter === "LONG" ? longs : dirFilter === "SHORT" ? shorts : breakouts;
 
   // Counts for type-filter row
-  const typeCounts: Record<TypeFilter, number> = useMemo(() => ({
-    ALL: pool.length,
-    EXPLOSIVE: pool.filter((s) => (s.breakout_type || "").toUpperCase() === "EXPLOSIVE").length,
-    STRONG: pool.filter((s) => (s.breakout_type || "").toUpperCase() === "STRONG").length,
-    MODERATE: pool.filter((s) => (s.breakout_type || "").toUpperCase() === "MODERATE").length,
-    STRONG_SHORT: shorts.filter((s) => { const t = (s.breakout_type || "").toUpperCase(); return t === "STRONG_SHORT" || t === "STRONG"; }).length,
-    MODERATE_SHORT: shorts.filter((s) => { const t = (s.breakout_type || "").toUpperCase(); return t === "MODERATE_SHORT" || t === "MODERATE"; }).length,
-    WATCH_SHORT: shorts.filter((s) => (s.breakout_type || "").toUpperCase() === "WATCH_SHORT").length,
-  }), [pool, shorts]); // eslint-disable-line react-hooks/exhaustive-deps
+  const typeCounts: Record<TypeFilter, number> = useMemo(
+    () => ({
+      ALL: pool.length,
+      EXPLOSIVE: pool.filter(
+        (s) => (s.breakout_type || "").toUpperCase() === "EXPLOSIVE",
+      ).length,
+      STRONG: pool.filter(
+        (s) => (s.breakout_type || "").toUpperCase() === "STRONG",
+      ).length,
+      MODERATE: pool.filter(
+        (s) => (s.breakout_type || "").toUpperCase() === "MODERATE",
+      ).length,
+      STRONG_SHORT: shorts.filter((s) => {
+        const t = (s.breakout_type || "").toUpperCase();
+        return t === "STRONG_SHORT" || t === "STRONG";
+      }).length,
+      MODERATE_SHORT: shorts.filter((s) => {
+        const t = (s.breakout_type || "").toUpperCase();
+        return t === "MODERATE_SHORT" || t === "MODERATE";
+      }).length,
+      WATCH_SHORT: shorts.filter(
+        (s) => (s.breakout_type || "").toUpperCase() === "WATCH_SHORT",
+      ).length,
+    }),
+    [pool, shorts],
+  );  
 
   const DIR_OPTIONS: { key: DirFilter; label: string }[] = [
     { key: "ALL", label: "ALL" },
@@ -310,7 +366,8 @@ export function BreakoutTab({ refreshTrigger }: { refreshTrigger?: number }) {
     { key: "WATCH_SHORT", label: "👀 WATCH SHORT" },
   ];
 
-  const typeOptions = dirFilter === "SHORT" ? TYPE_OPTIONS_SHORT : TYPE_OPTIONS_LONG;
+  const typeOptions =
+    dirFilter === "SHORT" ? TYPE_OPTIONS_SHORT : TYPE_OPTIONS_LONG;
 
   // ── Loading states ────────────────────────────────────────────────────────
 
@@ -408,12 +465,25 @@ export function BreakoutTab({ refreshTrigger }: { refreshTrigger?: number }) {
       >
         {DIR_OPTIONS.map(({ key, label }) => {
           const isActive = dirFilter === key;
-          const accentColor = key === "SHORT" ? "#F44336" : key === "LONG" ? "#00C853" : "#2979FF";
-          const count = key === "ALL" ? breakouts.length : key === "LONG" ? longs.length : shorts.length;
+          const accentColor =
+            key === "SHORT"
+              ? "#F44336"
+              : key === "LONG"
+                ? "#00C853"
+                : "#2979FF";
+          const count =
+            key === "ALL"
+              ? breakouts.length
+              : key === "LONG"
+                ? longs.length
+                : shorts.length;
           return (
             <button
               key={key}
-              onClick={() => { setDirFilter(key); setTypeFilter("ALL"); }}
+              onClick={() => {
+                setDirFilter(key);
+                setTypeFilter("ALL");
+              }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -421,7 +491,9 @@ export function BreakoutTab({ refreshTrigger }: { refreshTrigger?: number }) {
                 padding: "5px 12px",
                 borderRadius: "6px 6px 0 0",
                 border: `1px solid ${isActive ? accentColor : "#2a2a2a"}`,
-                borderBottom: isActive ? "1px solid #111111" : "1px solid #2a2a2a",
+                borderBottom: isActive
+                  ? "1px solid #111111"
+                  : "1px solid #2a2a2a",
                 backgroundColor: isActive ? "#161616" : "#1a1a1a",
                 color: isActive ? accentColor : "#888888",
                 fontSize: "12px",
@@ -447,7 +519,9 @@ export function BreakoutTab({ refreshTrigger }: { refreshTrigger?: number }) {
         })}
 
         {lastUpdated && (
-          <span style={{ marginLeft: "auto", color: "#444444", fontSize: "11px" }}>
+          <span
+            style={{ marginLeft: "auto", color: "#444444", fontSize: "11px" }}
+          >
             Updated {lastUpdated}
           </span>
         )}

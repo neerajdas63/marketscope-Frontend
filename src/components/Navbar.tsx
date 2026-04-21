@@ -12,7 +12,11 @@ interface NavbarProps {
   signingOut?: boolean;
 }
 
-export function Navbar({ userEmail, onSignOut, signingOut = false }: NavbarProps) {
+export function Navbar({
+  userEmail,
+  onSignOut,
+  signingOut = false,
+}: NavbarProps) {
   const [time, setTime] = useState("");
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
   const [marketOpen, setMarketOpen] = useState(false);
@@ -20,9 +24,15 @@ export function Navbar({ userEmail, onSignOut, signingOut = false }: NavbarProps
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+      const ist = new Date(
+        now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+      );
       setTime(
-        ist.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        ist.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
       );
       setMarketOpen(isMarketOpen());
     };

@@ -1,10 +1,18 @@
 import type { ReactNode } from "react";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { SetupStage } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 
-const stageStyles: Record<SetupStage, { background: string; border: string; color: string }> = {
+const stageStyles: Record<
+  SetupStage,
+  { background: string; border: string; color: string }
+> = {
   WARMING: {
     background: "rgba(245, 158, 11, 0.14)",
     border: "rgba(245, 158, 11, 0.32)",
@@ -66,7 +74,10 @@ function buildSparkline(points?: number[]) {
   const range = max - min || 1;
 
   const coords = visiblePoints.map((value, index) => {
-    const x = visiblePoints.length === 1 ? width / 2 : (index / (visiblePoints.length - 1)) * width;
+    const x =
+      visiblePoints.length === 1
+        ? width / 2
+        : (index / (visiblePoints.length - 1)) * width;
     const y = height - ((value - min) / range) * height;
     return { x, y, value };
   });
@@ -93,7 +104,11 @@ interface InsightTooltipProps {
   description: string;
 }
 
-export function InsightTooltip({ children, label, description }: InsightTooltipProps) {
+export function InsightTooltip({
+  children,
+  label,
+  description,
+}: InsightTooltipProps) {
   return (
     <TooltipProvider delayDuration={120}>
       <Tooltip>
@@ -178,8 +193,17 @@ export function TrendIndicator({
       : `${trend > 0 ? "+" : ""}${trend.toFixed(1)}`;
 
   return (
-    <div className={cn("inline-flex items-center gap-1.5", compact ? "text-[10px]" : "text-xs", className)}>
-      <span className="font-semibold tabular-nums" style={{ color: tone.color }}>
+    <div
+      className={cn(
+        "inline-flex items-center gap-1.5",
+        compact ? "text-[10px]" : "text-xs",
+        className,
+      )}
+    >
+      <span
+        className="font-semibold tabular-nums"
+        style={{ color: tone.color }}
+      >
         {tone.arrow} {text}
       </span>
       {sparkline && (
@@ -197,7 +221,15 @@ export function TrendIndicator({
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            opacity={acceleration === undefined ? 0.9 : acceleration > 0 ? 1 : acceleration < 0 ? 0.75 : 0.85}
+            opacity={
+              acceleration === undefined
+                ? 0.9
+                : acceleration > 0
+                  ? 1
+                  : acceleration < 0
+                    ? 0.75
+                    : 0.85
+            }
           />
           {sparkline.coords.map(({ x, y }, index) => (
             <circle

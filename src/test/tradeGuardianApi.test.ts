@@ -101,13 +101,33 @@ describe("tradeGuardianApi", () => {
 
   it("derives dashboard counts from trades and alerts when summary fields are missing", () => {
     const trades = normalizeTradeGuardianTradeList([
-      { id: "trade-1", symbol: "RELIANCE", direction: "LONG", status: "pending" },
+      {
+        id: "trade-1",
+        symbol: "RELIANCE",
+        direction: "LONG",
+        status: "pending",
+      },
       { id: "trade-2", symbol: "SBIN", direction: "SHORT", status: "active" },
-      { id: "trade-3", symbol: "TCS", direction: "LONG", status: "closed_manual" },
+      {
+        id: "trade-3",
+        symbol: "TCS",
+        direction: "LONG",
+        status: "closed_manual",
+      },
     ]);
     const alerts = normalizeTradeGuardianAlerts([
-      { id: "alert-1", alert_type: "stop_loss_hit", message: "SL breached", repeat_every_seconds: 60 },
-      { id: "alert-2", alert_type: "target_1_hit", message: "T1 hit", acknowledged_at: "2026-03-23T10:00:00Z" },
+      {
+        id: "alert-1",
+        alert_type: "stop_loss_hit",
+        message: "SL breached",
+        repeat_every_seconds: 60,
+      },
+      {
+        id: "alert-2",
+        alert_type: "target_1_hit",
+        message: "T1 hit",
+        acknowledged_at: "2026-03-23T10:00:00Z",
+      },
     ]);
     const summary = normalizeTradeGuardianDashboard({}, trades, alerts);
 

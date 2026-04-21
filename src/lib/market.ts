@@ -46,7 +46,9 @@ export function getSignal(stock: Stock): { label: string; emoji: string } {
 
 export function isMarketOpen(): boolean {
   const now = new Date();
-  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const ist = new Date(
+    now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+  );
   const day = ist.getDay();
   if (day === 0 || day === 6) return false;
   const hours = ist.getHours();
@@ -63,12 +65,12 @@ export function isMarketOpen(): boolean {
 export function getAdaptiveBgColor(
   pct: number,
   minPct: number,
-  maxPct: number
+  maxPct: number,
 ): string {
   const range = maxPct - minPct || 1;
   const neutral = range * 0.1; // ±10% of range around 0 = neutral zone
 
-  if (Math.abs(pct) <= neutral) return "#424242";  // neutral grey
+  if (Math.abs(pct) <= neutral) return "#424242"; // neutral grey
 
   if (pct > 0) {
     const intensity = Math.min((pct - neutral) / (maxPct - neutral), 1);
@@ -78,7 +80,10 @@ export function getAdaptiveBgColor(
     return `rgb(${r},${g},${b})`;
   }
   // pct < 0
-  const intensity = Math.min((Math.abs(pct) - neutral) / (Math.abs(minPct) - neutral || 1), 1);
+  const intensity = Math.min(
+    (Math.abs(pct) - neutral) / (Math.abs(minPct) - neutral || 1),
+    1,
+  );
   const r = Math.round(100 + intensity * 155);
   const g = Math.round(23 + intensity * 0);
   const b = Math.round(23 + intensity * 0);

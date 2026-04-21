@@ -8,25 +8,22 @@ export type MomentumPulseStrategyGradeFilter = "ALL" | MomentumPulseStrategyGrad
 
 export type MomentumPulseStrategyLimit = 20 | 40 | 60 | 100;
 
-export type MomentumPulseStrategyMode = "live" | "historical";
+export type MomentumPulseStrategyMode = "live";
+
+export type KnownMomentumPulseStrategyEntryState =
+  | "ENTER_NOW"
+  | "ENTER_ON_RETEST"
+  | "WAIT_CONFIRMATION"
+  | "AVOID_CHASE"
+  | "CANCEL_SETUP";
+
+export type KnownMomentumPulseStrategyChaseRisk = "LOW" | "MEDIUM" | "HIGH";
 
 export interface MomentumPulseStrategySummaryCommon {
   avg_score: number;
   avg_vwap_dist: number;
   avg_volume_ratio: number;
   avg_range_ratio: number;
-}
-
-export interface MomentumPulseStrategyPerformanceSummary {
-  trades: number;
-  wins: number;
-  losses: number;
-  win_rate: number;
-  target_1_hits: number;
-  target_2_hits: number;
-  stop_loss_hits: number;
-  avg_pnl_pct: number;
-  avg_rr: number;
 }
 
 export interface MomentumPulseStrategySummary {
@@ -37,8 +34,12 @@ export interface MomentumPulseStrategySummary {
   no_trade_count: number;
   long_count: number;
   short_count: number;
+  enter_now_count: number;
+  enter_on_retest_count: number;
+  avoid_count: number;
   avg_volume_ratio: number;
   avg_range_ratio: number;
+  avg_execution_rank: number;
   avg_abs_change_pct: number;
   a_plus_common: MomentumPulseStrategySummaryCommon;
   a_common: MomentumPulseStrategySummaryCommon;
@@ -50,13 +51,20 @@ export interface MomentumPulseStrategyRow {
   scan_time: string;
   trade_side: MomentumPulseStrategyTradeSide;
   grade: MomentumPulseStrategyGrade;
+  entry_state: KnownMomentumPulseStrategyEntryState | string;
+  execution_rank: number | null;
   eligible_time_window: boolean;
   score: number;
+  momentum_pulse_score: number | null;
+  grade_stability_score: number | null;
+  chase_risk: KnownMomentumPulseStrategyChaseRisk | string;
+  retest_ok: boolean | null;
   price_at_scan: number | null;
   prev_close: number | null;
   vwap: number | null;
   or_high: number | null;
   or_low: number | null;
+  or_stretch_pct: number | null;
   vwap_distance_pct: number | null;
   volume_ratio: number | null;
   range_ratio: number | null;
@@ -67,30 +75,31 @@ export interface MomentumPulseStrategyRow {
   rr_t1: number | null;
   rr_t2: number | null;
   reasons: string[];
+  major_risks: string[];
+  grade_history: string[];
+  warning_flags: string[];
   entry_notes: string[];
   stop_notes: string[];
   exit_notes: string[];
-  historical_outcome: string;
-  historical_exit_time: string;
-  historical_exit_price: number | null;
-  historical_pnl_pct: number | null;
-  historical_rr_realized: number | null;
-  historical_outcome_reason: string;
+}
+
+export interface MomentumPulseStrategyBestStocks {
+  overall_best: MomentumPulseStrategyRow[];
+  best_longs: MomentumPulseStrategyRow[];
+  best_shorts: MomentumPulseStrategyRow[];
+  avoid_list: MomentumPulseStrategyRow[];
 }
 
 export interface MomentumPulseStrategyQuery {
   limit: MomentumPulseStrategyLimit;
   direction: MomentumPulseStrategyDirectionFilter;
   grade: MomentumPulseStrategyGradeFilter;
-  includeVeryWeak: boolean;
-  date?: string;
 }
 
 export interface MomentumPulseStrategyResponse {
   feature: string;
   feature_key: string;
   mode: MomentumPulseStrategyMode | string;
-  requested_date: string;
   status: string;
   message: string;
   last_updated: string;
@@ -103,8 +112,7 @@ export interface MomentumPulseStrategyResponse {
   total_candidates: number;
   summary: MomentumPulseStrategySummary;
   overall_summary: MomentumPulseStrategySummary;
-  performance_summary: MomentumPulseStrategyPerformanceSummary | null;
-  overall_performance_summary: MomentumPulseStrategyPerformanceSummary | null;
+  best_stocks: MomentumPulseStrategyBestStocks;
   available_directions: MomentumPulseStrategyDirectionFilter[];
   available_grades: MomentumPulseStrategyGradeFilter[];
 }
@@ -118,8 +126,12 @@ export function createEmptyMomentumPulseStrategySummary(): MomentumPulseStrategy
     no_trade_count: 0,
     long_count: 0,
     short_count: 0,
+    enter_now_count: 0,
+    enter_on_retest_count: 0,
+    avoid_count: 0,
     avg_volume_ratio: 0,
     avg_range_ratio: 0,
+    avg_execution_rank: 0,
     avg_abs_change_pct: 0,
     a_plus_common: {
       avg_score: 0,
@@ -136,14 +148,22 @@ export function createEmptyMomentumPulseStrategySummary(): MomentumPulseStrategy
   };
 }
 
+export function createEmptyMomentumPulseStrategyBestStocks(): MomentumPulseStrategyBestStocks {
+  return {
+    overall_best: [],
+    best_longs: [],
+    best_shorts: [],
+    avoid_list: [],
+  };
+}
+
 export function createEmptyMomentumPulseStrategyResponse(
   query: MomentumPulseStrategyQuery,
 ): MomentumPulseStrategyResponse {
   return {
     feature: "Momentum Pulse Strategy",
     feature_key: "momentum_pulse_strategy",
-    mode: query.date ? "historical" : "live",
-    requested_date: query.date ?? "",
+    mode: "live",
     status: "loading",
     message: "",
     last_updated: "",
@@ -156,8 +176,7 @@ export function createEmptyMomentumPulseStrategyResponse(
     total_candidates: 0,
     summary: createEmptyMomentumPulseStrategySummary(),
     overall_summary: createEmptyMomentumPulseStrategySummary(),
-    performance_summary: null,
-    overall_performance_summary: null,
+    best_stocks: createEmptyMomentumPulseStrategyBestStocks(),
     available_directions: ["ALL", "LONG", "SHORT"],
     available_grades: ["ALL", "A_PLUS", "A", "FAILED_OR_CHOP", "NO_TRADE"],
   };

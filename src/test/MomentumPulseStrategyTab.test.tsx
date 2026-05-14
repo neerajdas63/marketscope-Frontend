@@ -45,9 +45,12 @@ function createLiveResponse(
     enter_now_count: 1,
     enter_on_retest_count: 1,
     avoid_count: 0,
+    fresh_signal_count: 1,
+    stale_signal_count: 1,
     avg_volume_ratio: 1.73,
     avg_range_ratio: 1.29,
     avg_execution_rank: 3.5,
+    avg_signal_age_minutes: 7,
     avg_abs_change_pct: 1.94,
     a_plus_common: {
       avg_score: 15.8,
@@ -73,9 +76,12 @@ function createLiveResponse(
     enter_now_count: 3,
     enter_on_retest_count: 4,
     avoid_count: 11,
+    fresh_signal_count: 5,
+    stale_signal_count: 6,
     avg_volume_ratio: 1.18,
     avg_range_ratio: 1.07,
     avg_execution_rank: 8.4,
+    avg_signal_age_minutes: 11,
     avg_abs_change_pct: 2.11,
     a_plus_common: {
       avg_score: 14.7,
@@ -95,6 +101,12 @@ function createLiveResponse(
       symbol: "RELIANCE",
       trade_date: "2026-04-21",
       scan_time: "09:42",
+      signal_bar_time: "09:40",
+      refresh_time: "10:05 IST",
+      market_data_last_updated: "10:04 IST",
+      signal_age_minutes: 4,
+      signal_freshness: "FRESH",
+      signal_is_fresh: true,
       trade_side: "LONG",
       grade: "A_PLUS",
       entry_state: "ENTER_NOW",
@@ -122,6 +134,7 @@ function createLiveResponse(
       rr_t2: 3.13,
       reasons: ["Opening range breakout", "Price VWAP ke upar sustain"],
       major_risks: ["momentum_decay_watch"],
+      reversal_flags: [],
       grade_history: ["A", "A_PLUS"],
       warning_flags: ["low_volume_confirmation_watch"],
       entry_notes: ["Direct entry: breakout candle close above OR high"],
@@ -132,6 +145,12 @@ function createLiveResponse(
       symbol: "TCS",
       trade_date: "2026-04-21",
       scan_time: "09:45",
+      signal_bar_time: "09:35",
+      refresh_time: "10:05 IST",
+      market_data_last_updated: "10:04 IST",
+      signal_age_minutes: 10,
+      signal_freshness: "STALE",
+      signal_is_fresh: false,
       trade_side: "SHORT",
       grade: "A",
       entry_state: "ENTER_ON_RETEST",
@@ -159,6 +178,7 @@ function createLiveResponse(
       rr_t2: 2.34,
       reasons: ["Opening range breakdown", "Selling pressure broad tha"],
       major_risks: ["retest_failure_risk"],
+      reversal_flags: ["bearish_reversal_watch"],
       grade_history: ["FAILED_OR_CHOP", "A"],
       warning_flags: ["one_bar_spike"],
       entry_notes: ["Enter on clean retest reject"],
@@ -226,6 +246,8 @@ describe("MomentumPulseStrategyTab", () => {
     expect(screen.getByText("Avoid List")).toBeInTheDocument();
     expect(screen.getAllByText("Enter Now").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Avg Execution Rank").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Signal Bar Time").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Stale").length).toBeGreaterThan(0);
 
     const relianceTargets = screen.getAllByText("RELIANCE");
     fireEvent.click(relianceTargets[relianceTargets.length - 1] as HTMLElement);
@@ -233,6 +255,7 @@ describe("MomentumPulseStrategyTab", () => {
     await waitFor(() => {
       expect(screen.getByText("Signal Snapshot")).toBeInTheDocument();
       expect(screen.getByText("Major Risks")).toBeInTheDocument();
+      expect(screen.getByText("Reversal Flags")).toBeInTheDocument();
       expect(screen.getByText("Grade History")).toBeInTheDocument();
       expect(screen.getByText("Warning Flags")).toBeInTheDocument();
     });

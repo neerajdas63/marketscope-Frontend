@@ -176,6 +176,14 @@ function formatRatio(value: number | null | undefined, digits = 2) {
   return `${value.toFixed(digits)}x`;
 }
 
+function formatAgeMinutes(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "--";
+  }
+
+  return `${value.toFixed(0)}m`;
+}
+
 function formatLabel(value: string) {
   return value
     .split("_")
@@ -324,6 +332,47 @@ function getRetestTone(retestOk: boolean | null) {
   };
 }
 
+function getSignalFreshnessTone(signalFreshness: string) {
+  const normalized = signalFreshness.trim().toUpperCase();
+
+  if (normalized === "FRESH") {
+    return {
+      bg: "rgba(34, 197, 94, 0.16)",
+      border: "rgba(34, 197, 94, 0.28)",
+      color: "#4ADE80",
+      label: "Fresh",
+    };
+  }
+
+  if (normalized === "STALE") {
+    return {
+      bg: "rgba(239, 68, 68, 0.14)",
+      border: "rgba(239, 68, 68, 0.28)",
+      color: "#FCA5A5",
+      label: "Stale",
+    };
+  }
+
+  return {
+    bg: "rgba(148, 163, 184, 0.12)",
+    border: "rgba(148, 163, 184, 0.24)",
+    color: "#CBD5E1",
+    label: "Unknown",
+  };
+}
+
+function getSignalDisplayTime(row: MomentumPulseStrategyRow) {
+  return row.signal_bar_time || row.scan_time || "--";
+}
+
+function getRowMarketDataTime(row: MomentumPulseStrategyRow) {
+  return row.market_data_last_updated || row.refresh_time || "--";
+}
+
+function isStaleSignal(row: MomentumPulseStrategyRow) {
+  return row.signal_freshness.trim().toUpperCase() === "STALE";
+}
+
 function ToneBadge({
   label,
   background,
@@ -414,6 +463,22 @@ function ChaseRiskBadge({ chaseRisk }: { chaseRisk: string }) {
 
 function RetestBadge({ retestOk }: { retestOk: boolean | null }) {
   const tone = getRetestTone(retestOk);
+  return (
+    <ToneBadge
+      label={tone.label}
+      background={tone.bg}
+      border={tone.border}
+      color={tone.color}
+    />
+  );
+}
+
+function SignalFreshnessBadge({
+  signalFreshness,
+}: {
+  signalFreshness: string;
+}) {
+  const tone = getSignalFreshnessTone(signalFreshness);
   return (
     <ToneBadge
       label={tone.label}
@@ -558,6 +623,18 @@ function TagGroup({
   );
 }
 
+function FreshnessCallout({ row }: { row: MomentumPulseStrategyRow }) {
+  if (!isStaleSignal(row)) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-2xl border border-red-500/25 bg-red-950/25 px-4 py-3 text-sm text-red-200">
+      Backend marked this signal as stale. Treat it as not actionable until a fresh signal comes in.
+    </div>
+  );
+}
+
 function TradePlanPanel({ row }: { row: MomentumPulseStrategyRow }) {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
@@ -585,8 +662,17 @@ function ExpandedStrategyDetails({ row }: { row: MomentumPulseStrategyRow }) {
         <SideBadge side={row.trade_side} />
         <GradeBadge grade={row.grade} />
         <EntryStateBadge entryState={row.entry_state} />
+        <SignalFreshnessBadge signalFreshness={row.signal_freshness} />
         <ChaseRiskBadge chaseRisk={row.chase_risk} />
         <RetestBadge retestOk={row.retest_ok} />
+        {isStaleSignal(row) ? (
+          <ToneBadge
+            label="Not Actionable"
+            background="rgba(239, 68, 68, 0.14)"
+            border="rgba(239, 68, 68, 0.28)"
+            color="#FCA5A5"
+          />
+        ) : null}
         {row.trade_date ? (
           <ToneBadge
             label={`Trade Date ${row.trade_date}`}
@@ -597,11 +683,33 @@ function ExpandedStrategyDetails({ row }: { row: MomentumPulseStrategyRow }) {
         ) : null}
       </div>
 
+      <FreshnessCallout row={row} />
+
       <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
         <div className="text-[10px] uppercase tracking-[0.18em] text-cyan-200/70">
           Signal Snapshot
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
+          <DetailField
+            label="Signal Bar Time"
+            value={getSignalDisplayTime(row)}
+          />
+          <DetailField
+            label="Signal Age"
+            value={formatAgeMinutes(row.signal_age_minutes)}
+          />
+          <DetailField
+            label="Refresh Time"
+            value={row.refresh_time || "--"}
+          />
+          <DetailField
+            label="Market Data Updated"
+            value={getRowMarketDataTime(row)}
+          />
+          <DetailField
+            label="Signal Freshness"
+            value={formatLabel(row.signal_freshness || "UNKNOWN")}
+          />
           <DetailField
             label="Execution Rank"
             value={formatNumber(row.execution_rank, 1)}
@@ -654,6 +762,12 @@ function ExpandedStrategyDetails({ row }: { row: MomentumPulseStrategyRow }) {
         emptyText="No major risks flagged"
       />
       <TagGroup
+        title="Reversal Flags"
+        items={row.reversal_flags}
+        tone="warning"
+        emptyText="No reversal flags"
+      />
+      <TagGroup
         title="Grade History"
         items={row.grade_history}
         tone="neutral"
@@ -677,7 +791,11 @@ function ExpandedStrategyDetails({ row }: { row: MomentumPulseStrategyRow }) {
 
 function StrategyPreview({ row }: { row: MomentumPulseStrategyRow }) {
   const preview =
-    row.reasons[0] ?? row.major_risks[0] ?? "View strategy details";
+    row.reasons[0] ??
+    row.reversal_flags[0] ??
+    row.major_risks[0] ??
+    "View strategy details";
+
   return <div className="mt-1 text-xs text-slate-500">{preview}</div>;
 }
 
@@ -692,21 +810,45 @@ function DesktopStrategyRow({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const stale = isStaleSignal(row);
+
   return (
     <>
       <TableRow
-        className="cursor-pointer border-b border-slate-800/80 bg-transparent hover:bg-slate-900/70"
+        className={`cursor-pointer border-b border-slate-800/80 ${
+          stale
+            ? "bg-red-950/10 hover:bg-red-950/20"
+            : "bg-transparent hover:bg-slate-900/70"
+        }`}
         onClick={onToggle}
       >
         <TableCell className="py-3 text-slate-400">{index + 1}</TableCell>
         <TableCell className="py-3">
           <div className="flex flex-col">
-            <span className="font-semibold text-slate-100">{row.symbol}</span>
+            <span className={`font-semibold ${stale ? "text-slate-200" : "text-slate-100"}`}>
+              {row.symbol}
+            </span>
             <StrategyPreview row={row} />
           </div>
         </TableCell>
         <TableCell className="py-3 text-slate-300">
-          {row.scan_time || "--"}
+          {getSignalDisplayTime(row)}
+        </TableCell>
+        <TableCell className="py-3 text-slate-300">
+          {formatAgeMinutes(row.signal_age_minutes)}
+        </TableCell>
+        <TableCell className="py-3">
+          <div className="flex flex-wrap gap-1.5">
+            <SignalFreshnessBadge signalFreshness={row.signal_freshness} />
+            {stale ? (
+              <ToneBadge
+                label="Not Actionable"
+                background="rgba(239, 68, 68, 0.14)"
+                border="rgba(239, 68, 68, 0.28)"
+                color="#FCA5A5"
+              />
+            ) : null}
+          </div>
         </TableCell>
         <TableCell className="py-3">
           <SideBadge side={row.trade_side} />
@@ -765,7 +907,7 @@ function DesktopStrategyRow({
       </TableRow>
       {isOpen ? (
         <tr className="border-b border-slate-800/80">
-          <td colSpan={21} className="bg-slate-950/45 p-3">
+          <td colSpan={23} className="bg-slate-950/45 p-3">
             <ExpandedStrategyDetails row={row} />
           </td>
         </tr>
@@ -774,13 +916,7 @@ function DesktopStrategyRow({
   );
 }
 
-function MobileSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+function MobileSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-2xl border border-slate-800/80 bg-slate-950/45 p-4">
       <div className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
@@ -791,18 +927,19 @@ function MobileSection({
   );
 }
 
-function MobileStrategyCard({
-  row,
-  index,
-}: {
-  row: MomentumPulseStrategyRow;
-  index: number;
-}) {
+function MobileStrategyCard({ row, index }: { row: MomentumPulseStrategyRow; index: number }) {
   const [open, setOpen] = useState(false);
+  const stale = isStaleSignal(row);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+      <div
+        className={`rounded-2xl border p-4 ${
+          stale
+            ? "border-red-900/70 bg-red-950/15"
+            : "border-slate-800 bg-slate-950/70"
+        }`}
+      >
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
@@ -812,7 +949,7 @@ function MobileStrategyCard({
               {row.symbol}
             </div>
             <div className="mt-1 text-sm text-slate-400">
-              {row.scan_time || "--"}
+              Signal Bar Time {getSignalDisplayTime(row)}
             </div>
             <StrategyPreview row={row} />
           </div>
@@ -823,33 +960,33 @@ function MobileStrategyCard({
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
+          <SignalFreshnessBadge signalFreshness={row.signal_freshness} />
           <EntryStateBadge entryState={row.entry_state} />
           <ChaseRiskBadge chaseRisk={row.chase_risk} />
           <RetestBadge retestOk={row.retest_ok} />
+          <ToneBadge
+            label={`Age ${formatAgeMinutes(row.signal_age_minutes)}`}
+            background="rgba(15, 23, 42, 0.9)"
+            border="rgba(71, 85, 105, 0.7)"
+            color="#CBD5E1"
+          />
+          {stale ? (
+            <ToneBadge
+              label="Not Actionable"
+              background="rgba(239, 68, 68, 0.14)"
+              border="rgba(239, 68, 68, 0.28)"
+              color="#FCA5A5"
+            />
+          ) : null}
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <DetailField
-            label="Execution Rank"
-            value={formatNumber(row.execution_rank, 1)}
-          />
+          <DetailField label="Execution Rank" value={formatNumber(row.execution_rank, 1)} />
           <DetailField label="Score" value={formatNumber(row.score, 1)} />
-          <DetailField
-            label="Price"
-            value={formatCurrency(row.price_at_scan)}
-          />
-          <DetailField
-            label="VWAP Dist %"
-            value={formatPercent(row.vwap_distance_pct)}
-          />
-          <DetailField
-            label="Volume Ratio"
-            value={formatRatio(row.volume_ratio)}
-          />
-          <DetailField
-            label="Range Ratio"
-            value={formatRatio(row.range_ratio)}
-          />
+          <DetailField label="Price" value={formatCurrency(row.price_at_scan)} />
+          <DetailField label="VWAP Dist %" value={formatPercent(row.vwap_distance_pct)} />
+          <DetailField label="Volume Ratio" value={formatRatio(row.volume_ratio)} />
+          <DetailField label="Range Ratio" value={formatRatio(row.range_ratio)} />
         </div>
 
         <CollapsibleTrigger asChild>
@@ -864,49 +1001,23 @@ function MobileStrategyCard({
         <CollapsibleContent>
           <div className="mt-4 space-y-4">
             <MobileSection title="Signal">
-              <div className="grid grid-cols-2 gap-3">
-                <DetailField
-                  label="Entry State"
-                  value={row.entry_state ? formatLabel(row.entry_state) : "--"}
-                />
-                <DetailField
-                  label="Grade Stability"
-                  value={formatNumber(row.grade_stability_score, 2)}
-                />
-                <DetailField
-                  label="Pulse Score"
-                  value={formatNumber(row.momentum_pulse_score, 1)}
-                />
-                <DetailField
-                  label="OR Stretch %"
-                  value={formatPercent(row.or_stretch_pct)}
-                />
+              <FreshnessCallout row={row} />
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <DetailField label="Signal Bar Time" value={getSignalDisplayTime(row)} />
+                <DetailField label="Signal Age" value={formatAgeMinutes(row.signal_age_minutes)} />
+                <DetailField label="Refresh Time" value={row.refresh_time || "--"} />
+                <DetailField label="Market Data Updated" value={getRowMarketDataTime(row)} />
+                <DetailField label="Entry State" value={row.entry_state ? formatLabel(row.entry_state) : "--"} />
+                <DetailField label="Grade Stability" value={formatNumber(row.grade_stability_score, 2)} />
+                <DetailField label="Pulse Score" value={formatNumber(row.momentum_pulse_score, 1)} />
+                <DetailField label="OR Stretch %" value={formatPercent(row.or_stretch_pct)} />
               </div>
               <div className="mt-4 space-y-4">
-                <TagGroup
-                  title="Reasons"
-                  items={row.reasons}
-                  tone="neutral"
-                  emptyText="No reasons provided"
-                />
-                <TagGroup
-                  title="Major Risks"
-                  items={row.major_risks}
-                  tone="warning"
-                  emptyText="No major risks flagged"
-                />
-                <TagGroup
-                  title="Grade History"
-                  items={row.grade_history}
-                  tone="neutral"
-                  emptyText="No grade history provided"
-                />
-                <TagGroup
-                  title="Warning Flags"
-                  items={row.warning_flags}
-                  tone="warning"
-                  emptyText="No warning flags"
-                />
+                <TagGroup title="Reasons" items={row.reasons} tone="neutral" emptyText="No reasons provided" />
+                <TagGroup title="Major Risks" items={row.major_risks} tone="warning" emptyText="No major risks flagged" />
+                <TagGroup title="Reversal Flags" items={row.reversal_flags} tone="warning" emptyText="No reversal flags" />
+                <TagGroup title="Grade History" items={row.grade_history} tone="neutral" emptyText="No grade history provided" />
+                <TagGroup title="Warning Flags" items={row.warning_flags} tone="warning" emptyText="No warning flags" />
               </div>
             </MobileSection>
 
@@ -931,8 +1042,8 @@ function MobileStrategyCard({
 function StrategySkeleton() {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 12 }).map((_, index) => (
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+        {Array.from({ length: 15 }).map((_, index) => (
           <Skeleton
             key={`summary-${index}`}
             className="h-[108px] rounded-2xl bg-slate-800/80"
@@ -943,11 +1054,11 @@ function StrategySkeleton() {
         {Array.from({ length: 4 }).map((_, index) => (
           <Skeleton
             key={`bucket-${index}`}
-            className="h-[220px] rounded-2xl bg-slate-800/80"
+            className="h-[260px] rounded-2xl bg-slate-800/80"
           />
         ))}
       </div>
-      <Skeleton className="h-[560px] rounded-2xl bg-slate-800/80" />
+      <Skeleton className="h-[620px] rounded-2xl bg-slate-800/80" />
     </div>
   );
 }
@@ -967,6 +1078,7 @@ function EmptyState({
       <div className="max-w-2xl text-sm text-slate-400">{message}</div>
       <div className="max-w-2xl text-sm text-slate-500">
         Direction: {query.direction}, Grade: {formatGradeLabel(query.grade)},
+        {" "}
         Limit: {query.limit}
       </div>
     </div>
@@ -975,10 +1087,20 @@ function EmptyState({
 
 function BestStockCard({ row }: { row: MomentumPulseStrategyRow }) {
   const preview =
-    row.reasons[0] ?? row.major_risks[0] ?? "No reason preview available";
+    row.reasons[0] ??
+    row.reversal_flags[0] ??
+    row.major_risks[0] ??
+    "No reason preview available";
+  const stale = isStaleSignal(row);
 
   return (
-    <div className="rounded-2xl border border-slate-800/80 bg-slate-950/50 p-4">
+    <div
+      className={`rounded-2xl border p-4 ${
+        stale
+          ? "border-red-900/70 bg-red-950/15"
+          : "border-slate-800/80 bg-slate-950/50"
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-base font-extrabold text-slate-100">
@@ -993,25 +1115,27 @@ function BestStockCard({ row }: { row: MomentumPulseStrategyRow }) {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
+        <SignalFreshnessBadge signalFreshness={row.signal_freshness} />
         <EntryStateBadge entryState={row.entry_state} />
-        <ToneBadge
-          label={`Exec ${formatNumber(row.execution_rank, 1)}`}
-          background="rgba(15, 23, 42, 0.9)"
-          border="rgba(71, 85, 105, 0.7)"
-          color="#CBD5E1"
-        />
+        {stale ? (
+          <ToneBadge
+            label="Not Actionable"
+            background="rgba(239, 68, 68, 0.14)"
+            border="rgba(239, 68, 68, 0.28)"
+            color="#FCA5A5"
+          />
+        ) : null}
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
+        <DetailField label="Signal Bar Time" value={getSignalDisplayTime(row)} />
+        <DetailField label="Signal Age" value={formatAgeMinutes(row.signal_age_minutes)} />
+        <DetailField label="Execution Rank" value={formatNumber(row.execution_rank, 1)} />
         <DetailField label="Price" value={formatCurrency(row.price_at_scan)} />
         <DetailField label="Entry" value={formatCurrency(row.entry_price)} />
         <DetailField label="Stop" value={formatCurrency(row.stop_loss)} />
         <DetailField label="Target 1" value={formatCurrency(row.target_1)} />
         <DetailField label="Target 2" value={formatCurrency(row.target_2)} />
-        <DetailField
-          label="VWAP Dist %"
-          value={formatPercent(row.vwap_distance_pct)}
-        />
       </div>
 
       {row.major_risks.length > 0 ? (
@@ -1064,9 +1188,16 @@ function PassiveState({ data }: { data: MomentumPulseStrategyResponse }) {
         Live strategy view is unavailable right now
       </div>
       <div className="mt-2 text-sm text-slate-400">
-        This tab only renders lightweight live payloads from{" "}
-        <code>/momentum-pulse/strategy</code>. The backend returned mode{" "}
-        <span className="font-semibold text-slate-200">{mode}</span> with status{" "}
+        This tab only renders lightweight live payloads from
+        {" "}
+        <code>/momentum-pulse/strategy</code>.
+        {" "}
+        The backend returned mode
+        {" "}
+        <span className="font-semibold text-slate-200">{mode}</span>
+        {" "}
+        with status
+        {" "}
         <span className="font-semibold text-slate-200">{status}</span>.
       </div>
     </div>
@@ -1173,13 +1304,6 @@ export function MomentumPulseStrategyTab() {
   const overallSummary: MomentumPulseStrategySummary = data.overall_summary;
   const bestStocks: MomentumPulseStrategyBestStocks = data.best_stocks;
 
-  const safeOverallBest = bestStocks.overall_best.filter(
-    (row) =>
-      ["A_PLUS", "A"].includes(row.grade) &&
-      ["LONG", "SHORT"].includes(row.trade_side) &&
-      !["AVOID_CHASE", "CANCEL_SETUP"].includes(row.entry_state),
-  );
-
   return (
     <div
       style={{
@@ -1212,7 +1336,9 @@ export function MomentumPulseStrategyTab() {
               <div className="mt-2 max-w-3xl text-sm text-slate-400">
                 Live strategy feed from <code>/momentum-pulse/strategy</code>.
                 Frontend sirf backend values render karta hai, strategy logic
-                recompute nahi karta.
+                recompute nahi karta. Valid signal window is 09:35 to before
+                {" "}
+                12:00.
               </div>
             </div>
 
@@ -1234,7 +1360,7 @@ export function MomentumPulseStrategyTab() {
               color="#CBD5E1"
             />
             <ToneBadge
-              label={`Market Data ${data.market_data_last_updated || "--"}`}
+              label={`Market Data Updated ${data.market_data_last_updated || "--"}`}
               background="rgba(15, 23, 42, 0.8)"
               border="rgba(71, 85, 105, 0.7)"
               color="#CBD5E1"
@@ -1345,7 +1471,7 @@ export function MomentumPulseStrategyTab() {
           </div>
         ) : (
           <>
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
               <SummaryCard
                 label="A+"
                 value={String(summary.a_plus_count)}
@@ -1401,6 +1527,24 @@ export function MomentumPulseStrategyTab() {
                 tone="negative"
               />
               <SummaryCard
+                label="Fresh Signals"
+                value={String(summary.fresh_signal_count)}
+                detail="Backend-marked fresh signals"
+                tone="positive"
+              />
+              <SummaryCard
+                label="Stale Signals"
+                value={String(summary.stale_signal_count)}
+                detail="Backend-marked stale signals"
+                tone="warning"
+              />
+              <SummaryCard
+                label="Avg Signal Age"
+                value={formatAgeMinutes(summary.avg_signal_age_minutes)}
+                detail="Filtered set average"
+                tone="neutral"
+              />
+              <SummaryCard
                 label="Avg Volume Ratio"
                 value={formatRatio(summary.avg_volume_ratio)}
                 detail="Filtered set average"
@@ -1415,7 +1559,7 @@ export function MomentumPulseStrategyTab() {
               <SummaryCard
                 label="Avg Execution Rank"
                 value={formatNumber(summary.avg_execution_rank, 1)}
-                detail="Higher rank is stronger"
+                detail="Backend average"
                 tone="neutral"
               />
             </div>
@@ -1423,7 +1567,7 @@ export function MomentumPulseStrategyTab() {
             <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
               <BestStockSection
                 title="Overall Best"
-                rows={safeOverallBest}
+                rows={bestStocks.overall_best}
                 emptyText="No overall best picks returned."
               />
               <BestStockSection
@@ -1448,38 +1592,14 @@ export function MomentumPulseStrategyTab() {
                 Overall Summary
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-8">
-                <MiniStat
-                  label="Candidates"
-                  value={String(data.total_candidates)}
-                />
-                <MiniStat
-                  label="Overall A+"
-                  value={String(overallSummary.a_plus_count)}
-                />
-                <MiniStat
-                  label="Overall A"
-                  value={String(overallSummary.a_count)}
-                />
-                <MiniStat
-                  label="Overall Long"
-                  value={String(overallSummary.long_count)}
-                />
-                <MiniStat
-                  label="Overall Short"
-                  value={String(overallSummary.short_count)}
-                />
-                <MiniStat
-                  label="Overall Enter Now"
-                  value={String(overallSummary.enter_now_count)}
-                />
-                <MiniStat
-                  label="Overall Retest"
-                  value={String(overallSummary.enter_on_retest_count)}
-                />
-                <MiniStat
-                  label="Avg Execution Rank"
-                  value={formatNumber(overallSummary.avg_execution_rank, 1)}
-                />
+                <MiniStat label="Candidates" value={String(data.total_candidates)} />
+                <MiniStat label="Overall A+" value={String(overallSummary.a_plus_count)} />
+                <MiniStat label="Overall A" value={String(overallSummary.a_count)} />
+                <MiniStat label="Fresh Signals" value={String(overallSummary.fresh_signal_count)} />
+                <MiniStat label="Stale Signals" value={String(overallSummary.stale_signal_count)} />
+                <MiniStat label="Avg Signal Age" value={formatAgeMinutes(overallSummary.avg_signal_age_minutes)} />
+                <MiniStat label="Overall Enter Now" value={String(overallSummary.enter_now_count)} />
+                <MiniStat label="Avg Execution Rank" value={formatNumber(overallSummary.avg_execution_rank, 1)} />
               </div>
             </div>
 
@@ -1493,7 +1613,7 @@ export function MomentumPulseStrategyTab() {
                 <div className="grid grid-cols-1 gap-3">
                   {data.rows.map((row, index) => (
                     <MobileStrategyCard
-                      key={`${row.symbol}-${row.scan_time}-${index}`}
+                      key={`${row.symbol}-${getSignalDisplayTime(row)}-${index}`}
                       row={row}
                       index={index}
                     />
@@ -1501,7 +1621,7 @@ export function MomentumPulseStrategyTab() {
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60">
-                  <Table className="min-w-[2360px]">
+                  <Table className="min-w-[2640px]">
                     <TableHeader>
                       <TableRow className="border-b border-slate-800/80 hover:bg-transparent">
                         <TableHead className="text-[11px] uppercase tracking-wide">
@@ -1511,7 +1631,13 @@ export function MomentumPulseStrategyTab() {
                           Symbol
                         </TableHead>
                         <TableHead className="text-[11px] uppercase tracking-wide">
-                          Time
+                          Signal Bar Time
+                        </TableHead>
+                        <TableHead className="text-[11px] uppercase tracking-wide">
+                          Signal Age
+                        </TableHead>
+                        <TableHead className="text-[11px] uppercase tracking-wide">
+                          Freshness
                         </TableHead>
                         <TableHead className="text-[11px] uppercase tracking-wide">
                           Side
@@ -1571,7 +1697,7 @@ export function MomentumPulseStrategyTab() {
                     </TableHeader>
                     <TableBody>
                       {data.rows.map((row, index) => {
-                        const rowKey = `${row.symbol}-${row.scan_time}-${index}`;
+                        const rowKey = `${row.symbol}-${getSignalDisplayTime(row)}-${index}`;
 
                         return (
                           <DesktopStrategyRow

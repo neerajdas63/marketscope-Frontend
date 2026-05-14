@@ -25,6 +25,11 @@ export type KnownMomentumPulseStrategyEntryState =
 
 export type KnownMomentumPulseStrategyChaseRisk = "LOW" | "MEDIUM" | "HIGH";
 
+export type KnownMomentumPulseStrategySignalFreshness =
+  | "FRESH"
+  | "STALE"
+  | "UNKNOWN";
+
 export interface MomentumPulseStrategySummaryCommon {
   avg_score: number;
   avg_vwap_dist: number;
@@ -43,9 +48,12 @@ export interface MomentumPulseStrategySummary {
   enter_now_count: number;
   enter_on_retest_count: number;
   avoid_count: number;
+  fresh_signal_count: number;
+  stale_signal_count: number;
   avg_volume_ratio: number;
   avg_range_ratio: number;
   avg_execution_rank: number;
+  avg_signal_age_minutes: number;
   avg_abs_change_pct: number;
   a_plus_common: MomentumPulseStrategySummaryCommon;
   a_common: MomentumPulseStrategySummaryCommon;
@@ -55,6 +63,12 @@ export interface MomentumPulseStrategyRow {
   symbol: string;
   trade_date: string;
   scan_time: string;
+  signal_bar_time: string;
+  refresh_time: string;
+  market_data_last_updated: string;
+  signal_age_minutes: number | null;
+  signal_freshness: KnownMomentumPulseStrategySignalFreshness | string;
+  signal_is_fresh: boolean | null;
   trade_side: MomentumPulseStrategyTradeSide;
   grade: MomentumPulseStrategyGrade;
   entry_state: KnownMomentumPulseStrategyEntryState | string;
@@ -82,6 +96,7 @@ export interface MomentumPulseStrategyRow {
   rr_t2: number | null;
   reasons: string[];
   major_risks: string[];
+  reversal_flags: string[];
   grade_history: string[];
   warning_flags: string[];
   entry_notes: string[];
@@ -135,9 +150,12 @@ export function createEmptyMomentumPulseStrategySummary(): MomentumPulseStrategy
     enter_now_count: 0,
     enter_on_retest_count: 0,
     avoid_count: 0,
+    fresh_signal_count: 0,
+    stale_signal_count: 0,
     avg_volume_ratio: 0,
     avg_range_ratio: 0,
     avg_execution_rank: 0,
+    avg_signal_age_minutes: 0,
     avg_abs_change_pct: 0,
     a_plus_common: {
       avg_score: 0,

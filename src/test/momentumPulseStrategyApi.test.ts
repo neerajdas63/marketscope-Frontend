@@ -38,9 +38,12 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
           enter_now_count: 1,
           enter_on_retest_count: 1,
           avoid_count: 0,
+          fresh_signal_count: 1,
+          stale_signal_count: 1,
           avg_volume_ratio: 1.73,
           avg_range_ratio: 1.29,
           avg_execution_rank: 3.5,
+          avg_signal_age_minutes: 7,
           avg_abs_change_pct: 1.94,
           a_plus_common: {
             avg_score: 15.8,
@@ -66,9 +69,12 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
           enter_now_count: 3,
           enter_on_retest_count: 4,
           avoid_count: 11,
+          fresh_signal_count: 5,
+          stale_signal_count: 6,
           avg_volume_ratio: 1.18,
           avg_range_ratio: 1.07,
           avg_execution_rank: 8.4,
+          avg_signal_age_minutes: 11,
           avg_abs_change_pct: 2.11,
           a_plus_common: {
             avg_score: 14.7,
@@ -87,6 +93,9 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
           overall_best: [
             {
               symbol: "RELIANCE",
+              signal_bar_time: "09:40",
+              signal_age_minutes: 4,
+              signal_freshness: "FRESH",
               scan_time: "09:42",
               trade_side: "LONG",
               grade: "A_PLUS",
@@ -98,6 +107,7 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
               target_1: 2862.65,
               target_2: 2875.55,
               major_risks: ["momentum_decay_watch"],
+              reversal_flags: [],
               reasons: ["Opening range breakout"],
             },
           ],
@@ -110,6 +120,12 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
             symbol: "RELIANCE",
             trade_date: "2026-04-21",
             scan_time: "09:42",
+            signal_bar_time: "09:40",
+            refresh_time: "10:05 IST",
+            market_data_last_updated: "10:04 IST",
+            signal_age_minutes: 4,
+            signal_freshness: "FRESH",
+            signal_is_fresh: true,
             trade_side: "LONG",
             grade: "A_PLUS",
             entry_state: "ENTER_NOW",
@@ -137,6 +153,7 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
             rr_t2: 3.13,
             reasons: ["Opening range breakout", "Price VWAP ke upar sustain"],
             major_risks: ["momentum_decay_watch"],
+            reversal_flags: ["intrabar_reversal_watch"],
             grade_history: ["A", "A_PLUS"],
             warning_flags: ["low_volume_confirmation_watch"],
             entry_notes: ["Direct entry: breakout candle close above OR high"],
@@ -153,16 +170,24 @@ describe("normalizeMomentumPulseStrategyResponse", () => {
     expect(response.status).toBe("ready");
     expect(response.total_candidates).toBe(18);
     expect(response.summary.enter_now_count).toBe(1);
+    expect(response.summary.fresh_signal_count).toBe(1);
+    expect(response.summary.avg_signal_age_minutes).toBe(7);
     expect(response.summary.avg_execution_rank).toBe(3.5);
     expect(response.overall_summary.avoid_count).toBe(11);
+    expect(response.overall_summary.stale_signal_count).toBe(6);
     expect(response.best_stocks.overall_best[0]?.symbol).toBe("RELIANCE");
     expect(response.best_stocks.overall_best[0]?.entry_state).toBe("ENTER_NOW");
+    expect(response.best_stocks.overall_best[0]?.signal_freshness).toBe("FRESH");
     expect(response.rows[0]?.symbol).toBe("RELIANCE");
+    expect(response.rows[0]?.signal_bar_time).toBe("09:40");
+    expect(response.rows[0]?.signal_age_minutes).toBe(4);
+    expect(response.rows[0]?.signal_freshness).toBe("FRESH");
     expect(response.rows[0]?.trade_side).toBe("LONG");
     expect(response.rows[0]?.execution_rank).toBe(2);
     expect(response.rows[0]?.grade_stability_score).toBe(86.4);
     expect(response.rows[0]?.retest_ok).toBe(true);
     expect(response.rows[0]?.major_risks).toContain("momentum_decay_watch");
+    expect(response.rows[0]?.reversal_flags).toContain("intrabar_reversal_watch");
     expect(response.rows[0]?.warning_flags).toContain(
       "low_volume_confirmation_watch",
     );

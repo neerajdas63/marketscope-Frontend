@@ -17,6 +17,7 @@ import { FiftyTwoWeekTab } from "@/components/FiftyTwoWeekTab";
 import { FoRadarTab } from "@/components/FoRadarTab";
 import { MomentumPulseTab } from "@/components/MomentumPulseTab";
 import { MomentumPulseStrategyTab } from "@/components/MomentumPulseStrategyTab";
+import { MomentumPulseStrategyReviewTab } from "@/components/MomentumPulseStrategyReviewTab";
 import { PulseNavigatorTab } from "@/components/PulseNavigatorTab";
 import { SequenceSignalsTab } from "@/components/SequenceSignalsTab";
 import {
@@ -181,6 +182,11 @@ const Index = () => {
         {activeTab === "momentum-pulse-strategy" && (
           <ErrorBoundary name="MomentumPulseStrategyTab">
             <MomentumPulseStrategyTab />
+          </ErrorBoundary>
+        )}
+        {activeTab === "momentum-pulse-strategy-review" && (
+          <ErrorBoundary name="MomentumPulseStrategyReviewTab">
+            <MomentumPulseStrategyReviewTab />
           </ErrorBoundary>
         )}
         {activeTab === "pulse-navigator" && (

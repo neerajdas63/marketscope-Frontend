@@ -11,6 +11,7 @@ export const APP_TABS = [
   "rfactor",
   "momentum-pulse",
   "momentum-pulse-strategy",
+  "momentum-pulse-strategy-review",
   "pulse-navigator",
   "sequence-signals",
   "planner",
@@ -38,6 +39,7 @@ export const APP_TAB_LABELS: Record<AppTab, string> = {
   foradar: "F&O RADAR",
   "momentum-pulse": "MOMENTUM PULSE",
   "momentum-pulse-strategy": "PULSE STRATEGY",
+  "momentum-pulse-strategy-review": "STRATEGY REVIEW",
   "pulse-navigator": "PULSE NAVIGATOR",
   "sequence-signals": "SEQUENCE SIGNALS",
 };

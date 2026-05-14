@@ -7,6 +7,7 @@ describe("appTabs", () => {
     expect(isAppTab("pulse-navigator")).toBe(true);
     expect(isAppTab("momentum-pulse")).toBe(true);
     expect(isAppTab("momentum-pulse-strategy")).toBe(true);
+    expect(isAppTab("momentum-pulse-strategy-review")).toBe(true);
   });
 
   it("rejects invalid tab values", () => {

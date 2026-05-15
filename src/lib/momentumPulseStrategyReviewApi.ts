@@ -1,8 +1,10 @@
 import { apiFetch } from "@/lib/api";
 import {
+  createEmptyMomentumPulseStrategyReviewCaptureStatus,
   createEmptyMomentumPulseStrategyReviewResponse,
   createEmptyMomentumPulseStrategyReviewSummary,
   type KnownMomentumPulseStrategyReviewOutcome,
+  type MomentumPulseStrategyReviewCaptureStatus,
   type MomentumPulseStrategyReviewQuery,
   type MomentumPulseStrategyReviewReasonStat,
   type MomentumPulseStrategyReviewResponse,
@@ -205,6 +207,53 @@ function normalizeSummary(value: unknown): MomentumPulseStrategyReviewSummary {
   };
 }
 
+function normalizeCaptureStatus(
+  value: unknown,
+): MomentumPulseStrategyReviewCaptureStatus {
+  if (!value || typeof value !== "object") {
+    return createEmptyMomentumPulseStrategyReviewCaptureStatus();
+  }
+
+  const data = value as Record<string, unknown>;
+
+  return {
+    last_capture_time:
+      asOptionalString(data.last_capture_time) ??
+      asOptionalString(data.last_capture_at) ??
+      asOptionalString(data.capture_time) ??
+      "",
+    rows_seen:
+      asFiniteNumber(data.rows_seen) ??
+      asFiniteNumber(data.seen_count) ??
+      0,
+    signal_window_rows:
+      asFiniteNumber(data.signal_window_rows) ??
+      asFiniteNumber(data.rows_in_signal_window) ??
+      asFiniteNumber(data.signal_window_count) ??
+      0,
+    a_plus_a_seen:
+      asFiniteNumber(data.a_plus_a_seen) ??
+      asFiniteNumber(data.a_a_plus_seen) ??
+      asFiniteNumber(data.aa_plus_seen) ??
+      asFiniteNumber(data.a_grade_seen) ??
+      0,
+    a_plus_a_signal_window_seen:
+      asFiniteNumber(data.a_plus_a_signal_window_seen) ??
+      asFiniteNumber(data.a_plus_a_in_signal_window) ??
+      asFiniteNumber(data.a_a_plus_signal_window_seen) ??
+      asFiniteNumber(data.a_grade_signal_window_seen) ??
+      0,
+    recorded_count: asFiniteNumber(data.recorded_count) ?? 0,
+    latest_signal_bar_time:
+      asOptionalString(data.latest_signal_bar_time) ??
+      asOptionalString(data.last_signal_bar_time) ??
+      "",
+    top_reasons_seen: normalizeReasonStats(
+      data.top_reasons_seen ?? data.reasons_seen,
+    ),
+  };
+}
+
 function normalizeDates(value: unknown) {
   if (typeof value === "string") {
     const normalized = value.trim();
@@ -285,6 +334,10 @@ function normalizeReviewRow(value: unknown): MomentumPulseStrategyReviewRow | nu
   };
 }
 
+function isRenderableReviewRow(row: MomentumPulseStrategyReviewRow) {
+  return row.trade_side !== "NO_TRADE" && row.grade !== "NO_TRADE";
+}
+
 export function normalizeMomentumPulseStrategyReviewResponse(
   payload: unknown,
   query: MomentumPulseStrategyReviewQuery,
@@ -302,7 +355,8 @@ export function normalizeMomentumPulseStrategyReviewResponse(
 
   const rows = rawRows
     .map((row) => normalizeReviewRow(row))
-    .filter((row): row is MomentumPulseStrategyReviewRow => row !== null);
+    .filter((row): row is MomentumPulseStrategyReviewRow => row !== null)
+    .filter((row) => isRenderableReviewRow(row));
 
   return {
     feature: asOptionalString(data.feature) ?? "Momentum Pulse Strategy Review",
@@ -316,6 +370,7 @@ export function normalizeMomentumPulseStrategyReviewResponse(
     rows,
     total: asFiniteNumber(data.total) ?? rows.length,
     summary: normalizeSummary(data.summary),
+    capture_status: normalizeCaptureStatus(data.capture_status),
     available_outcomes: normalizeOutcomeOptions(data.available_outcomes),
   };
 }

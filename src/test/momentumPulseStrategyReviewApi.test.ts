@@ -21,6 +21,18 @@ describe("normalizeMomentumPulseStrategyReviewResponse", () => {
         dates: ["2026-05-14"],
         total: 2,
         available_outcomes: ["WIN", "LOSS", "OPEN", "NO_DATA"],
+        capture_status: {
+          last_capture_time: "2026-05-14 12:01 IST",
+          rows_seen: 24,
+          signal_window_rows: 11,
+          a_plus_a_seen: 3,
+          a_plus_a_signal_window_seen: 2,
+          recorded_count: 1,
+          latest_signal_bar_time: "11:55",
+          top_reasons_seen: [
+            { label: "opening range breakout", count: 4 },
+          ],
+        },
         summary: {
           total_signals: 2,
           win_count: 1,
@@ -69,6 +81,14 @@ describe("normalizeMomentumPulseStrategyReviewResponse", () => {
             reversal_flags: [],
             reasons: ["Opening range breakout"],
           },
+          {
+            symbol: "INFY",
+            trade_date: "2026-05-14",
+            signal_bar_time: "14:10",
+            trade_side: "NO_TRADE",
+            grade: "NO_TRADE",
+            outcome: "NO_DATA",
+          },
         ],
       },
       query,
@@ -87,6 +107,16 @@ describe("normalizeMomentumPulseStrategyReviewResponse", () => {
       label: "reversal_fail",
       count: 1,
     });
+    expect(response.capture_status.last_capture_time).toBe(
+      "2026-05-14 12:01 IST",
+    );
+    expect(response.capture_status.rows_seen).toBe(24);
+    expect(response.capture_status.a_plus_a_signal_window_seen).toBe(2);
+    expect(response.capture_status.top_reasons_seen[0]).toEqual({
+      label: "opening range breakout",
+      count: 4,
+    });
+    expect(response.rows).toHaveLength(1);
     expect(response.rows[0]?.symbol).toBe("RELIANCE");
     expect(response.rows[0]?.outcome).toBe("WIN");
     expect(response.rows[0]?.win_loss_reason_codes).toContain("breakout_hold");

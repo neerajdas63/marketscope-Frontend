@@ -262,6 +262,10 @@ function getReasonPreview(row: MomentumPulseStrategyReviewRow) {
   return "--";
 }
 
+function isRenderableReviewRow(row: MomentumPulseStrategyReviewRow) {
+  return row.trade_side !== "NO_TRADE" && row.grade !== "NO_TRADE";
+}
+
 function ToneBadge({
   label,
   tone,
@@ -652,6 +656,57 @@ function ReviewSkeleton() {
   );
 }
 
+function CaptureStatusPanel({
+  lastCaptureTime,
+  rowsSeen,
+  signalWindowRows,
+  aPlusASeen,
+  aPlusASignalWindowSeen,
+  recordedCount,
+  latestSignalBarTime,
+  topReasonsSeen,
+}: {
+  lastCaptureTime: string;
+  rowsSeen: number;
+  signalWindowRows: number;
+  aPlusASeen: number;
+  aPlusASignalWindowSeen: number;
+  recordedCount: number;
+  latestSignalBarTime: string;
+  topReasonsSeen: MomentumPulseStrategyReviewReasonStat[];
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Last Capture Time"
+          value={lastCaptureTime || "--"}
+        />
+        <SummaryCard label="Rows Seen" value={formatNumber(rowsSeen, 0)} />
+        <SummaryCard
+          label="Rows In 09:35-12:00"
+          value={formatNumber(signalWindowRows, 0)}
+        />
+        <SummaryCard label="A/A+ Seen" value={formatNumber(aPlusASeen, 0)} />
+        <SummaryCard
+          label="A/A+ In Signal Window"
+          value={formatNumber(aPlusASignalWindowSeen, 0)}
+        />
+        <SummaryCard
+          label="Recorded Count"
+          value={formatNumber(recordedCount, 0)}
+        />
+        <SummaryCard
+          label="Latest Signal Bar Time"
+          value={latestSignalBarTime || "--"}
+        />
+      </div>
+
+      <RankedReasonList title="Top Reasons Seen" items={topReasonsSeen} />
+    </div>
+  );
+}
+
 export function MomentumPulseStrategyReviewTab() {
   const isMobile = useIsMobile();
   const [selectedDate, setSelectedDate] = useState(() => getTodayIstDate());
@@ -721,11 +776,13 @@ export function MomentumPulseStrategyReviewTab() {
         outcome && items.indexOf(outcome) === index && outcome !== "ALL",
     ),
   ];
+  const reviewRows = data.rows.filter((row) => isRenderableReviewRow(row));
   const visibleRows =
     outcomeFilter === "ALL"
-      ? data.rows
-      : data.rows.filter((row) => row.outcome === outcomeFilter);
+      ? reviewRows
+      : reviewRows.filter((row) => row.outcome === outcomeFilter);
   const reviewRangeLabel = formatDatesCoverage(data.dates);
+  const captureStatus = data.capture_status;
 
   return (
     <div className="space-y-6 px-4 py-5 md:px-6">
@@ -740,7 +797,7 @@ export function MomentumPulseStrategyReviewTab() {
               <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                 <span>Mode: Review</span>
                 <span>Dates: {reviewRangeLabel}</span>
-                <span>Total Rows: {data.total}</span>
+                <span>Total Rows: {reviewRows.length}</span>
                 <span>Fetch Limit: {getLimitForDays(days)}</span>
               </div>
               {data.message ? (
@@ -870,10 +927,63 @@ export function MomentumPulseStrategyReviewTab() {
                 <div className="text-sm text-muted-foreground">
                   Signals are recorded from live Strategy usage after deployment.
                 </div>
+                {captureStatus.recorded_count === 0 ? (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+                    No A/A+ Strategy setups were captured during 09:35-12:00
+                    for this date. Keep backend running during the signal
+                    window.
+                  </div>
+                ) : null}
                 <div className="text-sm text-muted-foreground">
                   Current request: {selectedDate || "latest"} | {days}{" "}
                   {days === 1 ? "day" : "days"} | limit {getLimitForDays(days)}
                 </div>
+                <CaptureStatusPanel
+                  lastCaptureTime={captureStatus.last_capture_time}
+                  rowsSeen={captureStatus.rows_seen}
+                  signalWindowRows={captureStatus.signal_window_rows}
+                  aPlusASeen={captureStatus.a_plus_a_seen}
+                  aPlusASignalWindowSeen={
+                    captureStatus.a_plus_a_signal_window_seen
+                  }
+                  recordedCount={captureStatus.recorded_count}
+                  latestSignalBarTime={captureStatus.latest_signal_bar_time}
+                  topReasonsSeen={captureStatus.top_reasons_seen}
+                />
+              </CardContent>
+            </Card>
+          ) : reviewRows.length === 0 ? (
+            <Card className="border-border/70 bg-card/70">
+              <CardContent className="space-y-3 p-6">
+                <div className="text-lg font-semibold text-foreground">
+                  No review signals available
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Signals are recorded from live Strategy usage after deployment.
+                </div>
+                {captureStatus.recorded_count === 0 ? (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+                    No A/A+ Strategy setups were captured during 09:35-12:00
+                    for this date. Keep backend running during the signal
+                    window.
+                  </div>
+                ) : null}
+                <div className="rounded-xl border border-border/60 bg-background/70 px-3 py-2 text-sm text-muted-foreground">
+                  Current payload only contains non-review `NO_TRADE` rows, so
+                  nothing is shown as a recorded review trade.
+                </div>
+                <CaptureStatusPanel
+                  lastCaptureTime={captureStatus.last_capture_time}
+                  rowsSeen={captureStatus.rows_seen}
+                  signalWindowRows={captureStatus.signal_window_rows}
+                  aPlusASeen={captureStatus.a_plus_a_seen}
+                  aPlusASignalWindowSeen={
+                    captureStatus.a_plus_a_signal_window_seen
+                  }
+                  recordedCount={captureStatus.recorded_count}
+                  latestSignalBarTime={captureStatus.latest_signal_bar_time}
+                  topReasonsSeen={captureStatus.top_reasons_seen}
+                />
               </CardContent>
             </Card>
           ) : visibleRows.length === 0 ? (

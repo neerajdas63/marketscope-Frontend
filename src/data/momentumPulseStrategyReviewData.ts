@@ -27,6 +27,17 @@ export interface MomentumPulseStrategyReviewReasonStat {
   count: number | null;
 }
 
+export interface MomentumPulseStrategyReviewCaptureStatus {
+  last_capture_time: string;
+  rows_seen: number;
+  signal_window_rows: number;
+  a_plus_a_seen: number;
+  a_plus_a_signal_window_seen: number;
+  recorded_count: number;
+  latest_signal_bar_time: string;
+  top_reasons_seen: MomentumPulseStrategyReviewReasonStat[];
+}
+
 export interface MomentumPulseStrategyReviewSummary {
   total_signals: number;
   win_count: number;
@@ -88,7 +99,21 @@ export interface MomentumPulseStrategyReviewResponse {
   rows: MomentumPulseStrategyReviewRow[];
   total: number;
   summary: MomentumPulseStrategyReviewSummary;
+  capture_status: MomentumPulseStrategyReviewCaptureStatus;
   available_outcomes: (KnownMomentumPulseStrategyReviewOutcome | string)[];
+}
+
+export function createEmptyMomentumPulseStrategyReviewCaptureStatus(): MomentumPulseStrategyReviewCaptureStatus {
+  return {
+    last_capture_time: "",
+    rows_seen: 0,
+    signal_window_rows: 0,
+    a_plus_a_seen: 0,
+    a_plus_a_signal_window_seen: 0,
+    recorded_count: 0,
+    latest_signal_bar_time: "",
+    top_reasons_seen: [],
+  };
 }
 
 export function createEmptyMomentumPulseStrategyReviewSummary(): MomentumPulseStrategyReviewSummary {
@@ -118,6 +143,7 @@ export function createEmptyMomentumPulseStrategyReviewResponse(
     rows: [],
     total: 0,
     summary: createEmptyMomentumPulseStrategyReviewSummary(),
+    capture_status: createEmptyMomentumPulseStrategyReviewCaptureStatus(),
     available_outcomes: ["WIN", "LOSS", "OPEN", "FLAT", "NO_DATA"],
   };
 }

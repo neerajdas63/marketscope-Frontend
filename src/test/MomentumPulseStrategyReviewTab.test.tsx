@@ -205,8 +205,20 @@ describe("MomentumPulseStrategyReviewTab", () => {
 
   it("shows the deployment note for empty review payloads", async () => {
     reviewApiState.fetchMomentumPulseStrategyReviewData.mockImplementation(
-      async (query: MomentumPulseStrategyReviewQuery) =>
-        createEmptyMomentumPulseStrategyReviewResponse(query),
+      async (query: MomentumPulseStrategyReviewQuery) => {
+        const response = createEmptyMomentumPulseStrategyReviewResponse(query);
+        response.capture_status = {
+          last_capture_time: "2026-05-15 11:58 IST",
+          rows_seen: 18,
+          signal_window_rows: 7,
+          a_plus_a_seen: 1,
+          a_plus_a_signal_window_seen: 0,
+          recorded_count: 0,
+          latest_signal_bar_time: "11:50",
+          top_reasons_seen: [{ label: "setup incomplete tha", count: 3 }],
+        };
+        return response;
+      },
     );
 
     render(<MomentumPulseStrategyReviewTab />);
@@ -222,5 +234,73 @@ describe("MomentumPulseStrategyReviewTab", () => {
         "Signals are recorded from live Strategy usage after deployment.",
       ),
     ).toBeInTheDocument();
+    expect(screen.getByText("2026-05-15 11:58 IST")).toBeInTheDocument();
+    expect(screen.getByText("Rows Seen")).toBeInTheDocument();
+    expect(screen.getByText("Rows In 09:35-12:00")).toBeInTheDocument();
+    expect(screen.getByText("A/A+ Seen")).toBeInTheDocument();
+    expect(screen.getByText("A/A+ In Signal Window")).toBeInTheDocument();
+    expect(screen.getByText("Recorded Count")).toBeInTheDocument();
+    expect(screen.getByText("Latest Signal Bar Time")).toBeInTheDocument();
+    expect(screen.getByText("Top Reasons Seen")).toBeInTheDocument();
+    expect(screen.getByText("setup incomplete tha")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "No A/A+ Strategy setups were captured during 09:35-12:00 for this date. Keep backend running during the signal window.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("does not render NO_TRADE afternoon rows as review trades", async () => {
+    reviewApiState.fetchMomentumPulseStrategyReviewData.mockImplementation(
+      async (query: MomentumPulseStrategyReviewQuery) => {
+        const response = createEmptyMomentumPulseStrategyReviewResponse(query);
+        response.total = 1;
+        response.rows = [
+          {
+            symbol: "INFY",
+            trade_date: query.date ?? "2026-05-15",
+            signal_bar_time: "14:20",
+            trade_side: "NO_TRADE",
+            grade: "NO_TRADE",
+            entry_state: "",
+            outcome: "NO_DATA",
+            outcome_event: "",
+            outcome_reason: "",
+            win_loss_reason_codes: [],
+            entry_price: null,
+            stop_loss: null,
+            target_1: null,
+            target_2: null,
+            exit_price: null,
+            exit_time: "",
+            max_favorable_pct: null,
+            max_adverse_pct: null,
+            close_pnl_pct: null,
+            execution_rank: null,
+            score: null,
+            momentum_pulse_score: null,
+            volume_ratio: null,
+            range_ratio: null,
+            vwap_distance_pct: null,
+            chase_risk: "",
+            retest_ok: null,
+            major_risks: [],
+            reversal_flags: [],
+            reasons: [],
+          },
+        ];
+        return response;
+      },
+    );
+
+    render(<MomentumPulseStrategyReviewTab />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("No review signals available"),
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("INFY")).not.toBeInTheDocument();
   });
 });
